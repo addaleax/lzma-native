@@ -1,0 +1,19 @@
+#!/usr/bin/env node
+
+var program = require('commander');
+var lzmajs = require('../');
+program
+    .version(lzma.version)
+    .usage('-d|-c < infile > outfile')
+    .option('-d, --decompress',
+	    'Decompress stdin to stdout')
+    .option('-z, --compress',
+	    'Compress stdin to stdout')
+    .parse(process.argv);
+
+if (!(program.decompress || program.compress)) {
+    console.error('Must specify either -d or -z.');
+    return;
+}
+
+// XXX
