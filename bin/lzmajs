@@ -2,18 +2,82 @@
 
 var program = require('commander');
 var lzmajs = require('../');
+var fs = require('fs');
+
 program
-    .version(lzma.version)
-    .usage('-d|-c < infile > outfile')
+    .version(lzmajs.version)
+    .usage('-d|-z [infile] [outfile]')
     .option('-d, --decompress',
 	    'Decompress stdin to stdout')
     .option('-z, --compress',
-	    'Compress stdin to stdout')
-    .parse(process.argv);
+	    'Compress stdin to stdout');
+program.on('--help', function() {
+    console.log('  If <infile> is omitted, reads from stdin.');
+    console.log('  If <outfile> is omitted, writes to stdout.');
+});
+program.parse(process.argv);
 
-if (!(program.decompress || program.compress)) {
+if (!program.decompress) { program.compress = true; }
+
+if (program.decompress && program.compress) {
     console.error('Must specify either -d or -z.');
     return;
 }
 
-// XXX
+if (program.decompress) {
+    var in_fd = 0;
+    var out_fd = 1;
+    if (program.args.length > 0) {
+	in_fd = fs.openSync(program.args.shift(), 'r');
+    }
+    if (program.args.length > 0) {
+	out_fd = fs.openSync(program.args.shift(), 'w');
+    }
+
+    var inStream = {
+	buffer: new Buffer(4096),
+	pos: 0,
+	end: 0,
+	fillBuffer: function() {
+	    this.end = fs.readSync(in_fd, this.buffer, 0, this.buffer.length);
+	    this.pos = 0;
+	},
+	readByte: function() {
+	    if (this.pos >= this.end) { this.fillBuffer(); }
+	    if (this.pos < this.end) {
+		return this.buffer[this.pos++];
+	    }
+	    return -1;
+	},
+	read: function(buffer, bufOffset, length) {
+	    if (this.pos >= this.end) { fillBuffer(); }
+	    var bytesRead = 0;
+	    while (bytesRead < length && this.pos < this.end) {
+		buffer[bufOffset++] = this.buffer[this.pos++];
+		bytesRead++;
+	    }
+	    return bytesRead;
+	}
+    };
+    var outStream = {
+	buffer: new Buffer(4096),
+	pos: 0,
+	flush: function() {
+	    fs.writeSync(out_fd, this.buffer, 0, this.pos);
+	    this.pos = 0;
+	},
+	writeByte: function(byte) {
+	    if (this.pos >= this.buffer.length) { this.flush(); }
+	    this.buffer[this.pos++] = byte;
+	}
+    };
+
+    lzmajs.decompressFile(inStream, outStream);
+    outStream.flush();
+
+    return 0;
+}
+if (program.compress) {
+   console.error('Compression not yet implemented.');
+}
+return 1;
