@@ -10,7 +10,16 @@ program
     .option('-d, --decompress',
 	    'Decompress stdin to stdout')
     .option('-z, --compress',
-	    'Compress stdin to stdout');
+	    'Compress stdin to stdout')
+    .option('-1', 'Fastest/largest compression')
+    .option('-2')
+    .option('-3')
+    .option('-4')
+    .option('-5')
+    .option('-6')
+    .option('-7')
+    .option('-8')
+    .option('-9', 'Slowest/smallest compression');
 program.on('--help', function() {
     console.log('  If <infile> is omitted, reads from stdin.');
     console.log('  If <outfile> is omitted, writes to stdout.');
@@ -21,6 +30,21 @@ if (!program.decompress) { program.compress = true; }
 
 if (program.decompress && program.compress) {
     console.error('Must specify either -d or -z.');
+    return;
+}
+
+var level = undefined;
+for (var l=1; l<=9; l++) {
+    if (program[''+l]) {
+	if (level) {
+	    console.error("Can't specify both -"+level+" and -"+l);
+	    return;
+	}
+	level = l;
+    }
+}
+if (level && program.decompress) {
+    console.error('Compression level has no effect when decompressing.');
     return;
 }
 
@@ -93,7 +117,7 @@ if (program.decompress) {
     return 0;
 }
 if (program.compress) {
-    lzmajs.compressFile(inStream, outStream);
+    lzmajs.compressFile(inStream, outStream, level);
     outStream.flush();
     close_in();
     close_out();
