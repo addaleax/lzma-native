@@ -133,6 +133,59 @@ Handle<Value> lzmaStreamBufferBound(const Arguments& args) {
 	return scope.Close(Number::New(lzma_stream_buffer_bound(arg->Value())));
 }
 
+bool readBufferFromObj(Handle<Value> value, const uint8_t*& ptr, size_t& len) {
+	node::Buffer* buf = NULL;
+	ptr = NULL;
+	len = 0;
+	
+	Local<Object> bufarg = Local<Object>::New(Handle<Object>::Cast(value));
+	if (bufarg.IsEmpty() || bufarg->IsUndefined() || bufarg->IsNull()) {
+	expected_buffer:
+		ThrowException(Exception::TypeError(String::New("Exptected Buffer as input")));
+		return false;
+	}
+	
+	Local<Object> parent = Local<Object>::Cast(bufarg->Get(String::NewSymbol("parent")));
+	if (parent.IsEmpty() || parent->IsUndefined()) {
+		// SlowBuffer
+		buf = node::ObjectWrap::Unwrap<node::Buffer>(bufarg);
+		
+		if (!buf) 
+			goto expected_buffer;
+		
+		if (node::Buffer::Length(buf) == 0) {
+		empty_buffer:
+			ptr = reinterpret_cast<const uint8_t*>("");
+			return true;
+		}
+			
+		ptr = reinterpret_cast<const uint8_t*>(node::Buffer::Data(buf));
+		len = node::Buffer::Length(buf);
+	} else {
+		// Node.js userland Buffer
+		buf = node::ObjectWrap::Unwrap<node::Buffer>(parent);
+		if (!buf)
+			goto expected_buffer;
+		
+		size_t jslen  = Local<Integer>::Cast(bufarg->Get(String::NewSymbol("length")))->Value();
+		size_t offset = Local<Integer>::Cast(bufarg->Get(String::NewSymbol("offset")))->Value();
+		
+		size_t buflen = node::Buffer::Length(buf);
+		if (jslen == 0)
+			goto empty_buffer;
+		
+		if (jslen + offset > buflen) {
+			ThrowException(Exception::TypeError(String::New("invalid buffer")));
+			return false;
+		}
+		
+		ptr = reinterpret_cast<const uint8_t*>(node::Buffer::Data(buf)) + offset;
+		len = jslen;
+	}
+	
+	return true;
+}
+
 Handle<Value> lzmaCRC32(const Arguments& args) {
 	HandleScope scope;
 	Local<Integer> arg = Local<Integer>::Cast(args[1]);
@@ -140,13 +193,15 @@ Handle<Value> lzmaCRC32(const Arguments& args) {
 	if (arg.IsEmpty() || args[1]->IsUndefined())
 		arg = Integer::New(0);
 	
-	node::Buffer* buf = node::ObjectWrap::Unwrap<node::Buffer>(Handle<Object>::Cast(args[0]));
-	if (!buf) {
+	const uint8_t* data;
+	size_t datalen;
+	
+	if (!readBufferFromObj(args[0], data, datalen)) {
 		ThrowException(Exception::TypeError(String::New("CRC32 expects Buffer as input")));
 		return scope.Close(Undefined());
 	}
 	
-	return scope.Close(Integer::NewFromUnsigned(lzma_crc32(reinterpret_cast<const uint8_t*>(node::Buffer::Data(buf)), node::Buffer::Length(buf), arg->Value())));
+	return scope.Close(Integer::NewFromUnsigned(lzma_crc32(data, datalen, arg->Value())));
 }
 
 class FilterArray {
@@ -294,7 +349,7 @@ Handle<Value> lzmaRawDecoderMemusage(const Arguments& args) {
 
 class LZMAStream : public node::ObjectWrap {
 	public:
-		static void Init(Handle<Object> exports);
+		static void Init(Handle<Object> exports, Handle<Object> module);
 	private:
 		explicit LZMAStream() : _(LZMA_STREAM_INIT) {}
 		~LZMAStream() { lzma_end(&_); }
@@ -324,24 +379,24 @@ class LZMAStream : public node::ObjectWrap {
 
 Persistent<Function> LZMAStream::constructor;
 
-void LZMAStream::Init(Handle<Object> exports) {
+void LZMAStream::Init(Handle<Object> exports, Handle<Object> module) {
 	Local<FunctionTemplate> tpl = FunctionTemplate::New(New);
 	tpl->SetClassName(String::NewSymbol("LZMAStream"));
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
-	tpl->PrototypeTemplate()->Set(String::NewSymbol("code"), FunctionTemplate::New(Code)->GetFunction());
-	tpl->PrototypeTemplate()->Set(String::NewSymbol("memusage"), FunctionTemplate::New(Memusage)->GetFunction());
-	tpl->PrototypeTemplate()->Set(String::NewSymbol("getCheck"), FunctionTemplate::New(GetCheck)->GetFunction());
-	tpl->PrototypeTemplate()->Set(String::NewSymbol("memlimitGet"), FunctionTemplate::New(MemlimitSet)->GetFunction());
-	tpl->PrototypeTemplate()->Set(String::NewSymbol("memlimitSet"), FunctionTemplate::New(MemlimitGet)->GetFunction());
-	tpl->PrototypeTemplate()->Set(String::NewSymbol("rawEncoder"), FunctionTemplate::New(RawEncoder)->GetFunction());
-	tpl->PrototypeTemplate()->Set(String::NewSymbol("rawDecoder"), FunctionTemplate::New(RawDecoder)->GetFunction());
+	tpl->PrototypeTemplate()->Set(String::NewSymbol("code"),          FunctionTemplate::New(Code)->GetFunction());
+	tpl->PrototypeTemplate()->Set(String::NewSymbol("memusage"),      FunctionTemplate::New(Memusage)->GetFunction());
+	tpl->PrototypeTemplate()->Set(String::NewSymbol("getCheck"),      FunctionTemplate::New(GetCheck)->GetFunction());
+	tpl->PrototypeTemplate()->Set(String::NewSymbol("memlimitGet"),   FunctionTemplate::New(MemlimitSet)->GetFunction());
+	tpl->PrototypeTemplate()->Set(String::NewSymbol("memlimitSet"),   FunctionTemplate::New(MemlimitGet)->GetFunction());
+	tpl->PrototypeTemplate()->Set(String::NewSymbol("rawEncoder"),    FunctionTemplate::New(RawEncoder)->GetFunction());
+	tpl->PrototypeTemplate()->Set(String::NewSymbol("rawDecoder"),    FunctionTemplate::New(RawDecoder)->GetFunction());
 	tpl->PrototypeTemplate()->Set(String::NewSymbol("filtersUpdate"), FunctionTemplate::New(FiltersUpdate)->GetFunction());
-	tpl->PrototypeTemplate()->Set(String::NewSymbol("easyEncoder"), FunctionTemplate::New(EasyEncoder)->GetFunction());
+	tpl->PrototypeTemplate()->Set(String::NewSymbol("easyEncoder"),   FunctionTemplate::New(EasyEncoder)->GetFunction());
 	tpl->PrototypeTemplate()->Set(String::NewSymbol("streamEncoder"), FunctionTemplate::New(StreamEncoder)->GetFunction());
-	tpl->PrototypeTemplate()->Set(String::NewSymbol("aloneEncoder"), FunctionTemplate::New(AloneEncoder)->GetFunction());
+	tpl->PrototypeTemplate()->Set(String::NewSymbol("aloneEncoder"),  FunctionTemplate::New(AloneEncoder)->GetFunction());
 	tpl->PrototypeTemplate()->Set(String::NewSymbol("streamDecoder"), FunctionTemplate::New(StreamDecoder)->GetFunction());
-	tpl->PrototypeTemplate()->Set(String::NewSymbol("autoDecoder"), FunctionTemplate::New(AutoDecoder)->GetFunction());
-	tpl->PrototypeTemplate()->Set(String::NewSymbol("aloneDecoder"), FunctionTemplate::New(AloneDecoder)->GetFunction());
+	tpl->PrototypeTemplate()->Set(String::NewSymbol("autoDecoder"),   FunctionTemplate::New(AutoDecoder)->GetFunction());
+	tpl->PrototypeTemplate()->Set(String::NewSymbol("aloneDecoder"),  FunctionTemplate::New(AloneDecoder)->GetFunction());
 	constructor = Persistent<Function>::New(tpl->GetFunction());
 	exports->Set(String::NewSymbol("Stream"), constructor);
 }
@@ -351,7 +406,7 @@ Handle<Value> LZMAStream::New(const Arguments& args) {
 	
 	if (args.IsConstructCall()) {
 		(new LZMAStream())->Wrap(args.This());
-		return args.This();
+		return scope.Close(args.This());
 	} else {
 		Local<Value> argv[0] = {};
 		return scope.Close(constructor->NewInstance(0, argv));
@@ -373,7 +428,8 @@ Handle<Value> LZMAStream::Code(const Arguments& args) {
 	lzma_stream* strm = &self->_;
 	lzma_action action;
 	
-	if (args[0].IsEmpty() || args[0]->IsUndefined()) {
+	Local<Object> bufarg = Local<Object>::Cast(args[0]);
+	if (bufarg.IsEmpty() || bufarg->IsUndefined() || bufarg->IsNull()) {
 	finish_nodata:
 		action = LZMA_FINISH;
 		strm->next_in = NULL;
@@ -381,24 +437,18 @@ Handle<Value> LZMAStream::Code(const Arguments& args) {
 	} else {
 		action = LZMA_RUN;
 		
-		node::Buffer* buf = node::ObjectWrap::Unwrap<node::Buffer>(Handle<Object>::Cast(args[0]));
-		if (!buf) {
-			ThrowException(Exception::TypeError(String::New("Cod() expects Buffer as input")));
+		if (!readBufferFromObj(bufarg, strm->next_in, strm->avail_in)) 
 			return scope.Close(Undefined());
-		}
 		
-		if (node::Buffer::Length(buf) == 0)
+		if (strm->avail_in == 0)
 			goto finish_nodata;
-		
-		strm->next_in = reinterpret_cast<const uint8_t*>(node::Buffer::Data(buf));
-		strm->avail_in = node::Buffer::Length(buf);
 	}
 	
 	std::vector<uint8_t> outbuf(8192);
 	strm->next_out = outbuf.data();
 	strm->avail_out = outbuf.size();
 
-	Local<Function> bufferHandler = Local<Function>::Cast(self->handle_->Get(String::NewSymbol("bufferHandler")));
+	Local<Function> bufferHandler = Local<Function>::Cast(args[1]);
 	lzma_ret code = LZMA_OK;
 	
 	while (true) {
@@ -408,6 +458,7 @@ Handle<Value> LZMAStream::Code(const Arguments& args) {
 			size_t outsz = outbuf.size() - strm->avail_out;
 			
 			Handle<Value> argv[1] = { node::Buffer::New(reinterpret_cast<const char*>(outbuf.data()), outsz)->handle_ };
+			
 			bufferHandler->Call(self->handle_, 1, argv);
 			
 			if (strm->avail_out == 0) {
@@ -585,8 +636,8 @@ Handle<Value> LZMAStream::AloneDecoder(const Arguments& args) {
 	return scope.Close(lzmaRet(lzma_alone_decoder(&self->_, memlimit->Value())));
 }
 
-void moduleInit(Handle<Object> exports) {
-	LZMAStream::Init(exports);
+void moduleInit(Handle<Object> exports, Handle<Object> module) {
+	LZMAStream::Init(exports, module);
 	
 	exports->Set(String::NewSymbol("versionNumber"),            FunctionTemplate::New(lzmaVersionNumber)->GetFunction());
 	exports->Set(String::NewSymbol("versionString"),            FunctionTemplate::New(lzmaVersionString)->GetFunction());
@@ -675,4 +726,4 @@ void moduleInit(Handle<Object> exports) {
 	exports->Set(String::NewSymbol("VERSION_STRING"),           String::New(LZMA_VERSION_STRING));
 }
 
-NODE_MODULE(lzma, moduleInit)
+NODE_MODULE(lzma_native, moduleInit)

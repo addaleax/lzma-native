@@ -1,0 +1,40 @@
+{
+	"name": "lzma-native",
+	"version": "0.0.1",
+	"author": {
+		"name": "Hauke Henningsen",
+		"email": "sqrt@entless.org"
+	},
+	"description": "Provides bindings to the native liblzma library",
+	"main": "index",
+	"dependencies": {
+		"bindings": "*",
+		"underscore": "*"
+	},
+	"engines": {
+		"node": ">0.3.0"
+	},
+	"keywords": [
+		"lzma",
+		"compression",
+		"crc32"
+	],
+	"homepage": "https://github.com/addaleax/lzma-native",
+	"licenses": [
+		{
+			"type": "LGPL",
+			"url": "https://github.com/addaleax/lzma-native/raw/master/LICENSE"
+		}
+	],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/addaleax/lzma-native.git"
+	},
+	"scripts": {
+		"install": "node-gyp rebuild"
+	},
+	"gypfile": true,
+	"bugs": {
+		"url": "https://github.com/addaleax/lzma-native/issues"
+	}
+}
