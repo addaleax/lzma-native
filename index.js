@@ -83,6 +83,7 @@ Stream.prototype.aloneDecoder = function(options) {
 };
 
 exports.createStream = function(coder, options) {
+	coder = coder || 'easyEncoder';
 	options = options || {};
 	
 	var stream = new Stream();
@@ -91,7 +92,7 @@ exports.createStream = function(coder, options) {
 	if (options.memlimit)
 		stream.memlimitSet(options.memlimit);
 	
-	return !options.async ? stream.syncStream() : stream.asyncStream();
+	return options.synchronous ? stream.syncStream() : stream.asyncStream();
 };
 
 })();
