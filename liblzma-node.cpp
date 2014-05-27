@@ -2,13 +2,27 @@
 #define BUILDING_NODE_EXTENSION
 #endif
 
+#if __cplusplus > 199711L
+#define ASYNC_CODE_AVAILABLE
+#ifdef WINDOWS
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
+#include <thread>
+#endif
+
 #include <node.h>
 #include <node_object_wrap.h>
 #include <node_buffer.h>
 #include <v8.h>
+
 #include <lzma.h>
+
 #include <vector>
+#include <iostream>
 #include <cstring>
+#include <cassert>
 
 using namespace v8;
 
@@ -41,21 +55,27 @@ lzma_vli Unfilter(Handle<Value> v) {
 			return p->value;
 }
 
-Handle<Value> lzmaRet(lzma_ret rv) {
+const char* lzmaStrError(lzma_ret rv) {
 	switch (rv) {
-		case LZMA_OK:                break;
-		case LZMA_STREAM_END:        break;
-		case LZMA_NO_CHECK:          ThrowException(Exception::Error(String::New("LZMA_NO_CHECK"))); break;
-		case LZMA_UNSUPPORTED_CHECK: ThrowException(Exception::Error(String::New("LZMA_UNSUPPORTED_CHECK"))); break;
-		case LZMA_GET_CHECK:         ThrowException(Exception::Error(String::New("LZMA_GET_CHECK"))); break;
-		case LZMA_MEM_ERROR:         ThrowException(Exception::Error(String::New("LZMA_MEM_ERROR"))); break;
-		case LZMA_MEMLIMIT_ERROR:    ThrowException(Exception::Error(String::New("LZMA_MEMLIMIT_ERROR"))); break;
-		case LZMA_FORMAT_ERROR:      ThrowException(Exception::Error(String::New("LZMA_FORMAT_ERROR"))); break;
-		case LZMA_OPTIONS_ERROR:     ThrowException(Exception::Error(String::New("LZMA_OPTIONS_ERROR"))); break;
-		case LZMA_DATA_ERROR:        ThrowException(Exception::Error(String::New("LZMA_DATA_ERROR"))); break;
-		case LZMA_PROG_ERROR:        ThrowException(Exception::Error(String::New("LZMA_PROG_ERROR"))); break;
-		case LZMA_BUF_ERROR:         ThrowException(Exception::Error(String::New("LZMA_BUF_ERROR"))); break;
+		case LZMA_OK:                return "LZMA_OK";
+		case LZMA_STREAM_END:        return "LZMA_STREAM_END";
+		case LZMA_NO_CHECK:          return "LZMA_NO_CHECK";
+		case LZMA_UNSUPPORTED_CHECK: return "LZMA_UNSUPPORTED_CHECK";
+		case LZMA_GET_CHECK:         return "LZMA_GET_CHECK";
+		case LZMA_MEM_ERROR:         return "LZMA_MEM_ERROR";
+		case LZMA_MEMLIMIT_ERROR:    return "LZMA_MEMLIMIT_ERROR";
+		case LZMA_FORMAT_ERROR:      return "LZMA_FORMAT_ERROR";
+		case LZMA_OPTIONS_ERROR:     return "LZMA_OPTIONS_ERROR";
+		case LZMA_DATA_ERROR:        return "LZMA_DATA_ERROR";
+		case LZMA_PROG_ERROR:        return "LZMA_PROG_ERROR";
+		case LZMA_BUF_ERROR:         return "LZMA_BUF_ERROR";
+		default:                     return "LZMA_UNKNOWN_ERROR";
 	}
+}
+
+Handle<Value> lzmaRet(lzma_ret rv) {
+	if (rv != LZMA_OK && rv != LZMA_STREAM_END)
+		ThrowException(Exception::Error(String::New(lzmaStrError(rv))));
 	
 	return Integer::New(rv);
 }
@@ -350,15 +370,20 @@ Handle<Value> lzmaRawDecoderMemusage(const Arguments& args) {
 class LZMAStream : public node::ObjectWrap {
 	public:
 		static void Init(Handle<Object> exports, Handle<Object> module);
-	private:
-		explicit LZMAStream() : _(LZMA_STREAM_INIT) {}
+	private:	
+		explicit LZMAStream() :
+			_(LZMA_STREAM_INIT), bufsize(8192) {}
 		~LZMAStream() { lzma_end(&_); }
 		
 		static Persistent<Function> constructor;
 		static Handle<Value> New(const Arguments& args);
 		
 		static Handle<Value> _failMissingSelf();
-		
+
+#ifdef ASYNC_CODE_AVAILABLE
+		static Handle<Value> AsyncCode(const Arguments& args);
+#endif 
+
 		static Handle<Value> Code(const Arguments& args);
 		static Handle<Value> Memusage(const Arguments& args);
 		static Handle<Value> MemlimitGet(const Arguments& args);
@@ -375,6 +400,7 @@ class LZMAStream : public node::ObjectWrap {
 		static Handle<Value> AloneDecoder(const Arguments& args);
 		
 		lzma_stream _;
+		size_t bufsize;
 };
 
 Persistent<Function> LZMAStream::constructor;
@@ -383,6 +409,9 @@ void LZMAStream::Init(Handle<Object> exports, Handle<Object> module) {
 	Local<FunctionTemplate> tpl = FunctionTemplate::New(New);
 	tpl->SetClassName(String::NewSymbol("LZMAStream"));
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
+#ifdef ASYNC_CODE_AVAILABLE
+	tpl->PrototypeTemplate()->Set(String::NewSymbol("asyncCode_"),    FunctionTemplate::New(AsyncCode)->GetFunction());
+#endif
 	tpl->PrototypeTemplate()->Set(String::NewSymbol("code"),          FunctionTemplate::New(Code)->GetFunction());
 	tpl->PrototypeTemplate()->Set(String::NewSymbol("memusage"),      FunctionTemplate::New(Memusage)->GetFunction());
 	tpl->PrototypeTemplate()->Set(String::NewSymbol("getCheck"),      FunctionTemplate::New(GetCheck)->GetFunction());
@@ -418,6 +447,126 @@ Handle<Value> LZMAStream::_failMissingSelf() {
 	return Undefined();
 }
 
+#ifdef ASYNC_CODE_AVAILABLE
+#ifdef WINDOWS
+typedef PHANDLE pipe_t;
+
+inline int pipeCreate(pipe_t[2] pipefd) {
+	return CreatePipe(pipefd[0], pipefd[1], NULL, 0) != 0 ? -1 : 0;
+}
+
+inline int pipeRead(pipe_t file, void* buffer, size_t count) {
+	return ReadFile(file, buffer, count, NULL, NULL) != 0  ? -1 : 0;
+}
+
+inline int pipeWrite(pipe_t file, const void* buffer, size_t count) {
+	return WriteFile(file, buffer, count, NULL, NULL) != 0  ? -1 : 0;
+}
+
+inline int pipeClose(pipe_t file) {
+	return CloseHandle(file) != 0  ? -1 : 0;
+}
+
+#define pipeErrno GetLastError
+#else
+typedef int pipe_t;
+
+#define pipeCreate   pipe
+#define pipeRead     read
+#define pipeWrite    write
+#define pipeClose    close
+#define pipeErrno()  errno
+#endif
+
+Handle<Value> LZMAStream::AsyncCode(const Arguments& args) {
+	HandleScope scope;
+	
+	LZMAStream* self = node::ObjectWrap::Unwrap<LZMAStream>(args.This());
+	if (!self)
+		return scope.Close(Undefined());
+	
+	pipe_t toCompressor[2], fromCompressor[2];
+	if (pipeCreate(toCompressor) == -1) {
+	pipe_create_failure:
+		ThrowException(Exception::Error(String::New("Could not create pipe")));
+		return scope.Close(Undefined());
+	}
+	
+	if (pipeCreate(fromCompressor) == -1) {
+		pipeClose(toCompressor[0]);
+		pipeClose(toCompressor[1]);
+		
+		goto pipe_create_failure;
+	}
+	
+	std::thread worker([] (lzma_stream* strm, size_t bufsiz, pipe_t input, pipe_t output) {
+		lzma_action action = LZMA_RUN;
+
+		std::vector<uint8_t> inbuf(bufsiz), outbuf(bufsiz);
+
+		strm->next_in = NULL;
+		strm->avail_in = 0;
+		strm->next_out = outbuf.data();
+		strm->avail_out = outbuf.size();
+		bool inputEnd = false, failure = false;
+
+		while (!failure) {
+			if (strm->avail_in == 0 && !inputEnd) {
+				strm->next_in = inbuf.data();
+				strm->avail_in = 0;
+				
+				int readBytes = pipeRead(input, inbuf.data(), inbuf.size());
+				
+				if (readBytes == 0) {
+					inputEnd = true;
+				} else if (readBytes == -1) {
+					std::cerr << "Read error: " << pipeErrno() << std::endl;
+					inputEnd = true;
+					failure = true;
+				} else {
+					strm->avail_in = readBytes;
+				}
+				
+				if (inputEnd)
+					action = LZMA_FINISH;
+			}
+
+			lzma_ret ret = lzma_code(strm, action);
+
+			if (strm->avail_out == 0 || ret == LZMA_STREAM_END) {
+				size_t writeBytes = outbuf.size() - strm->avail_out;
+
+				if (pipeWrite(output, outbuf.data(), writeBytes) == -1) {
+					std::cerr << "Write error: " << pipeErrno() << std::endl;
+					failure = true;
+				}
+
+				strm->next_out = outbuf.data();
+				strm->avail_out = outbuf.size();
+			}
+
+			if (ret != LZMA_OK) {
+				if (ret == LZMA_STREAM_END)
+					break;
+				
+				std::cerr << "LZMA compression error: " << lzmaStrError(ret) << std::endl;
+				failure = true;
+			}
+		}
+		
+		pipeClose(input);
+		pipeClose(output);
+	}, &self->_, self->bufsize, toCompressor[0], fromCompressor[1]);
+	
+	worker.detach();
+	
+	Local<Array> ret = Array::New(2);
+	ret->Set(0, Integer::New(fromCompressor[0]));
+	ret->Set(1, Integer::New(toCompressor[1]));
+	return scope.Close(ret);
+}
+#endif
+
 Handle<Value> LZMAStream::Code(const Arguments& args) {
 	HandleScope scope;
 	
@@ -444,7 +593,7 @@ Handle<Value> LZMAStream::Code(const Arguments& args) {
 			goto finish_nodata;
 	}
 	
-	std::vector<uint8_t> outbuf(8192);
+	std::vector<uint8_t> outbuf(self->bufsize);
 	strm->next_out = outbuf.data();
 	strm->avail_out = outbuf.size();
 
@@ -724,6 +873,12 @@ void moduleInit(Handle<Object> exports, Handle<Object> module) {
 	exports->Set(String::NewSymbol("VERSION_STABILITY_STABLE"), Integer::NewFromUnsigned(LZMA_VERSION_STABILITY_STABLE));
 	exports->Set(String::NewSymbol("VERSION"),                  Integer::NewFromUnsigned(LZMA_VERSION));
 	exports->Set(String::NewSymbol("VERSION_STRING"),           String::New(LZMA_VERSION_STRING));
+	
+#ifdef ASYNC_CODE_AVAILABLE
+	exports->Set(String::NewSymbol("asyncCodeAvailable"),       Boolean::New(true));
+#else
+	exports->Set(String::NewSymbol("asyncCodeAvailable"),       Boolean::New(false));
+#endif
 }
 
 NODE_MODULE(lzma_native, moduleInit)

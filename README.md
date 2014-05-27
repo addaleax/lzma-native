@@ -3,9 +3,8 @@ lzma-native
 
 Provides bindings to the native liblzma library
 
-===========
-
 Example usage:
+===========
 
 ```js
 var lzma = require('lzma-native');
@@ -21,5 +20,10 @@ input.pipe(stream.getStream()).pipe(output);
 The API is loosely based on the native API, with the `stream.getStream()` method added for convenience.
 Methods like `stream.code` and `lzma.crc32` accept Node.js `Buffer`s as arguments.
 
-The package requires that you have the corresponding C library installed, e. g. via
-`sudo apt-get install liblzma-dev` or your equivalent of that.
+Installation
+===========
+This package requires that you have the corresponding C library installed,
+e. g. via `sudo apt-get install liblzma-dev` or your equivalent of that.
+You can also download the [source](http://tukaani.org/xz/) from the original author.
+
+You may also need a somewhat recent C++ compiler.

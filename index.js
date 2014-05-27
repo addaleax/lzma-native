@@ -4,11 +4,15 @@
 var native = require('bindings')('lzma_native.node');
 var stream = require('stream');
 var util = require('util');
+var fs = require('fs');
+var simpleDuplex = require('./simpleDuplex');
 var _ = require('underscore');
 
 _.extend(exports, native);
 
-exports.Stream.prototype.getStream = function(options) {
+var Stream = exports.Stream;
+
+Stream.prototype.getStream = function(options) {
 	var nativeStream = this;
 	
 	var ret = function() {
@@ -30,5 +34,23 @@ exports.Stream.prototype.getStream = function(options) {
 	
 	return new ret();
 }
+
+Stream.prototype.asyncStream = native.asyncCodeAvailable ? function(options) {
+	var endpoints = this.asyncCode_();
+	if (!endpoints || endpoints.length != 2)
+		throw Error('asyncStream() could not successfully call underlying asyncCode_()');
+	
+	var readStream  = fs.createReadStream (null, { fd: endpoints[0] });
+	var writeStream = fs.createWriteStream(null, { fd: endpoints[1] });
+	
+	// keep the main lzma object alive during threaded compression
+	readStream._lzma = this;
+	readStream.on('end', function() { readStream._lzma = null; });
+	
+	return new simpleDuplex.SimpleDuplex(options, readStream, writeStream);
+} : function() {
+	// no native asyncCode, so we just use the synchronous method
+	return this.getStream();
+};
 
 })();
