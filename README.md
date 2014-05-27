@@ -44,7 +44,7 @@ Encoders and decoders you *probably* are interested in:
 * `aloneEncoder`: Creates `.lzma` files. Supports `.preset` and a bunch of very specific options (see the liblzma C headers for details)
 * `autoDecoder`: Supports various flags. Detects input type automatically.
 
-That is, the following is essentially (a quite slow version of) `cat`:
+That is, the following is essentially (quite a slow version of) `cat`:
 
 ```js
 var encoder = lzma.createStream('easyEncoder');
@@ -71,4 +71,5 @@ e. g. via `sudo apt-get install liblzma-dev` or your equivalent of that.
 You can also download the [source](http://tukaani.org/xz/) from the original author.
 
 You may also need a somewhat recent C++ compiler, and asynchronous
-compression support requires `std::thread`, which is included in C++11.
+compression support requires `std::thread`, which is included in C++11
+(but is not essential for compiling).
