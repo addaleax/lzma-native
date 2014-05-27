@@ -12,7 +12,8 @@ _.extend(exports, native);
 
 var Stream = exports.Stream;
 
-Stream.prototype.getStream = function(options) {
+Stream.prototype.getStream = 
+Stream.prototype.syncStream = function(options) {
 	var nativeStream = this;
 	
 	var ret = function() {
@@ -51,6 +52,46 @@ Stream.prototype.asyncStream = native.asyncCodeAvailable ? function(options) {
 } : function() {
 	// no native asyncCode, so we just use the synchronous method
 	return this.getStream();
+};
+
+Stream.prototype.rawEncoder = function(options) {
+	return this.rawEncoder_(options.filters || []);
+};
+
+Stream.prototype.rawDecoder = function(options) {
+	return this.rawDecoder_(options.filters || []);
+};
+
+Stream.prototype.easyEncoder = function(options) {
+	return this.easyEncoder_(options.preset || exports.PRESET_DEFAULT, options.check || exports.CHECK_CRC32);
+};
+
+Stream.prototype.streamEncoder = function(options) {
+	return this.streamEncoder_(options.filters || [], options.check || exports.CHECK_CRC32);
+};
+
+Stream.prototype.streamDecoder = function(options) {
+	return this.streamDecoder_(options.memlimit || null, options.flags || 0);
+};
+
+Stream.prototype.autoDecoder = function(options) {
+	return this.autoDecoder_(options.memlimit || null, options.flags || 0);
+};
+
+Stream.prototype.aloneDecoder = function(options) {
+	return this.aloneDecoder_(options.memlimit || null);
+};
+
+exports.createStream = function(coder, options) {
+	options = options || {};
+	
+	var stream = new Stream();
+	_.bind(stream[coder], stream)(options);
+	
+	if (options.memlimit)
+		stream.memlimitSet(options.memlimit);
+	
+	return !options.async ? stream.syncStream() : stream.asyncStream();
 };
 
 })();

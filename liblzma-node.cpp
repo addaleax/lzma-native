@@ -410,22 +410,22 @@ void LZMAStream::Init(Handle<Object> exports, Handle<Object> module) {
 	tpl->SetClassName(String::NewSymbol("LZMAStream"));
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 #ifdef ASYNC_CODE_AVAILABLE
-	tpl->PrototypeTemplate()->Set(String::NewSymbol("asyncCode_"),    FunctionTemplate::New(AsyncCode)->GetFunction());
+	tpl->PrototypeTemplate()->Set(String::NewSymbol("asyncCode_"),     FunctionTemplate::New(AsyncCode)->GetFunction());
 #endif
-	tpl->PrototypeTemplate()->Set(String::NewSymbol("code"),          FunctionTemplate::New(Code)->GetFunction());
-	tpl->PrototypeTemplate()->Set(String::NewSymbol("memusage"),      FunctionTemplate::New(Memusage)->GetFunction());
-	tpl->PrototypeTemplate()->Set(String::NewSymbol("getCheck"),      FunctionTemplate::New(GetCheck)->GetFunction());
-	tpl->PrototypeTemplate()->Set(String::NewSymbol("memlimitGet"),   FunctionTemplate::New(MemlimitSet)->GetFunction());
-	tpl->PrototypeTemplate()->Set(String::NewSymbol("memlimitSet"),   FunctionTemplate::New(MemlimitGet)->GetFunction());
-	tpl->PrototypeTemplate()->Set(String::NewSymbol("rawEncoder"),    FunctionTemplate::New(RawEncoder)->GetFunction());
-	tpl->PrototypeTemplate()->Set(String::NewSymbol("rawDecoder"),    FunctionTemplate::New(RawDecoder)->GetFunction());
-	tpl->PrototypeTemplate()->Set(String::NewSymbol("filtersUpdate"), FunctionTemplate::New(FiltersUpdate)->GetFunction());
-	tpl->PrototypeTemplate()->Set(String::NewSymbol("easyEncoder"),   FunctionTemplate::New(EasyEncoder)->GetFunction());
-	tpl->PrototypeTemplate()->Set(String::NewSymbol("streamEncoder"), FunctionTemplate::New(StreamEncoder)->GetFunction());
-	tpl->PrototypeTemplate()->Set(String::NewSymbol("aloneEncoder"),  FunctionTemplate::New(AloneEncoder)->GetFunction());
-	tpl->PrototypeTemplate()->Set(String::NewSymbol("streamDecoder"), FunctionTemplate::New(StreamDecoder)->GetFunction());
-	tpl->PrototypeTemplate()->Set(String::NewSymbol("autoDecoder"),   FunctionTemplate::New(AutoDecoder)->GetFunction());
-	tpl->PrototypeTemplate()->Set(String::NewSymbol("aloneDecoder"),  FunctionTemplate::New(AloneDecoder)->GetFunction());
+	tpl->PrototypeTemplate()->Set(String::NewSymbol("code"),           FunctionTemplate::New(Code)->GetFunction());
+	tpl->PrototypeTemplate()->Set(String::NewSymbol("memusage"),       FunctionTemplate::New(Memusage)->GetFunction());
+	tpl->PrototypeTemplate()->Set(String::NewSymbol("getCheck"),       FunctionTemplate::New(GetCheck)->GetFunction());
+	tpl->PrototypeTemplate()->Set(String::NewSymbol("memlimitGet"),    FunctionTemplate::New(MemlimitSet)->GetFunction());
+	tpl->PrototypeTemplate()->Set(String::NewSymbol("memlimitSet"),    FunctionTemplate::New(MemlimitGet)->GetFunction());
+	tpl->PrototypeTemplate()->Set(String::NewSymbol("rawEncoder_"),    FunctionTemplate::New(RawEncoder)->GetFunction());
+	tpl->PrototypeTemplate()->Set(String::NewSymbol("rawDecoder_"),    FunctionTemplate::New(RawDecoder)->GetFunction());
+	tpl->PrototypeTemplate()->Set(String::NewSymbol("filtersUpdate"),  FunctionTemplate::New(FiltersUpdate)->GetFunction());
+	tpl->PrototypeTemplate()->Set(String::NewSymbol("easyEncoder_"),   FunctionTemplate::New(EasyEncoder)->GetFunction());
+	tpl->PrototypeTemplate()->Set(String::NewSymbol("streamEncoder_"), FunctionTemplate::New(StreamEncoder)->GetFunction());
+	tpl->PrototypeTemplate()->Set(String::NewSymbol("aloneEncoder"),   FunctionTemplate::New(AloneEncoder)->GetFunction());
+	tpl->PrototypeTemplate()->Set(String::NewSymbol("streamDecoder_"), FunctionTemplate::New(StreamDecoder)->GetFunction());
+	tpl->PrototypeTemplate()->Set(String::NewSymbol("autoDecoder_"),   FunctionTemplate::New(AutoDecoder)->GetFunction());
+	tpl->PrototypeTemplate()->Set(String::NewSymbol("aloneDecoder_"),  FunctionTemplate::New(AloneDecoder)->GetFunction());
 	constructor = Persistent<Function>::New(tpl->GetFunction());
 	exports->Set(String::NewSymbol("Stream"), constructor);
 }
@@ -754,10 +754,10 @@ Handle<Value> LZMAStream::StreamDecoder(const Arguments& args) {
 	if (!self)
 		return scope.Close(_failMissingSelf());
 	
-	Local<Integer> memlimit = Local<Integer>::Cast(args[0]);
+	uint64_t memlimit = args[0]->IsNull() ? UINT64_MAX : uint64_t(Local<Integer>::Cast(args[0])->Value());
 	Local<Integer> flags = Local<Integer>::Cast(args[1]);
 	
-	return scope.Close(lzmaRet(lzma_stream_decoder(&self->_, memlimit->Value(), flags->Value())));
+	return scope.Close(lzmaRet(lzma_stream_decoder(&self->_, memlimit, flags->Value())));
 }
 
 Handle<Value> LZMAStream::AutoDecoder(const Arguments& args) {
@@ -767,10 +767,10 @@ Handle<Value> LZMAStream::AutoDecoder(const Arguments& args) {
 	if (!self)
 		return scope.Close(_failMissingSelf());
 	
-	Local<Integer> memlimit = Local<Integer>::Cast(args[0]);
+	uint64_t memlimit = args[0]->IsNull() ? UINT64_MAX : uint64_t(Local<Integer>::Cast(args[0])->Value());
 	Local<Integer> flags = Local<Integer>::Cast(args[1]);
 	
-	return scope.Close(lzmaRet(lzma_auto_decoder(&self->_, memlimit->Value(), flags->Value())));
+	return scope.Close(lzmaRet(lzma_auto_decoder(&self->_, memlimit, flags->Value())));
 }
 
 Handle<Value> LZMAStream::AloneDecoder(const Arguments& args) {
@@ -780,9 +780,9 @@ Handle<Value> LZMAStream::AloneDecoder(const Arguments& args) {
 	if (!self)
 		return scope.Close(_failMissingSelf());
 	
-	Local<Integer> memlimit = Local<Integer>::Cast(args[0]);
+	uint64_t memlimit = args[0]->IsNull() ? UINT64_MAX : uint64_t(Local<Integer>::Cast(args[0])->Value());
 	
-	return scope.Close(lzmaRet(lzma_alone_decoder(&self->_, memlimit->Value())));
+	return scope.Close(lzmaRet(lzma_alone_decoder(&self->_, memlimit)));
 }
 
 void moduleInit(Handle<Object> exports, Handle<Object> module) {
