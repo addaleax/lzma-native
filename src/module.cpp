@@ -27,7 +27,7 @@ void moduleInit(Handle<Object> exports, Handle<Object> module) {
 	exports->Set(String::NewSymbol("versionString"),            FunctionTemplate::New(lzmaVersionString)->GetFunction());
 	exports->Set(String::NewSymbol("checkIsSupported"),         FunctionTemplate::New(lzmaCheckIsSupported)->GetFunction());
 	exports->Set(String::NewSymbol("checkSize"),                FunctionTemplate::New(lzmaCheckSize)->GetFunction());
-	exports->Set(String::NewSymbol("crc32"),                    FunctionTemplate::New(lzmaCRC32)->GetFunction());
+	exports->Set(String::NewSymbol("crc32_"),                    FunctionTemplate::New(lzmaCRC32)->GetFunction());
 	exports->Set(String::NewSymbol("filterEncoderIsSupported"), FunctionTemplate::New(lzmaFilterEncoderIsSupported)->GetFunction());
 	exports->Set(String::NewSymbol("filterDecoderIsSupported"), FunctionTemplate::New(lzmaFilterDecoderIsSupported)->GetFunction());
 	exports->Set(String::NewSymbol("rawEncoderMemusage"),       FunctionTemplate::New(lzmaRawEncoderMemusage)->GetFunction());
@@ -36,7 +36,6 @@ void moduleInit(Handle<Object> exports, Handle<Object> module) {
 	exports->Set(String::NewSymbol("modeIsSupported"),          FunctionTemplate::New(lzmaModeIsSupported)->GetFunction());
 	exports->Set(String::NewSymbol("easyEncoderMemusage"),      FunctionTemplate::New(lzmaEasyEncoderMemusage)->GetFunction());
 	exports->Set(String::NewSymbol("easyDecoderMemusage"),      FunctionTemplate::New(lzmaEasyDecoderMemusage)->GetFunction());
-	exports->Set(String::NewSymbol("streamBufferBound"),        FunctionTemplate::New(lzmaStreamBufferBound)->GetFunction());
 	
 	// enum lzma_ret
 	exports->Set(String::NewSymbol("OK"),                Integer::NewFromUnsigned(LZMA_OK));

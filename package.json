@@ -1,6 +1,6 @@
 {
 	"name": "lzma-native",
-	"version": "0.0.3",
+	"version": "0.0.4",
 	"author": {
 		"name": "Hauke Henningsen",
 		"email": "sqrt@entless.org"
@@ -22,7 +22,7 @@
 	"homepage": "https://github.com/addaleax/lzma-native",
 	"licenses": [
 		{
-			"type": "LGPL",
+			"type": "LGPL-3.0+",
 			"url": "https://github.com/addaleax/lzma-native/raw/master/LICENSE"
 		}
 	],
@@ -36,5 +36,8 @@
 	"gypfile": true,
 	"bugs": {
 		"url": "https://github.com/addaleax/lzma-native/issues"
+	},
+	"devDependencies": {
+		"mocha": "*"
 	}
 }

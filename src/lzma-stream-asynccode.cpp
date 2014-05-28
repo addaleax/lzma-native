@@ -21,7 +21,7 @@
 #ifdef ASYNC_CODE_AVAILABLE
 
 #include <thread>
-#include <iostream>
+#include <sstream>
 
 #ifdef WINDOWS
 #include <windows.h>
@@ -83,16 +83,19 @@ Handle<Value> LZMAStream::AsyncCode(const Arguments& args) {
 		goto pipe_create_failure;
 	}
 	
-	std::thread worker([] (lzma_stream* strm, size_t bufsiz, pipe_t input, pipe_t output) {
+	std::thread worker([] (LZMAStream* self, pipe_t input, pipe_t output) {
+		lzma_stream* strm = &self->_;
+		
 		lzma_action action = LZMA_RUN;
 
-		std::vector<uint8_t> inbuf(bufsiz), outbuf(bufsiz);
+		std::vector<uint8_t> inbuf(self->bufsize), outbuf(self->bufsize);
 
 		strm->next_in = NULL;
 		strm->avail_in = 0;
 		strm->next_out = outbuf.data();
 		strm->avail_out = outbuf.size();
 		bool inputEnd = false, failure = false;
+		std::ostringstream errstream;
 
 		while (!failure) {
 			if (strm->avail_in == 0 && !inputEnd) {
@@ -104,7 +107,9 @@ Handle<Value> LZMAStream::AsyncCode(const Arguments& args) {
 				if (readBytes == 0) {
 					inputEnd = true;
 				} else if (readBytes == -1) {
-					std::cerr << "Read error: " << pipeErrno() << std::endl;
+					errstream << "Read error: " << pipeErrno() << "\n";
+					self->error = errstream.str();
+					
 					inputEnd = true;
 					failure = true;
 				} else {
@@ -121,7 +126,8 @@ Handle<Value> LZMAStream::AsyncCode(const Arguments& args) {
 				size_t writeBytes = outbuf.size() - strm->avail_out;
 
 				if (pipeWrite(output, outbuf.data(), writeBytes) == -1) {
-					std::cerr << "Write error: " << pipeErrno() << std::endl;
+					errstream << "Write error: " << pipeErrno() << "\n";
+					self->error = errstream.str();
 					failure = true;
 				}
 
@@ -133,14 +139,15 @@ Handle<Value> LZMAStream::AsyncCode(const Arguments& args) {
 				if (ret == LZMA_STREAM_END)
 					break;
 				
-				std::cerr << "LZMA compression error: " << lzmaStrError(ret) << std::endl;
+				errstream << "LZMA coding error: " << lzmaStrError(ret) << "\n";
+				self->error = errstream.str();
 				failure = true;
 			}
 		}
 		
 		pipeClose(input);
 		pipeClose(output);
-	}, &self->_, self->bufsize, toCompressor[0], fromCompressor[1]);
+	}, self, toCompressor[0], fromCompressor[1]);
 	
 	worker.detach();
 	

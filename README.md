@@ -31,7 +31,7 @@ For the older `.lzma` format, you can just use `aloneEncoder` instead.
 The API is loosely based on the native API, with a few bits of wrapper code added for convenience.
 Methods like `stream.code` and `lzma.crc32` accept Node.js `Buffer`s as arguments.
 
-Unless you set `.synchronous = true` in `createStream`s second parameter, the libary will use its
+Unless you set `.synchronous = true` in `createStream`s second parameter, the library will use its
 own thread for compression (if compiled with support for that).
 
 The `encoder` object here is an instance of `stream.Duplex` (see the [Node.js docs](http://nodejs.org/api/stream.html)),
@@ -61,14 +61,14 @@ If you know specifically what you want, you may also look into these encoders:
 * `aloneDecoder`: Supports various flags.
 
 Also, all encoders accept a `.memlimit` option.
-Note that, due to the lack of 64-bit integer support in Javascript,
-options regarding memory limits have limited range.
 
 ## Installation
 
 This package requires that you have the corresponding C library installed,
 e. g. via `sudo apt-get install liblzma-dev` or your equivalent of that.
 You can also download the [source](http://tukaani.org/xz/) from the original author.
+
+Once you have the library, `npm install lzma-native` will do.
 
 You may also need a somewhat recent C++ compiler, and asynchronous
 compression support requires `std::thread`, which is included in C++11

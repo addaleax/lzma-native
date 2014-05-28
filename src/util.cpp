@@ -161,4 +161,42 @@ lzma_options_lzma parseOptionsLZMA (Handle<Object> obj) {
 	return r;
 }
 
+Handle<Number> Uint64ToNumber(uint64_t in) {
+	if (in < UINT32_MAX)
+		return Integer::NewFromUnsigned(in);
+	else
+		return Number::New(double(in));
+}
+
+Handle<Value> Uint64ToNumberMaxNull(uint64_t in) {
+	if (in == UINT64_MAX)
+		return Null();
+	else
+		return Uint64ToNumber(in);
+}
+
+Handle<Value> Uint64ToNumber0Null(uint64_t in) {
+	if (in == 0)
+		return Null();
+	else
+		return Uint64ToNumber(in);
+}
+
+uint64_t NumberToUint64ClampNullMax(Handle<Value> in) {
+	if (in->IsNull() || in->IsUndefined())
+		return UINT64_MAX;
+	
+	Handle<Number> n = Handle<Number>::Cast(in);
+	if (n.IsEmpty() && !in.IsEmpty()) {
+		ThrowException(Exception::TypeError(String::New("Number required")));
+		return UINT64_MAX;
+	}
+	
+	Handle<Integer> integer = Handle<Integer>::Cast(n);
+	if (!integer.IsEmpty())
+		return integer->Value();
+	
+	return n->Value();
+}
+
 }

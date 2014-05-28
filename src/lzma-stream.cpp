@@ -35,6 +35,8 @@ void LZMAStream::Init(Handle<Object> exports, Handle<Object> module) {
 	tpl->PrototypeTemplate()->Set(String::NewSymbol("getCheck"),       FunctionTemplate::New(GetCheck)->GetFunction());
 	tpl->PrototypeTemplate()->Set(String::NewSymbol("memlimitGet"),    FunctionTemplate::New(MemlimitSet)->GetFunction());
 	tpl->PrototypeTemplate()->Set(String::NewSymbol("memlimitSet"),    FunctionTemplate::New(MemlimitGet)->GetFunction());
+	tpl->PrototypeTemplate()->Set(String::NewSymbol("totalIn"),        FunctionTemplate::New(TotalIn)->GetFunction());
+	tpl->PrototypeTemplate()->Set(String::NewSymbol("totalOut"),       FunctionTemplate::New(TotalOut)->GetFunction());
 	tpl->PrototypeTemplate()->Set(String::NewSymbol("rawEncoder_"),    FunctionTemplate::New(RawEncoder)->GetFunction());
 	tpl->PrototypeTemplate()->Set(String::NewSymbol("rawDecoder_"),    FunctionTemplate::New(RawDecoder)->GetFunction());
 	tpl->PrototypeTemplate()->Set(String::NewSymbol("filtersUpdate"),  FunctionTemplate::New(FiltersUpdate)->GetFunction());
@@ -44,6 +46,7 @@ void LZMAStream::Init(Handle<Object> exports, Handle<Object> module) {
 	tpl->PrototypeTemplate()->Set(String::NewSymbol("streamDecoder_"), FunctionTemplate::New(StreamDecoder)->GetFunction());
 	tpl->PrototypeTemplate()->Set(String::NewSymbol("autoDecoder_"),   FunctionTemplate::New(AutoDecoder)->GetFunction());
 	tpl->PrototypeTemplate()->Set(String::NewSymbol("aloneDecoder_"),  FunctionTemplate::New(AloneDecoder)->GetFunction());
+	tpl->PrototypeTemplate()->Set(String::NewSymbol("checkError"),     FunctionTemplate::New(CheckError)->GetFunction());
 	constructor = Persistent<Function>::New(tpl->GetFunction());
 	exports->Set(String::NewSymbol("Stream"), constructor);
 }
@@ -101,6 +104,9 @@ Handle<Value> LZMAStream::Code(const Arguments& args) {
 	while (true) {
 		code = lzma_code(&self->_, action);
 		
+		if (code != LZMA_OK && code != LZMA_STREAM_END)
+			break;
+		
 		if (strm->avail_out == 0 || strm->avail_in == 0 || code == LZMA_STREAM_END) {
 			size_t outsz = outbuf.size() - strm->avail_out;
 			
@@ -115,11 +121,11 @@ Handle<Value> LZMAStream::Code(const Arguments& args) {
 			}
 		}
 		
-		if (strm->avail_in == 0 || code != LZMA_OK)
+		if (strm->avail_in == 0)
 			break;
 	}
 	
-	return lzmaRet(code);
+	return scope.Close(lzmaRet(code));
 }
 
 Handle<Value> LZMAStream::Memusage(const Arguments& args) {
@@ -129,17 +135,7 @@ Handle<Value> LZMAStream::Memusage(const Arguments& args) {
 	if (!self)
 		return scope.Close(Undefined());
 	
-	return scope.Close(Integer::NewFromUnsigned(lzma_memusage(&self->_)));
-}
-
-Handle<Value> LZMAStream::MemlimitGet(const Arguments& args) {
-	HandleScope scope;
-	
-	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(args.This());
-	if (!self)
-		return scope.Close(_failMissingSelf());
-	
-	return scope.Close(Integer::NewFromUnsigned(lzma_memlimit_get(&self->_)));
+	return scope.Close(Uint64ToNumber0Null(lzma_memusage(&self->_)));
 }
 
 Handle<Value> LZMAStream::GetCheck(const Arguments& args) {
@@ -152,6 +148,36 @@ Handle<Value> LZMAStream::GetCheck(const Arguments& args) {
 	return scope.Close(Integer::NewFromUnsigned(lzma_get_check(&self->_)));
 }
 
+Handle<Value> LZMAStream::TotalIn(const Arguments& args) {
+	HandleScope scope;
+	
+	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(args.This());
+	if (!self)
+		return scope.Close(_failMissingSelf());
+	
+	return scope.Close(Uint64ToNumber(self->_.total_in));
+}
+
+Handle<Value> LZMAStream::TotalOut(const Arguments& args) {
+	HandleScope scope;
+	
+	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(args.This());
+	if (!self)
+		return scope.Close(_failMissingSelf());
+	
+	return scope.Close(Uint64ToNumber(self->_.total_out));
+}
+
+Handle<Value> LZMAStream::MemlimitGet(const Arguments& args) {
+	HandleScope scope;
+	
+	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(args.This());
+	if (!self)
+		return scope.Close(_failMissingSelf());
+	
+	return scope.Close(Uint64ToNumber0Null(lzma_memlimit_get(&self->_)));
+}
+
 Handle<Value> LZMAStream::MemlimitSet(const Arguments& args) {
 	HandleScope scope;
 	
@@ -159,15 +185,13 @@ Handle<Value> LZMAStream::MemlimitSet(const Arguments& args) {
 	if (!self)
 		return scope.Close(_failMissingSelf());
 		
-	Local<Integer> arg = Local<Integer>::Cast(args[0]);
+	Local<Number> arg = Local<Number>::Cast(args[0]);
 	if (args[0]->IsUndefined() || arg.IsEmpty()) {
-		ThrowException(Exception::TypeError(String::New("memlimitSet() needs an integer argument")));
+		ThrowException(Exception::TypeError(String::New("memlimitSet() needs an number argument")));
 		return scope.Close(Undefined());
 	}
 	
-	lzma_memlimit_set(&self->_, arg->Value());
-	
-	return scope.Close(arg);
+	return scope.Close(lzmaRet(lzma_memlimit_set(&self->_, NumberToUint64ClampNullMax(arg))));
 }
 
 Handle<Value> LZMAStream::RawEncoder(const Arguments& args) {
@@ -252,7 +276,7 @@ Handle<Value> LZMAStream::StreamDecoder(const Arguments& args) {
 	if (!self)
 		return scope.Close(_failMissingSelf());
 	
-	uint64_t memlimit = args[0]->IsNull() ? UINT64_MAX : uint64_t(Local<Integer>::Cast(args[0])->Value());
+	uint64_t memlimit = NumberToUint64ClampNullMax(args[0]);
 	Local<Integer> flags = Local<Integer>::Cast(args[1]);
 	
 	return scope.Close(lzmaRet(lzma_stream_decoder(&self->_, memlimit, flags->Value())));
@@ -265,7 +289,7 @@ Handle<Value> LZMAStream::AutoDecoder(const Arguments& args) {
 	if (!self)
 		return scope.Close(_failMissingSelf());
 	
-	uint64_t memlimit = args[0]->IsNull() ? UINT64_MAX : uint64_t(Local<Integer>::Cast(args[0])->Value());
+	uint64_t memlimit = NumberToUint64ClampNullMax(args[0]);
 	Local<Integer> flags = Local<Integer>::Cast(args[1]);
 	
 	return scope.Close(lzmaRet(lzma_auto_decoder(&self->_, memlimit, flags->Value())));
@@ -278,9 +302,24 @@ Handle<Value> LZMAStream::AloneDecoder(const Arguments& args) {
 	if (!self)
 		return scope.Close(_failMissingSelf());
 	
-	uint64_t memlimit = args[0]->IsNull() ? UINT64_MAX : uint64_t(Local<Integer>::Cast(args[0])->Value());
+	uint64_t memlimit = NumberToUint64ClampNullMax(args[0]);
 	
 	return scope.Close(lzmaRet(lzma_alone_decoder(&self->_, memlimit)));
+}
+
+Handle<Value> LZMAStream::CheckError(const Arguments& args) {
+	HandleScope scope;
+	
+	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(args.This());
+	if (!self)
+		return scope.Close(_failMissingSelf());
+	
+	if (!self->error.empty()) {
+		ThrowException(Exception::Error(String::New(self->error.c_str())));
+		self->error.clear();
+	}
+	
+	return scope.Close(Undefined());
 }
 
 }

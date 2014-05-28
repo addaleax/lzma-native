@@ -42,13 +42,18 @@ Stream.prototype.syncStream = function(options) {
 	util.inherits(ret, stream.Transform);
 	
 	ret.prototype._transform = function(chunk, encoding, callback) {
-		this.nativeStream.code(chunk, _.bind(this.push, this));
+		try {
+			this.nativeStream.code(chunk, _.bind(this.push, this));
+		} catch (e) {
+			this.push(null);
+			this.emit('error', e);
+		}
+		
 		callback();
 	};
 	
 	ret.prototype._flush = function(callback) {
-		this.nativeStream.code(null, _.bind(this.push, this));
-		callback();
+		this._transform(null, null, callback);
 	}
 	
 	return new ret();
@@ -64,9 +69,20 @@ Stream.prototype.asyncStream = native.asyncCodeAvailable ? function(options) {
 	
 	// keep the main lzma object alive during threaded compression
 	readStream._lzma = this;
-	readStream.on('end', function() { readStream._lzma = null; });
 	
-	return new simpleDuplex.SimpleDuplex(options, readStream, writeStream);
+	var duplex = new simpleDuplex.SimpleDuplex(options, readStream, writeStream);
+	readStream.on('end', function() {
+		var lzma = readStream._lzma;
+		readStream._lzma = null;
+		
+		try {
+			lzma.checkError();
+		} catch (e) {
+			duplex.emit('error', e);
+		}
+	});
+	
+	return duplex;
 } : function() {
 	// no native asyncCode, so we just use the synchronous method
 	return this.getStream();
@@ -111,6 +127,18 @@ exports.createStream = function(coder, options) {
 		stream.memlimitSet(options.memlimit);
 	
 	return options.synchronous ? stream.syncStream() : stream.asyncStream();
+};
+
+exports.crc32 = function(input, encoding, presetCRC32) {
+	if (typeof encoding == 'number') {
+		encoding = null;
+		presetCRC32 = encoding;
+	}
+	
+	if (typeof input == 'string') 
+		input = new Buffer(input, encoding);
+	
+	return exports.crc32_(input, presetCRC32 || 0);
 };
 
 })();

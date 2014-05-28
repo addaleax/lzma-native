@@ -34,7 +34,7 @@ Handle<Value> lzmaCheckIsSupported(const Arguments& args) {
 	HandleScope scope;
 	Local<Integer> arg = Local<Integer>::Cast(args[0]);
 	
-	return scope.Close(Integer::NewFromUnsigned(lzma_check_is_supported((lzma_check) arg->Value())));
+	return scope.Close(Boolean::New(lzma_check_is_supported((lzma_check) arg->Value())));
 }
 
 Handle<Value> lzmaCheckSize(const Arguments& args) {
@@ -48,49 +48,42 @@ Handle<Value> lzmaFilterEncoderIsSupported(const Arguments& args) {
 	HandleScope scope;
 	uint64_t arg = FilterByName(args[0]);
 	
-	return scope.Close(Integer::NewFromUnsigned(lzma_filter_encoder_is_supported(arg)));
+	return scope.Close(Boolean::New(lzma_filter_encoder_is_supported(arg)));
 }
 
 Handle<Value> lzmaFilterDecoderIsSupported(const Arguments& args) {
 	HandleScope scope;
 	uint64_t arg = FilterByName(args[0]);
 	
-	return scope.Close(Integer::NewFromUnsigned(lzma_filter_decoder_is_supported(arg)));
+	return scope.Close(Boolean::New(lzma_filter_decoder_is_supported(arg)));
 }
 
 Handle<Value> lzmaMfIsSupported(const Arguments& args) {
 	HandleScope scope;
 	Local<Integer> arg = Local<Integer>::Cast(args[0]);
 	
-	return scope.Close(Integer::NewFromUnsigned(lzma_mf_is_supported((lzma_match_finder) arg->Value())));
+	return scope.Close(Boolean::New(lzma_mf_is_supported((lzma_match_finder) arg->Value())));
 }
 
 Handle<Value> lzmaModeIsSupported(const Arguments& args) {
 	HandleScope scope;
 	Local<Integer> arg = Local<Integer>::Cast(args[0]);
 	
-	return scope.Close(Integer::NewFromUnsigned(lzma_mode_is_supported((lzma_mode) arg->Value())));
+	return scope.Close(Boolean::New(lzma_mode_is_supported((lzma_mode) arg->Value())));
 }
 
 Handle<Value> lzmaEasyEncoderMemusage(const Arguments& args) {
 	HandleScope scope;
 	Local<Integer> arg = Local<Integer>::Cast(args[0]);
 	
-	return scope.Close(Number::New(lzma_easy_encoder_memusage(arg->Value())));
+	return scope.Close(Uint64ToNumberMaxNull(lzma_easy_encoder_memusage(arg->Value())));
 }
 
 Handle<Value> lzmaEasyDecoderMemusage(const Arguments& args) {
 	HandleScope scope;
 	Local<Integer> arg = Local<Integer>::Cast(args[0]);
 	
-	return scope.Close(Number::New(lzma_easy_decoder_memusage(arg->Value())));
-}
-
-Handle<Value> lzmaStreamBufferBound(const Arguments& args) {
-	HandleScope scope;
-	Local<Number> arg = Local<Number>::Cast(args[0]);
-	
-	return scope.Close(Number::New(lzma_stream_buffer_bound(arg->Value())));
+	return scope.Close(Uint64ToNumberMaxNull(lzma_easy_decoder_memusage(arg->Value())));
 }
 
 Handle<Value> lzmaCRC32(const Arguments& args) {
@@ -123,7 +116,7 @@ Handle<Value> lzmaRawEncoderMemusage(const Arguments& args) {
 	if (!fa.ok()) 
 		return scope.Close(Undefined());
 	
-	return scope.Close(Integer::NewFromUnsigned(lzma_raw_encoder_memusage(fa.array())));
+	return scope.Close(Uint64ToNumberMaxNull(lzma_raw_encoder_memusage(fa.array())));
 }
 
 Handle<Value> lzmaRawDecoderMemusage(const Arguments& args) {
@@ -138,7 +131,7 @@ Handle<Value> lzmaRawDecoderMemusage(const Arguments& args) {
 	if (!fa.ok()) 
 		return scope.Close(Undefined());
 	
-	return scope.Close(Integer::NewFromUnsigned(lzma_raw_decoder_memusage(fa.array())));
+	return scope.Close(Uint64ToNumberMaxNull(lzma_raw_decoder_memusage(fa.array())));
 }
 
 }

@@ -29,7 +29,7 @@ FilterArray::FilterArray(Local<Array> arr) : ok_(false) {
 	Local<String> options_ = String::NewSymbol("options");
 	
 	for (uint32_t i = 0; i < len; ++i) {
-		Local<Object> entry = Local<Object>::Cast(arr);
+		Local<Object> entry = Local<Object>::Cast(arr->Get(i));
 		if (entry.IsEmpty() || entry->IsUndefined()) {
 			ThrowException(Exception::TypeError(String::New("Filter array needs object entries")));
 			return;
@@ -41,29 +41,31 @@ FilterArray::FilterArray(Local<Array> arr) : ok_(false) {
 		lzma_filter f;
 		f.id = FilterByName(id);
 		f.options = NULL;
-		if (opt.IsEmpty() || opt->IsUndefined()) {
+		if ((opt.IsEmpty() || opt->IsUndefined() || opt->IsNull()) &&
+			(f.id != LZMA_FILTER_LZMA1 && f.id != LZMA_FILTER_LZMA2)) {
 			filters.push_back(f);
 			continue;
 		}
 		
-		union options bopt;
+		optbuf.push_back(options());
+		union options& bopt = optbuf.back();
 		
-		switch (FilterByName(id)) {
+		switch (f.id) {
 			case LZMA_FILTER_DELTA:
 				bopt.delta.type = (lzma_delta_type) Local<Integer>::Cast(opt->Get(String::NewSymbol("type")))->Value();
 				bopt.delta.dist = Local<Integer>::Cast(opt->Get(String::NewSymbol("dist")))->Value();
+				f.options = &bopt.delta;
 				break;
 			case LZMA_FILTER_LZMA1:
 			case LZMA_FILTER_LZMA2:
 				bopt.lzma = parseOptionsLZMA(opt);
+				f.options = &bopt.lzma;
 				break;
 			default:
-				ThrowException(Exception::TypeError(String::New("LZMA Wrapper library understands .options only for DELTA and LZMA[12] filters")));
+				ThrowException(Exception::TypeError(String::New("LZMA Wrapper library understands .options only for DELTA and LZMA1, LZMA2 filters")));
 				return;
 		}
 		
-		optbuf.push_back(bopt);
-		f.options = &optbuf.back();
 		filters.push_back(f);
 	}
 	

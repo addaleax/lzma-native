@@ -34,6 +34,7 @@
 #include <lzma.h>
 
 #include <vector>
+#include <string>
 
 namespace lzma {
 	using namespace v8;
@@ -66,6 +67,28 @@ namespace lzma {
 	 */
 	lzma_options_lzma parseOptionsLZMA (Handle<Object> obj);
 	
+	/**
+	 * Return a v8 Number representation of an uint64_t.
+	 */
+	Handle<Number> Uint64ToNumber(uint64_t in);
+	
+	/**
+	 * Return a v8 Number representation of an uint64_t where UINT64_MAX will be mapped to null
+	 */
+	Handle<Value> Uint64ToNumberMaxNull(uint64_t in);
+	
+	/**
+	 * Return a v8 Number representation of an uint64_t where 0 will be mapped to null
+	 */
+	Handle<Value> Uint64ToNumber0Null(uint64_t in);
+	
+	/**
+	 * Return a uint64_t representation of a v8 Number,
+	 * where values above UINT64_MAX map to UINT64_MAX and null to UINT64_MAX.
+	 * Throws an TypeError if the input is not a number.
+	 */
+	uint64_t NumberToUint64ClampNullMax(Handle<Value> in);
+	
 	/* bindings in one-to-one correspondence to the lzma functions */
 	Handle<Value> lzmaVersionNumber(const Arguments& args);
 	Handle<Value> lzmaVersionString(const Arguments& args);
@@ -77,7 +100,6 @@ namespace lzma {
 	Handle<Value> lzmaModeIsSupported(const Arguments& args);
 	Handle<Value> lzmaEasyEncoderMemusage(const Arguments& args);
 	Handle<Value> lzmaEasyDecoderMemusage(const Arguments& args);
-	Handle<Value> lzmaStreamBufferBound(const Arguments& args);
 	Handle<Value> lzmaCRC32(const Arguments& args);
 	Handle<Value> lzmaRawEncoderMemusage(const Arguments& args);
 	Handle<Value> lzmaRawDecoderMemusage(const Arguments& args);
@@ -132,6 +154,8 @@ namespace lzma {
 
 			static Handle<Value> Code(const Arguments& args);
 			static Handle<Value> Memusage(const Arguments& args);
+			static Handle<Value> TotalIn(const Arguments& args);
+			static Handle<Value> TotalOut(const Arguments& args);
 			static Handle<Value> MemlimitGet(const Arguments& args);
 			static Handle<Value> MemlimitSet(const Arguments& args);
 			static Handle<Value> GetCheck(const Arguments& args);
@@ -144,9 +168,11 @@ namespace lzma {
 			static Handle<Value> StreamDecoder(const Arguments& args);
 			static Handle<Value> AutoDecoder(const Arguments& args);
 			static Handle<Value> AloneDecoder(const Arguments& args);
+			static Handle<Value> CheckError(const Arguments& args);
 			
 			lzma_stream _;
 			size_t bufsize;
+			std::string error;
 	};
 	
 	/**

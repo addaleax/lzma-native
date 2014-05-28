@@ -33,7 +33,7 @@ function SimpleDuplex(options, readable, writable) {
 	this.source.on('readable', _.bind(function()    { this.read(0); }, this));
 	this.source.on('error',    _.bind(function(err) { this.emit('error', err); }, this));
 	this.sink  .on('error',    _.bind(function(err) { this.emit('error', err); }, this));
-	this.         on('finish',   _.bind(function()  { this.sink.end(); }, this));
+	this.       on('finish',   _.bind(function()  { this.sink.end(); }, this));
 }
 
 util.inherits(SimpleDuplex, stream.Duplex);
