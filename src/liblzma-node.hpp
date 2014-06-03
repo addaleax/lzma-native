@@ -25,6 +25,7 @@
 
 #if __cplusplus > 199711L
 #define ASYNC_CODE_AVAILABLE
+#include <mutex>
 #endif
 
 #include <node.h>
@@ -139,9 +140,8 @@ namespace lzma {
 		public:
 			static void Init(Handle<Object> exports, Handle<Object> module);
 		private:	
-			explicit LZMAStream() :
-				_(LZMA_STREAM_INIT), bufsize(8192) {}
-			~LZMAStream() { lzma_end(&_); }
+			explicit LZMAStream();
+			~LZMAStream();
 			
 			static Persistent<Function> constructor;
 			static Handle<Value> New(const Arguments& args);
@@ -149,7 +149,11 @@ namespace lzma {
 			static Handle<Value> _failMissingSelf();
 
 #ifdef ASYNC_CODE_AVAILABLE
+			std::mutex mutex;
 			static Handle<Value> AsyncCode(const Arguments& args);
+#define LZMA_ASYNC_LOCK(strm) std::lock_guard<std::mutex> lock(strm->mutex);
+#else
+#define LZMA_ASYNC_LOCK(strm)
 #endif 
 
 			static Handle<Value> Code(const Arguments& args);

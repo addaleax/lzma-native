@@ -68,6 +68,7 @@ Handle<Value> LZMAStream::AsyncCode(const Arguments& args) {
 	LZMAStream* self = node::ObjectWrap::Unwrap<LZMAStream>(args.This());
 	if (!self)
 		return scope.Close(Undefined());
+	LZMA_ASYNC_LOCK(self)
 	
 	pipe_t toCompressor[2], fromCompressor[2];
 	if (pipeCreate(toCompressor) == -1) {

@@ -23,6 +23,16 @@ namespace lzma {
 
 Persistent<Function> LZMAStream::constructor;
 
+LZMAStream::LZMAStream()
+	: _(LZMA_STREAM_INIT), bufsize(8192) {
+}
+
+LZMAStream::~LZMAStream() {
+	LZMA_ASYNC_LOCK(this)
+	
+	lzma_end(&_);
+}
+
 void LZMAStream::Init(Handle<Object> exports, Handle<Object> module) {
 	Local<FunctionTemplate> tpl = FunctionTemplate::New(New);
 	tpl->SetClassName(String::NewSymbol("LZMAStream"));
@@ -68,13 +78,14 @@ Handle<Value> LZMAStream::_failMissingSelf() {
 	return Undefined();
 }
 
-Handle<Value> LZMAStream::Code(const Arguments& args) {
+Handle<Value> LZMAStream::Code(const Arguments& args) {	
 	HandleScope scope;
 	
 	LZMAStream* self = node::ObjectWrap::Unwrap<LZMAStream>(args.This());
 	if (!self)
 		return scope.Close(Undefined());
 	
+	LZMA_ASYNC_LOCK(self)
 	lzma_stream* strm = &self->_;
 	lzma_action action;
 	
@@ -134,6 +145,7 @@ Handle<Value> LZMAStream::Memusage(const Arguments& args) {
 	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(args.This());
 	if (!self)
 		return scope.Close(Undefined());
+	LZMA_ASYNC_LOCK(self)
 	
 	return scope.Close(Uint64ToNumber0Null(lzma_memusage(&self->_)));
 }
@@ -144,6 +156,7 @@ Handle<Value> LZMAStream::GetCheck(const Arguments& args) {
 	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(args.This());
 	if (!self)
 		return scope.Close(_failMissingSelf());
+	LZMA_ASYNC_LOCK(self)
 	
 	return scope.Close(Integer::NewFromUnsigned(lzma_get_check(&self->_)));
 }
@@ -154,6 +167,7 @@ Handle<Value> LZMAStream::TotalIn(const Arguments& args) {
 	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(args.This());
 	if (!self)
 		return scope.Close(_failMissingSelf());
+	LZMA_ASYNC_LOCK(self)
 	
 	return scope.Close(Uint64ToNumber(self->_.total_in));
 }
@@ -164,6 +178,7 @@ Handle<Value> LZMAStream::TotalOut(const Arguments& args) {
 	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(args.This());
 	if (!self)
 		return scope.Close(_failMissingSelf());
+	LZMA_ASYNC_LOCK(self)
 	
 	return scope.Close(Uint64ToNumber(self->_.total_out));
 }
@@ -174,6 +189,7 @@ Handle<Value> LZMAStream::MemlimitGet(const Arguments& args) {
 	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(args.This());
 	if (!self)
 		return scope.Close(_failMissingSelf());
+	LZMA_ASYNC_LOCK(self)
 	
 	return scope.Close(Uint64ToNumber0Null(lzma_memlimit_get(&self->_)));
 }
@@ -184,7 +200,8 @@ Handle<Value> LZMAStream::MemlimitSet(const Arguments& args) {
 	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(args.This());
 	if (!self)
 		return scope.Close(_failMissingSelf());
-		
+	LZMA_ASYNC_LOCK(self)
+	
 	Local<Number> arg = Local<Number>::Cast(args[0]);
 	if (args[0]->IsUndefined() || arg.IsEmpty()) {
 		ThrowException(Exception::TypeError(String::New("memlimitSet() needs an number argument")));
@@ -200,6 +217,7 @@ Handle<Value> LZMAStream::RawEncoder(const Arguments& args) {
 	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(args.This());
 	if (!self)
 		return scope.Close(_failMissingSelf());
+	LZMA_ASYNC_LOCK(self)
 	
 	const FilterArray filters(Local<Array>::Cast(args[0]));
 	
@@ -212,6 +230,7 @@ Handle<Value> LZMAStream::RawDecoder(const Arguments& args) {
 	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(args.This());
 	if (!self)
 		return scope.Close(_failMissingSelf());
+	LZMA_ASYNC_LOCK(self)
 	
 	const FilterArray filters(Local<Array>::Cast(args[0]));
 	
@@ -224,6 +243,7 @@ Handle<Value> LZMAStream::FiltersUpdate(const Arguments& args) {
 	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(args.This());
 	if (!self)
 		return scope.Close(_failMissingSelf());
+	LZMA_ASYNC_LOCK(self)
 	
 	const FilterArray filters(Local<Array>::Cast(args[0]));
 	
@@ -236,6 +256,7 @@ Handle<Value> LZMAStream::EasyEncoder(const Arguments& args) {
 	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(args.This());
 	if (!self)
 		return scope.Close(_failMissingSelf());
+	LZMA_ASYNC_LOCK(self)
 	
 	Local<Integer> preset = Local<Integer>::Cast(args[0]);
 	Local<Integer> check = Local<Integer>::Cast(args[1]);
@@ -249,6 +270,7 @@ Handle<Value> LZMAStream::StreamEncoder(const Arguments& args) {
 	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(args.This());
 	if (!self)
 		return scope.Close(_failMissingSelf());
+	LZMA_ASYNC_LOCK(self)
 	
 	const FilterArray filters(Local<Array>::Cast(args[0]));
 	Local<Integer> check = Local<Integer>::Cast(args[1]);
@@ -262,6 +284,7 @@ Handle<Value> LZMAStream::AloneEncoder(const Arguments& args) {
 	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(args.This());
 	if (!self)
 		return scope.Close(_failMissingSelf());
+	LZMA_ASYNC_LOCK(self)
 	
 	Local<Object> opt = Local<Object>::Cast(args[0]);
 	lzma_options_lzma o = parseOptionsLZMA(opt);
@@ -275,6 +298,7 @@ Handle<Value> LZMAStream::StreamDecoder(const Arguments& args) {
 	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(args.This());
 	if (!self)
 		return scope.Close(_failMissingSelf());
+	LZMA_ASYNC_LOCK(self)
 	
 	uint64_t memlimit = NumberToUint64ClampNullMax(args[0]);
 	Local<Integer> flags = Local<Integer>::Cast(args[1]);
@@ -288,6 +312,7 @@ Handle<Value> LZMAStream::AutoDecoder(const Arguments& args) {
 	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(args.This());
 	if (!self)
 		return scope.Close(_failMissingSelf());
+	LZMA_ASYNC_LOCK(self)
 	
 	uint64_t memlimit = NumberToUint64ClampNullMax(args[0]);
 	Local<Integer> flags = Local<Integer>::Cast(args[1]);
@@ -301,6 +326,7 @@ Handle<Value> LZMAStream::AloneDecoder(const Arguments& args) {
 	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(args.This());
 	if (!self)
 		return scope.Close(_failMissingSelf());
+	LZMA_ASYNC_LOCK(self)
 	
 	uint64_t memlimit = NumberToUint64ClampNullMax(args[0]);
 	
@@ -313,6 +339,7 @@ Handle<Value> LZMAStream::CheckError(const Arguments& args) {
 	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(args.This());
 	if (!self)
 		return scope.Close(_failMissingSelf());
+	LZMA_ASYNC_LOCK(self)
 	
 	if (!self->error.empty()) {
 		ThrowException(Exception::Error(String::New(self->error.c_str())));
