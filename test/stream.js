@@ -23,6 +23,9 @@ describe('LZMAStream', function() {
 			stream.on('end', done);
 			stream.on('data', function() {});
 			
+			if (lzma.asyncCodeAvailable)
+				assert.equal(stream.stype, 'asynchronous');
+			
 			fs.createReadStream('test/hamlet.txt.lzma').pipe(stream);
 		});
 		
@@ -30,6 +33,9 @@ describe('LZMAStream', function() {
 			var stream = lzma.createStream('autoDecoder');
 			stream.on('end', done);
 			stream.on('data', function() {});
+			
+			if (lzma.asyncCodeAvailable)
+				assert.equal(stream.stype, 'asynchronous');
 			
 			fs.createReadStream('test/hamlet.txt.xz').pipe(stream);
 		});
@@ -39,6 +45,8 @@ describe('LZMAStream', function() {
 			stream.on('end', done);
 			stream.on('data', function() {});
 			
+			assert.equal(stream.stype, 'synchronous');
+			
 			fs.createReadStream('test/hamlet.txt.lzma').pipe(stream);
 		});
 		
@@ -46,6 +54,8 @@ describe('LZMAStream', function() {
 			var stream = lzma.createStream('autoDecoder', {synchronous: true});
 			stream.on('end', done);
 			stream.on('data', function() {});
+			
+			assert.equal(stream.stype, 'synchronous');
 			
 			fs.createReadStream('test/hamlet.txt.xz').pipe(stream);
 		});
@@ -172,6 +182,25 @@ describe('LZMAStream', function() {
 			});
 			
 			fs.createReadStream('test/random').pipe(enc).pipe(dec).pipe(outstream);
+		});
+	});
+	
+	describe('#createStream', function() {
+		it('should switch to async after too many Stream creations', function(done) {
+			assert.ok(lzma.Stream.maxAsyncStreamCount);
+			lzma.Stream.maxAsyncStreamCount = 3;
+			
+			var streams = [];
+			for (var i = 0; i < lzma.Stream.maxAsyncStreamCount * 2; ++i) 
+				streams.push(lzma.createStream({synchronous: false}));
+			
+			for (var i = lzma.Stream.maxAsyncStreamCount + 1; i < lzma.Stream.maxAsyncStreamCount * 2; ++i)
+				assert.equal(streams[i].stype, 'synchronous');
+				
+			for (var i = 0; i < lzma.Stream.maxAsyncStreamCount * 2; ++i) 
+				streams[i].end();
+			
+			done();
 		});
 	});
 });

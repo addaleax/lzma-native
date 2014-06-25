@@ -37,6 +37,7 @@ Stream.prototype.syncStream = function(options) {
 	var ret = function() {
 		ret.super_.call(this, options);
 		this.nativeStream = nativeStream;
+		this.stype = 'synchronous';
 	};
 	
 	util.inherits(ret, stream.Transform);
@@ -59,6 +60,8 @@ Stream.prototype.syncStream = function(options) {
 	return new ret();
 }
 
+Stream.curAsyncStreamCount = 0;
+Stream.maxAsyncStreamCount = 32;
 Stream.prototype.asyncStream = native.asyncCodeAvailable ? function(options) {
 	var endpoints = this.asyncCode_();
 	if (!endpoints || endpoints.length != 2)
@@ -70,10 +73,12 @@ Stream.prototype.asyncStream = native.asyncCodeAvailable ? function(options) {
 	// keep the main lzma object alive during threaded compression
 	readStream._lzma = this;
 	
+	Stream.curAsyncStreamCount++;
 	var duplex = new simpleDuplex.SimpleDuplex(options, readStream, writeStream);
 	readStream.on('end', function() {
 		var lzma = readStream._lzma;
 		readStream._lzma = null;
+		Stream.curAsyncStreamCount--;
 		
 		try {
 			lzma.checkError();
@@ -82,6 +87,7 @@ Stream.prototype.asyncStream = native.asyncCodeAvailable ? function(options) {
 		}
 	});
 	
+	duplex.stype = 'asynchronous';
 	return duplex;
 } : function() {
 	// no native asyncCode, so we just use the synchronous method
@@ -117,6 +123,11 @@ Stream.prototype.aloneDecoder = function(options) {
 };
 
 exports.createStream = function(coder, options) {
+	if (_.isObject(coder) && !options) {
+		options = coder;
+		coder = null;
+	}
+		
 	coder = coder || 'easyEncoder';
 	options = options || {};
 	
@@ -126,7 +137,8 @@ exports.createStream = function(coder, options) {
 	if (options.memlimit)
 		stream.memlimitSet(options.memlimit);
 	
-	return options.synchronous ? stream.syncStream() : stream.asyncStream();
+	return options.synchronous || ((Stream.curAsyncStreamCount >= Stream.maxAsyncStreamCount) && !options.forceAsynchronous)
+		? stream.syncStream() : stream.asyncStream();
 };
 
 exports.crc32 = function(input, encoding, presetCRC32) {

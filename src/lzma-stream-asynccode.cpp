@@ -62,6 +62,8 @@ namespace {
 #endif
 
 namespace lzma {
+
+/* This is not available to the "public" since it uses C++11 features */
 struct ScopeGuard {
 	std::function<void()> fn;
 	~ScopeGuard() { fn(); }
