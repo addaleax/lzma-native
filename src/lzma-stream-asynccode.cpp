@@ -62,13 +62,27 @@ namespace {
 #endif
 
 namespace lzma {
+struct ScopeGuard {
+	std::function<void()> fn;
+	~ScopeGuard() { fn(); }
+};
+
 Handle<Value> LZMAStream::AsyncCode(const Arguments& args) {
 	HandleScope scope;
 	
 	LZMAStream* self = node::ObjectWrap::Unwrap<LZMAStream>(args.This());
 	if (!self)
 		return scope.Close(Undefined());
+	
 	LZMA_ASYNC_LOCK(self)
+	LZMA_ASYNC_LOCK_LS(self)
+	
+	if (self->hasRunningThread) {
+		ThrowException(Exception::Error(String::New("Can only have one running thread per stream")));
+		return scope.Close(Undefined());
+	}
+	
+	self->hasRunningThread = true;
 	
 	pipe_t toCompressor[2], fromCompressor[2];
 	if (pipeCreate(toCompressor) == -1) {
@@ -85,6 +99,14 @@ Handle<Value> LZMAStream::AsyncCode(const Arguments& args) {
 	}
 	
 	std::thread worker([] (LZMAStream* self, pipe_t input, pipe_t output) {
+		LZMA_ASYNC_LOCK(self)
+		LZMA_ASYNC_LOCK_LS(self)
+		
+		ScopeGuard marker = { [&self] () {
+				self->hasRunningThread = false;
+				self->lifespanCond.notify_all();
+		} };
+		
 		lzma_stream* strm = &self->_;
 		
 		lzma_action action = LZMA_RUN;
@@ -103,7 +125,9 @@ Handle<Value> LZMAStream::AsyncCode(const Arguments& args) {
 				strm->next_in = inbuf.data();
 				strm->avail_in = 0;
 				
+				self->mutex.unlock();
 				int readBytes = pipeRead(input, inbuf.data(), inbuf.size());
+				self->mutex.lock();
 				
 				if (readBytes == 0) {
 					inputEnd = true;

@@ -24,11 +24,16 @@ namespace lzma {
 Persistent<Function> LZMAStream::constructor;
 
 LZMAStream::LZMAStream()
-	: _(LZMA_STREAM_INIT), bufsize(8192) {
+	: hasRunningThread(false), _(LZMA_STREAM_INIT), bufsize(8192) {
 }
 
 LZMAStream::~LZMAStream() {
 	LZMA_ASYNC_LOCK(this)
+	LZMA_ASYNC_LOCK_LS(this) // declares lockLS
+	
+#ifdef ASYNC_CODE_AVAILABLE
+	lifespanCond.wait(lockLS, [this] () { return !hasRunningThread; });
+#endif
 	
 	lzma_end(&_);
 }

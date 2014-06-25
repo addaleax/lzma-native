@@ -26,6 +26,7 @@
 #if __cplusplus > 199711L
 #define ASYNC_CODE_AVAILABLE
 #include <mutex>
+#include <condition_variable>
 #endif
 
 #include <node.h>
@@ -149,11 +150,17 @@ namespace lzma {
 			static Handle<Value> _failMissingSelf();
 
 #ifdef ASYNC_CODE_AVAILABLE
+			std::mutex lifespanMutex;
+			std::condition_variable lifespanCond;
+			bool hasRunningThread;
+			
 			std::mutex mutex;
 			static Handle<Value> AsyncCode(const Arguments& args);
-#define LZMA_ASYNC_LOCK(strm) std::lock_guard<std::mutex> lock(strm->mutex);
+#define LZMA_ASYNC_LOCK(strm)    std::unique_lock<std::mutex> lock(strm->mutex);
+#define LZMA_ASYNC_LOCK_LS(strm) std::unique_lock<std::mutex> lockLS(strm->lifespanMutex);
 #else
 #define LZMA_ASYNC_LOCK(strm)
+#define LZMA_ASYNC_LOCK_LS(strm)
 #endif 
 
 			static Handle<Value> Code(const Arguments& args);
