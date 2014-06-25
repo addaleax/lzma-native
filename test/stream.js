@@ -186,7 +186,7 @@ describe('LZMAStream', function() {
 	});
 	
 	describe('#createStream', function() {
-		it('should switch to async after too many Stream creations', function(done) {
+		it('should switch to synchronous streams after too many Stream creations', function(done) {
 			assert.ok(lzma.Stream.maxAsyncStreamCount);
 			lzma.Stream.maxAsyncStreamCount = 3;
 			
@@ -199,6 +199,14 @@ describe('LZMAStream', function() {
 				
 			for (var i = 0; i < lzma.Stream.maxAsyncStreamCount * 2; ++i) 
 				streams[i].end();
+			
+			done();
+		});
+	});
+	
+	describe('#createStream', function() {
+		it('should work fine when synchronous streams are abandoned', function(done) {
+			lzma.createStream({synchronous: true});
 			
 			done();
 		});
