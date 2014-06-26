@@ -11,7 +11,7 @@
 				"src/module.cpp"
 			],
 			"cflags": [
-				"-std=c++11",
+				"-std=c++0x",
 			],
 			"include_dirs" : [ "build/liblzma/build/include"],
 			"dependencies" : [ "liblzma" ],

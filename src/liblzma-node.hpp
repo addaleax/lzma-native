@@ -23,7 +23,7 @@
 #ifndef LIBLZMA_NODE_HPP
 #define LIBLZMA_NODE_HPP
 
-#if __cplusplus > 199711L
+#if __cplusplus > 199711L || defined(__GXX_EXPERIMENTAL_CXX0X__)
 #define ASYNC_CODE_AVAILABLE
 #include <mutex>
 #include <condition_variable>
@@ -149,10 +149,10 @@ namespace lzma {
 			
 			static Handle<Value> _failMissingSelf();
 
+			bool hasRunningThread;
 #ifdef ASYNC_CODE_AVAILABLE
 			std::mutex lifespanMutex;
 			std::condition_variable lifespanCond;
-			bool hasRunningThread;
 			
 			std::mutex mutex;
 			static Handle<Value> AsyncCode(const Arguments& args);
