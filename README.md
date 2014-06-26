@@ -1,6 +1,8 @@
 lzma-native
 ===========
 
+[![Build Status][1]][2]
+
 Provides bindings to the native liblzma library
 
 ## Example usage:
@@ -75,3 +77,6 @@ compression support requires `std::thread`, which is included in C++11
 The original C library package contains code under various licenses,
 with its core (liblzma) being public domain. See its contents for details.
 This wrapper is licensed under the LGPL 3 or any later version of the LGPL.
+
+[1]: https://travis-ci.org/addaleax/lzma-native.png
+[2]: https://travis-ci.org/addaleax/lzma-native
