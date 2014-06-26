@@ -1,6 +1,6 @@
 {
 	"name": "lzma-native",
-	"version": "0.0.4",
+	"version": "0.0.5",
 	"author": {
 		"name": "Hauke Henningsen",
 		"email": "sqrt@entless.org"
@@ -41,6 +41,6 @@
 		"mocha": "*"
 	},
 	"scripts": {
-		"test": "mocha"
+		"test": "mocha test"
 	}
 }
