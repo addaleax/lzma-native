@@ -64,12 +64,14 @@ Also, all encoders accept a `.memlimit` option.
 
 ## Installation
 
-This package requires that you have the corresponding C library installed,
-e. g. via `sudo apt-get install liblzma-dev` or your equivalent of that.
-You can also download the [source](http://tukaani.org/xz/) from the original author.
+This package includes the native C library, so there is no need to install it separately.
 
-Once you have the library, `npm install lzma-native` will do.
-
-You may also need a somewhat recent C++ compiler, and asynchronous
+You may want to use a somewhat recent C++ compiler, and asynchronous
 compression support requires `std::thread`, which is included in C++11
 (but is not essential for compiling).
+
+## Licensing
+
+The original C library package contains code under various licenses,
+with its core (liblzma) being public domain. See its contents for details.
+This wrapper is licensed under the LGPL 3 or any later version of the LGPL.

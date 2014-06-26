@@ -13,11 +13,26 @@
 			"cflags": [
 				"-std=c++11",
 			],
-			"link_settings": {
-				"libraries": [
-					"-llzma"
-				]
-			}
+			"include_dirs" : [ "build/liblzma/build/include"],
+			"dependencies" : [ "liblzma" ],
+			"libraries" : [ "<(module_root_dir)/build/liblzma/build/lib/liblzma.a" ]
+		},
+		{
+			"target_name" : "liblzma",
+			"type" : "none",
+			"actions" :
+			[
+				{
+					"action_name" : "build",
+					 # a hack to run deps/xz-5.0.5 ./configure during `node-gyp configure`
+					'inputs': ['<!@(sh liblzma-config.sh <(module_root_dir)/build <(module_root_dir)/deps/xz-5.0.5.tar.bz2)'],
+					'outputs': [''],
+					'action': [
+					# run deps/mhash `make`
+					'sh', '<(module_root_dir)/liblzma-build.sh', '<(module_root_dir)/build'
+					]
+				}
+			]
 		}
 	]
 }
