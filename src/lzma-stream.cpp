@@ -24,7 +24,8 @@ namespace lzma {
 Persistent<Function> LZMAStream::constructor;
 
 LZMAStream::LZMAStream()
-	: hasRunningThread(false), _(LZMA_STREAM_INIT), bufsize(8192) {
+	: hasRunningThread(false), bufsize(8192) {
+	memset(&_, 0, sizeof(lzma_stream));
 }
 
 LZMAStream::~LZMAStream() {
