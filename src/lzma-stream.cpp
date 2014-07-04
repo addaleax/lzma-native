@@ -18,6 +18,7 @@
 
 #include "liblzma-node.hpp"
 #include <node_buffer.h>
+#include <cstring>
 
 namespace lzma {
 
@@ -25,7 +26,7 @@ Persistent<Function> LZMAStream::constructor;
 
 LZMAStream::LZMAStream()
 	: hasRunningThread(false), bufsize(8192) {
-	memset(&_, 0, sizeof(lzma_stream));
+	std::memset(&_, 0, sizeof(lzma_stream));
 }
 
 LZMAStream::~LZMAStream() {
