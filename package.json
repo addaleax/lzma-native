@@ -1,6 +1,6 @@
 {
 	"name": "lzma-native",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"author": {
 		"name": "Hauke Henningsen",
 		"email": "sqrt@entless.org"
@@ -9,7 +9,8 @@
 	"main": "index",
 	"dependencies": {
 		"bindings": "*",
-		"underscore": "*"
+		"underscore": "*",
+		"commander": "*"
 	},
 	"engines": {
 		"node": ">=0.10.0"
@@ -17,7 +18,8 @@
 	"keywords": [
 		"lzma",
 		"compression",
-		"crc32"
+		"crc32",
+		"xz"
 	],
 	"homepage": "https://github.com/addaleax/lzma-native",
 	"licenses": [

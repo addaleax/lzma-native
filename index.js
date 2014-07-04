@@ -28,6 +28,8 @@ var _ = require('underscore');
 
 _.extend(exports, native);
 
+exports.version = '0.1.2';
+
 var Stream = exports.Stream;
 
 Stream.prototype.getStream = 

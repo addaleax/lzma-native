@@ -3,7 +3,7 @@ lzma-native
 
 [![Build Status][1]][2]
 
-Provides bindings to the native liblzma library
+Provides Node.js bindings to the native liblzma library
 
 ## Example usage:
 
@@ -19,12 +19,12 @@ This mimicks the functionality of the `xz` command line util.
 Equivalently, one could have written
 
 ```js
-var encoder = lzma.createStream('easyEncoder', {preset: lzma.PRESET_DEFAULT, check: lzma.CHECK_CRC32})
+var encoder = lzma.createStream('easyEncoder', {preset: lzma.PRESET_DEFAULT, check: lzma.CHECK_CRC32});
 ```
 
 or, for stronger and slower compression:
 ```js
-var encoder = lzma.createStream('easyEncoder', {preset: 9})
+var encoder = lzma.createStream('easyEncoder', {preset: 9});
 ```
 
 Here `easyEncoder` corresponds to the `xz` command line util, resp. its file format [.xz](https://en.wikipedia.org/wiki/.xz).
