@@ -27,26 +27,33 @@ Persistent<Function> LZMAStream::constructor;
 LZMAStream::LZMAStream()
 	: hasRunningThread(false), bufsize(8192) {
 	std::memset(&_, 0, sizeof(lzma_stream));
+	uv_mutex_init(&lifespanMutex);
+	uv_mutex_init(&mutex);
+	uv_cond_init(&lifespanCond);
 }
 
 LZMAStream::~LZMAStream() {
-	LZMA_ASYNC_LOCK(this)
-	LZMA_ASYNC_LOCK_LS(this) // declares lockLS
-	
-#ifdef ASYNC_CODE_AVAILABLE
-	lifespanCond.wait(lockLS, [this] () { return !hasRunningThread; });
-#endif
+	{
+		LZMA_ASYNC_LOCK(this)
+		LZMA_ASYNC_LOCK_LS(this) // declares lockLS
+		
+		while (hasRunningThread)
+			uv_cond_wait(&lifespanCond, &lifespanMutex);
+	}
 	
 	lzma_end(&_);
+	
+	uv_mutex_destroy(&mutex);
+	uv_mutex_destroy(&lifespanMutex);
+	uv_cond_destroy(&lifespanCond);
 }
 
 void LZMAStream::Init(Handle<Object> exports, Handle<Object> module) {
 	Local<FunctionTemplate> tpl = FunctionTemplate::New(New);
 	tpl->SetClassName(String::NewSymbol("LZMAStream"));
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
-#ifdef ASYNC_CODE_AVAILABLE
+	
 	tpl->PrototypeTemplate()->Set(String::NewSymbol("asyncCode_"),     FunctionTemplate::New(AsyncCode)->GetFunction());
-#endif
 	tpl->PrototypeTemplate()->Set(String::NewSymbol("code"),           FunctionTemplate::New(Code)->GetFunction());
 	tpl->PrototypeTemplate()->Set(String::NewSymbol("memusage"),       FunctionTemplate::New(Memusage)->GetFunction());
 	tpl->PrototypeTemplate()->Set(String::NewSymbol("getCheck"),       FunctionTemplate::New(GetCheck)->GetFunction());

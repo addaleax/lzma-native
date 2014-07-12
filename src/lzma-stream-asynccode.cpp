@@ -18,9 +18,6 @@
  
 #include "liblzma-node.hpp"
 
-#ifdef ASYNC_CODE_AVAILABLE
-
-#include <thread>
 #include <sstream>
 
 #ifdef WINDOWS
@@ -62,12 +59,102 @@ namespace {
 #endif
 
 namespace lzma {
+namespace {
+	struct asyncCodeThreadInfo {
+		LZMAStream* self;
+		pipe_t input, output;
+	};
+	
+	extern "C" void worker(void* opaque) {
+		asyncCodeThreadInfo* ti = static_cast<asyncCodeThreadInfo*>(opaque);
+		LZMAStream* self = ti->self;
+		self->asyncWorker(ti);
+	}
+}
 
-/* This is not available to the "public" since it uses C++11 features */
-struct ScopeGuard {
-	std::function<void()> fn;
-	~ScopeGuard() { fn(); }
-};
+void LZMAStream::asyncWorker(void* opaque) {
+	asyncCodeThreadInfo* ti = static_cast<asyncCodeThreadInfo*>(opaque);
+	pipe_t input = ti->input, output = ti->output;
+	delete ti;
+	
+	LZMA_ASYNC_LOCK(this)
+	LZMA_ASYNC_LOCK_LS(this)
+	
+	struct _ScopeGuard {
+		_ScopeGuard(LZMAStream* self_) : self(self_) {}
+		~_ScopeGuard() {
+			self->hasRunningThread = false;
+			uv_cond_broadcast(&self->lifespanCond);
+		}
+		
+		LZMAStream* self;
+	};
+	_ScopeGuard guard(this);
+	
+	lzma_action action = LZMA_RUN;
+
+	std::vector<uint8_t> inbuf(bufsize), outbuf(bufsize);
+
+	_.next_in = NULL;
+	_.avail_in = 0;
+	_.next_out = outbuf.data();
+	_.avail_out = outbuf.size();
+	bool inputEnd = false, failure = false;
+	std::ostringstream errstream;
+
+	while (!failure) {
+		if (_.avail_in == 0 && !inputEnd) {
+			_.next_in = inbuf.data();
+			_.avail_in = 0;
+			
+			lock.unlock();
+			int readBytes = pipeRead(input, inbuf.data(), inbuf.size());
+			lock.lock();
+			
+			if (readBytes == 0) {
+				inputEnd = true;
+			} else if (readBytes == -1) {
+				errstream << "Read error: " << pipeErrno() << "\n";
+				error = errstream.str();
+				
+				inputEnd = true;
+				failure = true;
+			} else {
+				_.avail_in = readBytes;
+			}
+			
+			if (inputEnd)
+				action = LZMA_FINISH;
+		}
+
+		lzma_ret ret = lzma_code(&_, action);
+
+		if (_.avail_out == 0 || ret == LZMA_STREAM_END) {
+			size_t writeBytes = outbuf.size() - _.avail_out;
+
+			if (pipeWrite(output, outbuf.data(), writeBytes) == -1) {
+				errstream << "Write error: " << pipeErrno() << "\n";
+				error = errstream.str();
+				failure = true;
+			}
+
+			_.next_out = outbuf.data();
+			_.avail_out = outbuf.size();
+		}
+
+		if (ret != LZMA_OK) {
+			if (ret == LZMA_STREAM_END)
+				break;
+			
+			errstream << "LZMA coding error: " << lzmaStrError(ret) << "\n";
+			error = errstream.str();
+			failure = true;
+		}
+	}
+	
+	pipeClose(input);
+	pipeClose(output);
+}
 
 Handle<Value> LZMAStream::AsyncCode(const Arguments& args) {
 	HandleScope scope;
@@ -100,83 +187,13 @@ Handle<Value> LZMAStream::AsyncCode(const Arguments& args) {
 		goto pipe_create_failure;
 	}
 	
-	std::thread worker([] (LZMAStream* self, pipe_t input, pipe_t output) {
-		LZMA_ASYNC_LOCK(self)
-		LZMA_ASYNC_LOCK_LS(self)
-		
-		ScopeGuard marker = { [&self] () {
-				self->hasRunningThread = false;
-				self->lifespanCond.notify_all();
-		} };
-		
-		lzma_stream* strm = &self->_;
-		
-		lzma_action action = LZMA_RUN;
-
-		std::vector<uint8_t> inbuf(self->bufsize), outbuf(self->bufsize);
-
-		strm->next_in = NULL;
-		strm->avail_in = 0;
-		strm->next_out = outbuf.data();
-		strm->avail_out = outbuf.size();
-		bool inputEnd = false, failure = false;
-		std::ostringstream errstream;
-
-		while (!failure) {
-			if (strm->avail_in == 0 && !inputEnd) {
-				strm->next_in = inbuf.data();
-				strm->avail_in = 0;
-				
-				self->mutex.unlock();
-				int readBytes = pipeRead(input, inbuf.data(), inbuf.size());
-				self->mutex.lock();
-				
-				if (readBytes == 0) {
-					inputEnd = true;
-				} else if (readBytes == -1) {
-					errstream << "Read error: " << pipeErrno() << "\n";
-					self->error = errstream.str();
-					
-					inputEnd = true;
-					failure = true;
-				} else {
-					strm->avail_in = readBytes;
-				}
-				
-				if (inputEnd)
-					action = LZMA_FINISH;
-			}
-
-			lzma_ret ret = lzma_code(strm, action);
-
-			if (strm->avail_out == 0 || ret == LZMA_STREAM_END) {
-				size_t writeBytes = outbuf.size() - strm->avail_out;
-
-				if (pipeWrite(output, outbuf.data(), writeBytes) == -1) {
-					errstream << "Write error: " << pipeErrno() << "\n";
-					self->error = errstream.str();
-					failure = true;
-				}
-
-				strm->next_out = outbuf.data();
-				strm->avail_out = outbuf.size();
-			}
-
-			if (ret != LZMA_OK) {
-				if (ret == LZMA_STREAM_END)
-					break;
-				
-				errstream << "LZMA coding error: " << lzmaStrError(ret) << "\n";
-				self->error = errstream.str();
-				failure = true;
-			}
-		}
-		
-		pipeClose(input);
-		pipeClose(output);
-	}, self, toCompressor[0], fromCompressor[1]);
+	asyncCodeThreadInfo* ti = new asyncCodeThreadInfo();
+	ti->self = self;
+	ti->input = toCompressor[0];
+	ti->output = fromCompressor[1];
 	
-	worker.detach();
+	uv_thread_t worker_id;
+	uv_thread_create(&worker_id, worker, static_cast<void*>(ti));
 	
 	Local<Array> ret = Array::New(2);
 	ret->Set(0, Integer::New(fromCompressor[0]));
@@ -185,4 +202,3 @@ Handle<Value> LZMAStream::AsyncCode(const Arguments& args) {
 }
 
 }
-#endif

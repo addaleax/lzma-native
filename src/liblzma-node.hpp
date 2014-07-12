@@ -23,12 +23,6 @@
 #ifndef LIBLZMA_NODE_HPP
 #define LIBLZMA_NODE_HPP
 
-#if __cplusplus > 199711L || defined(__GXX_EXPERIMENTAL_CXX0X__)
-#define ASYNC_CODE_AVAILABLE
-#include <mutex>
-#include <condition_variable>
-#endif
-
 #include <node.h>
 #include <node_object_wrap.h>
 #include <v8.h>
@@ -40,6 +34,17 @@
 
 namespace lzma {
 	using namespace v8;
+	
+	/* internal util */
+	struct uv_mutex_guard {
+		explicit uv_mutex_guard(uv_mutex_t& m_) : m(m_) { lock(); }
+		~uv_mutex_guard() { unlock(); }
+	
+		inline void lock () { uv_mutex_lock(&m); }
+		inline void unlock () { uv_mutex_unlock(&m); }
+		
+		uv_mutex_t& m;
+	};
 	
 	/* util */
 	/**
@@ -140,6 +145,9 @@ namespace lzma {
 	class LZMAStream : public node::ObjectWrap {
 		public:
 			static void Init(Handle<Object> exports, Handle<Object> module);
+			
+		/* regard as private: */
+			void asyncWorker(void*);
 		private:	
 			explicit LZMAStream();
 			~LZMAStream();
@@ -150,18 +158,15 @@ namespace lzma {
 			static Handle<Value> _failMissingSelf();
 
 			bool hasRunningThread;
-#ifdef ASYNC_CODE_AVAILABLE
-			std::mutex lifespanMutex;
-			std::condition_variable lifespanCond;
 			
-			std::mutex mutex;
+			uv_mutex_t lifespanMutex;
+			uv_cond_t lifespanCond;
+			uv_mutex_t mutex;
+			
 			static Handle<Value> AsyncCode(const Arguments& args);
-#define LZMA_ASYNC_LOCK(strm)    std::unique_lock<std::mutex> lock(strm->mutex);
-#define LZMA_ASYNC_LOCK_LS(strm) std::unique_lock<std::mutex> lockLS(strm->lifespanMutex);
-#else
-#define LZMA_ASYNC_LOCK(strm)
-#define LZMA_ASYNC_LOCK_LS(strm)
-#endif 
+			
+#define LZMA_ASYNC_LOCK(strm)    uv_mutex_guard lock(strm->mutex);
+#define LZMA_ASYNC_LOCK_LS(strm) uv_mutex_guard lockLS(strm->lifespanMutex);
 
 			static Handle<Value> Code(const Arguments& args);
 			static Handle<Value> Memusage(const Arguments& args);

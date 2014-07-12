@@ -108,11 +108,7 @@ void moduleInit(Handle<Object> exports, Handle<Object> module) {
 	exports->Set(String::NewSymbol("VERSION"),                  Integer::NewFromUnsigned(LZMA_VERSION));
 	exports->Set(String::NewSymbol("VERSION_STRING"),           String::New(LZMA_VERSION_STRING));
 	
-#ifdef ASYNC_CODE_AVAILABLE
 	exports->Set(String::NewSymbol("asyncCodeAvailable"),       Boolean::New(true));
-#else
-	exports->Set(String::NewSymbol("asyncCodeAvailable"),       Boolean::New(false));
-#endif
 }
 
 }
