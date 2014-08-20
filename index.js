@@ -28,7 +28,7 @@ var _ = require('underscore');
 
 _.extend(exports, native);
 
-exports.version = '0.1.2';
+exports.version = '0.1.3';
 
 var Stream = exports.Stream;
 
