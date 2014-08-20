@@ -68,10 +68,6 @@ Also, all encoders accept a `.memlimit` option.
 
 This package includes the native C library, so there is no need to install it separately.
 
-You may want to use a somewhat recent C++ compiler, and asynchronous
-compression support requires `std::thread`, which is included in C++11
-(but is not essential for compiling).
-
 ## Licensing
 
 The original C library package contains code under various licenses,

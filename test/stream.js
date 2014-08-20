@@ -185,6 +185,24 @@ describe('LZMAStream', function() {
 		});
 	});
 	
+	describe('#easyEncoder', function() {
+		it('should correctly encode the empty string', function(done) {
+			var enc = lzma.createStream('easyEncoder', {synchronous: true});
+			var dec = lzma.createStream('autoDecoder', {synchronous: true});
+			var outfile = 'test/empty.xz.unauto';
+			var outstream = fs.createWriteStream(outfile);
+			
+			outstream.on('finish', function() {
+				assert.ok(fs.readFileSync(outfile).toString('ascii') == '');
+				fs.unlink(outfile);
+				done();
+			});
+			
+			enc.pipe(dec).pipe(outstream);
+			enc.end('');
+		});
+	});
+	
 	describe('#createStream', function() {
 		it('should switch to synchronous streams after too many Stream creations', function(done) {
 			assert.ok(lzma.Stream.maxAsyncStreamCount);
