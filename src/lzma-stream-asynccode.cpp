@@ -46,6 +46,7 @@ namespace {
 #define pipeErrno GetLastError
 #else
 #include <unistd.h>
+#include <cerrno>
 
 namespace {
 	typedef int pipe_t;
