@@ -76,3 +76,8 @@ This wrapper is licensed under the LGPL 3 or any later version of the LGPL.
 
 [1]: https://travis-ci.org/addaleax/lzma-native.png
 [2]: https://travis-ci.org/addaleax/lzma-native
+
+## Acknowledgements
+
+This project is financially supported by the [Tradity project](https://tradity.de/) and
+is an [Entless](https://entless.org/) project.
