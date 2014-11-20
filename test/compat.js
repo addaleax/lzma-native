@@ -65,6 +65,20 @@ describe('LZMA.compress()/decompress()', function() {
 		});
 	});
 	
+	it('can decompress typed integer arrays', function(done) {
+		var LZMA = new lzma.LZMA();
+		
+		LZMA.decompress(
+			new Uint8Array(
+			[0x5d, 0x00, 0x00, 0x80, 0x00, 0xff, 0xff, 0xff,  0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x21, 0x18,
+			 0x49, 0xc6, 0x24, 0x17, 0x18, 0x93, 0x42, 0x5f,  0xff, 0xfd, 0xa2, 0xd0, 0x00]), function(result) {
+			assert.ok(Buffer.isBuffer(result));
+			assert.equal(result.toString(), 'Banana');
+			
+			done();
+		});
+	});
+	
 	it('can round-trip', function(done) {
 		var LZMA = new lzma.LZMA();
 		

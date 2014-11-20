@@ -189,8 +189,8 @@ function singleStringCoding(stream, string, on_finish, on_progress) {
 	on_progress(0);
 	
 	// possibly our input is an array of byte integers
-	if (_.isArray(string))
-		string = new Buffer(string);
+	// or a typed array
+	string = new Buffer(string);
 	
 	stream.end(string);
 }
