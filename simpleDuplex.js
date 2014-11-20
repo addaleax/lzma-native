@@ -21,7 +21,7 @@
 
 var stream = require('stream');
 var util = require('util');
-var _ = require('underscore');
+var _ = require('lodash');
 
 function SimpleDuplex(options, readable, writable) {
 	SimpleDuplex.super_.call(this, options);

@@ -1,6 +1,6 @@
 {
 	"name": "lzma-native",
-	"version": "0.1.4",
+	"version": "0.1.5",
 	"author": {
 		"name": "Hauke Henningsen",
 		"email": "sqrt@entless.org"
@@ -8,9 +8,9 @@
 	"description": "Provides bindings to the native liblzma library",
 	"main": "index",
 	"dependencies": {
-		"bindings": "*",
-		"underscore": "*",
-		"commander": "*"
+		"bindings": "~1.2.1",
+		"lodash": "~2.4.1",
+		"commander": "~2.5.0"
 	},
 	"engines": {
 		"node": ">=0.10.0"

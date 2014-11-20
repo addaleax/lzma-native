@@ -24,7 +24,7 @@ var stream = require('stream');
 var util = require('util');
 var fs = require('fs');
 var simpleDuplex = require('./simpleDuplex');
-var _ = require('underscore');
+var _ = require('lodash');
 
 _.extend(exports, native);
 
