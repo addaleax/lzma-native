@@ -1,13 +1,15 @@
 lzma-native
 ===========
 
-[![Build Status][1]][2]
+[![Build Status](https://travis-ci.org/addaleax/lzma-native.png)](https://travis-ci.org/addaleax/lzma-native)
+[![Dependency Status](https://david-dm.org/addaleax/lzma-native.svg)](https://david-dm.org/addaleax/lzma-native)
+[![devDependency Status](https://david-dm.org/addaleax/lzma-native/dev-status.svg)](https://david-dm.org/addaleax/lzma-native#info=devDependencies)
 
 Provides Node.js bindings to the native liblzma library
 
-## Example usage:
+## Example usage
 
-The simplest possible usage:
+If you don’t have any fancy requirements, using this library is really simple:
 ```js
 var lzma = require('lzma-native');
 var encoder = lzma.createStream();
@@ -15,25 +17,42 @@ var encoder = lzma.createStream();
 process.stdin.pipe(encoder).pipe(process.stdout);
 ```
 
-This mimicks the functionality of the `xz` command line util.
+So just call `lzma.createStream` and you’ll get a stream where you can pipe your
+input in and read your compressed output from. You can decode `.xz` files by passing
+`'autoDecoder'` as a parameter to `createStream`.
+If you don’t need anything but simple streams, that’s it!
+
+## API
+
+Apart from the API described here, `lzma-native` implements the APIs of the following
+other LZMA libraries so you can use it nearly as a drop-in replacement:
+
+* [node-xz](https://github.com/robey/node-xz) via `lzma.Compressor` and `lzma.Decompressor`
+* [LZMA-JS](https://github.com/nmrugg/LZMA-JS) via `lzma.LZMA().compress` and `lzma.LZMA().compress`,
+  though without actual support for progress functions and returning `Buffer` objects
+  instead of integer arrays.
+
+The above example code mimicks the functionality of the `xz` command line util (i. e. 
+reads input from `stdin` and writes compressed data to `stdout`).
 Equivalently, one could have written
 
 ```js
 var encoder = lzma.createStream('easyEncoder', {preset: lzma.PRESET_DEFAULT, check: lzma.CHECK_CRC32});
 ```
 
-or, for stronger and slower compression:
+or, for stronger and slower compression (`preset` corresponds to compression strengths from 1 to 9):
 ```js
 var encoder = lzma.createStream('easyEncoder', {preset: 9});
 ```
 
 Here `easyEncoder` corresponds to the `xz` command line util, resp. its file format [.xz](https://en.wikipedia.org/wiki/.xz).
-For the older `.lzma` format, you can just use `aloneEncoder` instead.
+For the older `.lzma` format, you can just use `aloneEncoder` instead. The decoder can automatically tell
+between both file formats.
 
 The API is loosely based on the native API, with a few bits of wrapper code added for convenience.
 Methods like `stream.code` and `lzma.crc32` accept Node.js `Buffer`s as arguments.
 
-Unless you set `.synchronous = true` in `createStream`s second parameter, the library will use its
+Unless you set `.synchronous = true` in `createStream`’s second parameter, the library will use its
 own thread for compression (if compiled with support for that).
 
 The `encoder` object here is an instance of `stream.Duplex` (see the [Node.js docs](http://nodejs.org/api/stream.html)),
@@ -41,12 +60,12 @@ so you could also manually perform any of the write and read operations that you
 
 ## List of encoders/decoders and options
 
-Encoders and decoders you *probably* are interested in:
+Encoders and decoders you are *probably* interested in:
 * `easyEncoder`: Creates `.xz` files. Supports `.preset` and `.check` options.
 * `aloneEncoder`: Creates `.lzma` files. Supports `.preset` and a bunch of very specific options (see the liblzma C headers for details)
 * `autoDecoder`: Supports various flags. Detects input type automatically.
 
-That is, the following is essentially (quite a slow version of) `cat`:
+That is, the following is essentially (a relatively slow version of) `cat`:
 
 ```js
 var encoder = lzma.createStream('easyEncoder');
@@ -56,6 +75,7 @@ process.stdin.pipe(encoder).pipe(decoder).pipe(process.stdout);
 ```
 
 If you know specifically what you want, you may also look into these encoders:
+
 * `rawDecoder`: Supports `.filters`.
 * `rawEncoder`: Supports `.filters`.
 * `streamEncoder`: Supports `.filters` and `.check`.
@@ -74,8 +94,14 @@ The original C library package contains code under various licenses,
 with its core (liblzma) being public domain. See its contents for details.
 This wrapper is licensed under the LGPL 3 or any later version of the LGPL.
 
-[1]: https://travis-ci.org/addaleax/lzma-native.png
-[2]: https://travis-ci.org/addaleax/lzma-native
+## Related projects
+
+Other implementations of the LZMA algorithms for node.js and/or web clients include:
+
+* [lzma-purejs](https://github.com/cscott/lzma-purejs)
+* [LZMA-JS](https://github.com/nmrugg/LZMA-JS)
+* [node-xz](https://github.com/robey/node-xz)
+* [node-liblzma](https://github.com/oorabona/node-liblzma)
 
 ## Acknowledgements
 

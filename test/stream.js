@@ -166,9 +166,7 @@ describe('LZMAStream', function() {
 			
 			fs.createReadStream('test/random').pipe(enc).pipe(dec).pipe(outstream);
 		});
-	});
-	
-	describe('#easyEncoder', function() {
+		
 		it('should be undone by autoDecoder in sync mode', function(done) {
 			var enc = lzma.createStream('easyEncoder', {synchronous: true});
 			var dec = lzma.createStream('autoDecoder', {synchronous: true});
@@ -183,9 +181,7 @@ describe('LZMAStream', function() {
 			
 			fs.createReadStream('test/random').pipe(enc).pipe(dec).pipe(outstream);
 		});
-	});
-	
-	describe('#easyEncoder', function() {
+		
 		it('should correctly encode the empty string', function(done) {
 			var enc = lzma.createStream('easyEncoder', {synchronous: true});
 			var dec = lzma.createStream('autoDecoder', {synchronous: true});
@@ -220,9 +216,7 @@ describe('LZMAStream', function() {
 			
 			done();
 		});
-	});
-	
-	describe('#createStream', function() {
+
 		it('should work fine when synchronous streams are abandoned', function(done) {
 			lzma.createStream({synchronous: true});
 			

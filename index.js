@@ -124,12 +124,16 @@ Stream.prototype.aloneDecoder = function(options) {
 	return this.aloneDecoder_(options.memlimit || null);
 };
 
+var createStream =
 exports.createStream = function(coder, options) {
-	if (_.isObject(coder) && !options) {
+	if ((_.isObject(coder) || _.isNumber(options)) && !options) {
 		options = coder;
 		coder = null;
 	}
-		
+	
+	if (_.isNumber(options))
+		options = {preset: options};
+	
 	coder = coder || 'easyEncoder';
 	options = options || {};
 	
@@ -153,6 +157,72 @@ exports.crc32 = function(input, encoding, presetCRC32) {
 		input = new Buffer(input, encoding);
 	
 	return exports.crc32_(input, presetCRC32 || 0);
+};
+
+/* compatibility: node-xz (https://github.com/robey/node-xz) */
+exports.Compressor = function(preset, options) {
+	options = _.clone(options || {});
+	
+	if (preset)
+		options.preset = preset;
+	
+	return createStream('easyEncoder', options);
+};
+
+exports.Decompressor = function(options) {
+	return createStream('autoDecoder', options);
+};
+
+/* compatibility: LZMA-JS (https://github.com/nmrugg/LZMA-JS) */
+function singleStringCoding(stream, string, on_finish, on_progress) {
+	on_progress = on_progress || function() {};
+	on_finish = on_finish || function() {};
+	
+	var buffers = [];
+
+	stream.on('data', function(b) { buffers.push(b); });
+	stream.on('end', function() {
+		on_progress(1);
+		on_finish(Buffer.concat(buffers));
+	});
+
+	on_progress(0);
+	
+	// possibly our input is an array of byte integers
+	if (_.isArray(string))
+		string = new Buffer(string);
+	
+	stream.end(string);
+}
+
+exports.LZMA = function() {
+	return {
+		compress: function(string, mode, on_finish, on_progress) {
+			var opt = {};
+
+			if (_.isNumber(mode) && mode >= 1 && mode <= 9)
+				opt.preset = mode;
+
+			var stream = createStream('aloneEncoder', opt);
+			
+			return singleStringCoding(stream, string, on_finish, on_progress);
+		},
+		decompress: function(byte_array, on_finish, on_progress) {
+			var stream = createStream('aloneDecoder');
+			
+			return singleStringCoding(stream, byte_array, on_finish, on_progress);
+		}
+	};
+};
+
+exports.compress = function(string, opt, on_finish) {
+	var stream = createStream('easyEncoder', opt);
+	return singleStringCoding(stream, string, on_finish);
+};
+
+exports.decompress = function(string, opt, on_finish) {
+	var stream = createStream('autoDecoder', opt);
+	return singleStringCoding(stream, string, on_finish);
 };
 
 })();
