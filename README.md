@@ -5,7 +5,7 @@ lzma-native
 [![Dependency Status](https://david-dm.org/addaleax/lzma-native.svg)](https://david-dm.org/addaleax/lzma-native)
 [![devDependency Status](https://david-dm.org/addaleax/lzma-native/dev-status.svg)](https://david-dm.org/addaleax/lzma-native#info=devDependencies)
 
-Provides Node.js bindings to the native liblzma library
+Provides Node.js bindings to the native liblzma library (.xz file format, among others)
 
 ## Example usage
 
@@ -102,6 +102,11 @@ Other implementations of the LZMA algorithms for node.js and/or web clients incl
 * [LZMA-JS](https://github.com/nmrugg/LZMA-JS)
 * [node-xz](https://github.com/robey/node-xz)
 * [node-liblzma](https://github.com/oorabona/node-liblzma)
+
+Note that LZMA has been designed to have much faster decompression than
+compression, which is something you may want to take into account when
+choosing an compression algorithm for large files. Almost always, LZMA achieves
+higher compression ratios than most other algorithms, though.
 
 ## Acknowledgements
 
