@@ -28,7 +28,7 @@ Apart from the API described here, `lzma-native` implements the APIs of the foll
 other LZMA libraries so you can use it nearly as a drop-in replacement:
 
 * [node-xz](https://github.com/robey/node-xz) via `lzma.Compressor` and `lzma.Decompressor`
-* [LZMA-JS](https://github.com/nmrugg/LZMA-JS) via `lzma.LZMA().compress` and `lzma.LZMA().compress`,
+* [LZMA-JS](https://github.com/nmrugg/LZMA-JS) via `lzma.LZMA().compress` and `lzma.LZMA().decompress`,
   though without actual support for progress functions and returning `Buffer` objects
   instead of integer arrays.
 
