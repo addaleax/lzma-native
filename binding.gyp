@@ -15,7 +15,7 @@
 			],
 			"include_dirs" : [ "build/liblzma/build/include"],
 			"dependencies" : [ "liblzma" ],
-			"libraries" : [ "<(module_root_dir)/build/liblzma/build/lib/liblzma.a" ]
+			"libraries" : [ "<(module_root_dir)/build/liblzma/build/lib/liblzma.a" ],
 		},
 		{
 			"target_name" : "liblzma",
