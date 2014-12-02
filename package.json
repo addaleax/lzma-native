@@ -1,9 +1,7 @@
 {
 	"name": "lzma-native",
 	"version": "0.1.7",
-	"engines": {
-		{ "node": ">=0.10" }
-	},
+	"engines": { "node": ">=0.10" },
 	"author": {
 		"name": "Hauke Henningsen",
 		"email": "sqrt@entless.org"
