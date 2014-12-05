@@ -216,11 +216,21 @@ exports.LZMA = function() {
 };
 
 exports.compress = function(string, opt, on_finish) {
+	if (typeof opt == 'function') {
+		on_finish = opt;
+		opt = {};
+	}
+	
 	var stream = createStream('easyEncoder', opt);
 	return singleStringCoding(stream, string, on_finish);
 };
 
 exports.decompress = function(string, opt, on_finish) {
+	if (typeof opt == 'function') {
+		on_finish = opt;
+		opt = {};
+	}
+	
 	var stream = createStream('autoDecoder', opt);
 	return singleStringCoding(stream, string, on_finish);
 };
