@@ -190,7 +190,8 @@ function singleStringCoding(stream, string, on_finish, on_progress) {
 	
 	// possibly our input is an array of byte integers
 	// or a typed array
-	string = new Buffer(string);
+	if (!Buffer.isBuffer(string))
+		string = new Buffer(string);
 	
 	stream.end(string);
 }
