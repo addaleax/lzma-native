@@ -23,12 +23,12 @@ namespace lzma {
 FilterArray::FilterArray(Local<Array> arr) : ok_(false) {
 	HandleScope scope;
 	
-	uint32_t len = arr.IsEmpty() ? 0 : arr->Length();
+	size_t len = arr.IsEmpty() ? 0 : arr->Length();
 	
 	Local<String> id_ = String::NewSymbol("id");
 	Local<String> options_ = String::NewSymbol("options");
 	
-	for (uint32_t i = 0; i < len; ++i) {
+	for (size_t i = 0; i < len; ++i) {
 		Local<Object> entry = Local<Object>::Cast(arr->Get(i));
 		if (entry.IsEmpty() || entry->IsUndefined()) {
 			ThrowException(Exception::TypeError(String::New("Filter array needs object entries")));

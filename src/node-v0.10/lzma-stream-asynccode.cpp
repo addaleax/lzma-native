@@ -19,51 +19,14 @@
 #include "liblzma-node.hpp"
 
 #include <sstream>
-
-#ifdef WINDOWS
-#include <windows.h>
-
-namespace {
-	typedef PHANDLE pipe_t;
-
-	inline int pipeCreate(pipe_t[2] pipefd) {
-		return CreatePipe(pipefd[0], pipefd[1], NULL, 0) != 0 ? -1 : 0;
-	}
-
-	inline int pipeRead(pipe_t file, void* buffer, size_t count) {
-		return ReadFile(file, buffer, count, NULL, NULL) != 0  ? -1 : 0;
-	}
-
-	inline int pipeWrite(pipe_t file, const void* buffer, size_t count) {
-		return WriteFile(file, buffer, count, NULL, NULL) != 0  ? -1 : 0;
-	}
-
-	inline int pipeClose(pipe_t file) {
-		return CloseHandle(file) != 0  ? -1 : 0;
-	}
-}
-
-#define pipeErrno GetLastError
-#else
 #include <unistd.h>
 #include <cerrno>
-
-namespace {
-	typedef int pipe_t;
-}
-
-#define pipeCreate   pipe
-#define pipeRead     read
-#define pipeWrite    write
-#define pipeClose    close
-#define pipeErrno()  errno
-#endif
 
 namespace lzma {
 namespace {
 	struct asyncCodeThreadInfo {
 		LZMAStream* self;
-		pipe_t input, output;
+		int input, output;
 	};
 	
 	extern "C" void worker(void* opaque) {
@@ -75,7 +38,7 @@ namespace {
 
 void LZMAStream::asyncWorker(void* opaque) {
 	asyncCodeThreadInfo* ti = static_cast<asyncCodeThreadInfo*>(opaque);
-	pipe_t input = ti->input, output = ti->output;
+	int input = ti->input, output = ti->output;
 	delete ti;
 	
 	LZMA_ASYNC_LOCK(this)
@@ -109,13 +72,13 @@ void LZMAStream::asyncWorker(void* opaque) {
 			_.avail_in = 0;
 			
 			lock.unlock();
-			int readBytes = pipeRead(input, inbuf.data(), inbuf.size());
+			int readBytes = read(input, inbuf.data(), inbuf.size());
 			lock.lock();
 			
 			if (readBytes == 0) {
 				inputEnd = true;
 			} else if (readBytes == -1) {
-				errstream << "Read error: " << pipeErrno() << "\n";
+				errstream << "Read error: " << errno << "\n";
 				error = errstream.str();
 				
 				inputEnd = true;
@@ -133,8 +96,8 @@ void LZMAStream::asyncWorker(void* opaque) {
 		if (_.avail_out == 0 || ret == LZMA_STREAM_END) {
 			size_t writeBytes = outbuf.size() - _.avail_out;
 
-			if (pipeWrite(output, outbuf.data(), writeBytes) == -1) {
-				errstream << "Write error: " << pipeErrno() << "\n";
+			if (write(output, outbuf.data(), writeBytes) == -1) {
+				errstream << "Write error: " << errno << "\n";
 				error = errstream.str();
 				failure = true;
 			}
@@ -153,8 +116,8 @@ void LZMAStream::asyncWorker(void* opaque) {
 		}
 	}
 	
-	pipeClose(input);
-	pipeClose(output);
+	close(input);
+	close(output);
 }
 
 Handle<Value> LZMAStream::AsyncCode(const Arguments& args) {
@@ -174,16 +137,16 @@ Handle<Value> LZMAStream::AsyncCode(const Arguments& args) {
 	
 	self->hasRunningThread = true;
 	
-	pipe_t toCompressor[2], fromCompressor[2];
-	if (pipeCreate(toCompressor) == -1) {
+	int toCompressor[2], fromCompressor[2];
+	if (pipe(toCompressor) == -1) {
 	pipe_create_failure:
 		ThrowException(Exception::Error(String::New("Could not create pipe")));
 		return scope.Close(Undefined());
 	}
 	
-	if (pipeCreate(fromCompressor) == -1) {
-		pipeClose(toCompressor[0]);
-		pipeClose(toCompressor[1]);
+	if (pipe(fromCompressor) == -1) {
+		close(toCompressor[0]);
+		close(toCompressor[1]);
 		
 		goto pipe_create_failure;
 	}
