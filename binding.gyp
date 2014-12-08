@@ -12,7 +12,10 @@
 			"cflags": [
 				"-std=c++0x",
 			],
-			"include_dirs" : [ "build/liblzma/build/include"],
+			"include_dirs" : [
+				"build/liblzma/build/include",
+				"<!(node -e \"require('nan')\")"
+			],
 			"dependencies" : [ "liblzma" ],
 			"libraries" : [ "<(module_root_dir)/build/liblzma/build/lib/liblzma.a" ],
 		},
