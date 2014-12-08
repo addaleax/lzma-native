@@ -39,7 +39,11 @@ namespace lzma {
 	
 	/* internal util */
 	struct uv_mutex_guard {
-		explicit uv_mutex_guard(uv_mutex_t& m_) : m(m_) { lock(); }
+		explicit uv_mutex_guard(uv_mutex_t& m_, bool autolock = true) : m(m_) {
+			if (autolock)
+				lock(); 
+		}
+		
 		~uv_mutex_guard() { unlock(); }
 	
 		inline void lock () { uv_mutex_lock(&m); }
@@ -149,9 +153,12 @@ namespace lzma {
 			static void Init(Handle<Object> exports, Handle<Object> module);
 			
 		/* regard as private: */
+			void doLZMACodeFromAsync();
+			void invokeBufferHandlersFromAsync();
+		private:
 			void doLZMACode(bool async);
-			void invokeBufferHandlers(bool async);
-		private:	
+			void invokeBufferHandlers(bool async, bool hasLock);
+			
 			explicit LZMAStream();
 			~LZMAStream();
 			
@@ -161,15 +168,14 @@ namespace lzma {
 			static Handle<Value> _failMissingSelf();
 
 			bool hasRunningThread;
+			int hasPendingCallbacks;
 			
-			uv_mutex_t lifespanMutex;
 			uv_cond_t lifespanCond;
 			uv_mutex_t mutex;
 			uv_cond_t inputDataCond;
 			uv_async_t outputDataAsync;
 			
 #define LZMA_ASYNC_LOCK(strm)    uv_mutex_guard lock(strm->mutex);
-#define LZMA_ASYNC_LOCK_LS(strm) uv_mutex_guard lockLS(strm->lifespanMutex);
 
 			static NAN_METHOD(Code);
 			static NAN_METHOD(Memusage);

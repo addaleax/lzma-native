@@ -25,7 +25,8 @@ namespace lzma {
 namespace {
 	extern "C" void worker(void* opaque) {
 		LZMAStream* self = static_cast<LZMAStream*>(opaque);
-		self->doLZMACode(true);
+		
+		self->doLZMACodeFromAsync();
 	}
 	
 	extern "C" void invoke_buffer_handlers_async(uv_async_t* async
@@ -33,19 +34,19 @@ namespace {
 	, int status
 #endif
 	) {
-		LZMAStream* data = static_cast<LZMAStream*>(async->data);
-		data->invokeBufferHandlers(false);
+		LZMAStream* self = static_cast<LZMAStream*>(async->data);
+		
+		self->invokeBufferHandlersFromAsync();
 	}
 }
 
 Persistent<Function> LZMAStream::constructor;
 
 LZMAStream::LZMAStream()
-	: hasRunningThread(false), bufsize(8192), shouldFinish(false),
+	: hasRunningThread(false), hasPendingCallbacks(0), bufsize(8192), shouldFinish(false),
 	shouldInvokeChunkCallbacks(false), lastCodeResult(LZMA_OK) 
 {
 	std::memset(&_, 0, sizeof(lzma_stream));
-	uv_mutex_init(&lifespanMutex);
 	uv_mutex_init(&mutex);
 	uv_cond_init(&lifespanCond);
 	uv_cond_init(&inputDataCond);
@@ -56,16 +57,14 @@ LZMAStream::LZMAStream()
 LZMAStream::~LZMAStream() {
 	{
 		LZMA_ASYNC_LOCK(this)
-		LZMA_ASYNC_LOCK_LS(this)
 		
-		while (hasRunningThread)
-			uv_cond_wait(&lifespanCond, &lifespanMutex);
+		while (hasRunningThread || hasPendingCallbacks > 0)
+			uv_cond_wait(&lifespanCond, &mutex);
 	}
 	
 	lzma_end(&_);
 	
 	uv_mutex_destroy(&mutex);
-	uv_mutex_destroy(&lifespanMutex);
 	uv_cond_destroy(&lifespanCond);
 	uv_cond_destroy(&inputDataCond);
 	uv_unref((uv_handle_t*) &outputDataAsync);
@@ -114,7 +113,7 @@ Handle<Value> LZMAStream::_failMissingSelf() {
 	return NanUndefined();
 }
 
-NAN_METHOD(LZMAStream::Code) {	
+NAN_METHOD(LZMAStream::Code) {
 	NanScope();
 	
 	LZMAStream* self = node::ObjectWrap::Unwrap<LZMAStream>(args.This());
@@ -122,10 +121,6 @@ NAN_METHOD(LZMAStream::Code) {
 		NanReturnValue(_failMissingSelf());
 	
 	LZMA_ASYNC_LOCK(self)
-	
-	bool hadRunningThread = self->hasRunningThread;
-	bool async = args[1]->BooleanValue() || hadRunningThread;
-	self->hasRunningThread = async;
 	
 	std::vector<uint8_t> inputData;
 	
@@ -142,6 +137,10 @@ NAN_METHOD(LZMAStream::Code) {
 	
 	self->inbufs.push(std::move(inputData));
 	
+	bool hadRunningThread = self->hasRunningThread;
+	bool async = args[1]->BooleanValue() || hadRunningThread;
+	self->hasRunningThread = async;
+	
 	if (async) {
 		if (!hadRunningThread) {
 			uv_thread_t worker_id;
@@ -150,25 +149,46 @@ NAN_METHOD(LZMAStream::Code) {
 		
 		uv_cond_broadcast(&self->inputDataCond);
 	} else {
-		lock.unlock(); // doLZMACode has its own lock
 		self->doLZMACode(false);
-		lock.lock();
 	}
 	
 	NanReturnUndefined();
 }
 
-void LZMAStream::invokeBufferHandlers(bool async) {
+void LZMAStream::invokeBufferHandlersFromAsync() {
+	invokeBufferHandlers(false, false);
+}
+
+void LZMAStream::invokeBufferHandlers(bool async, bool hasLock) {
 	if (async) {
+		hasPendingCallbacks++;
 		// this calls invokeBufferHandler(false) from the main loop thread
 		uv_async_send(&outputDataAsync);
 		return;
 	}
 	
+	uv_mutex_guard lock(mutex, !hasLock);
+	
+	struct _ScopeGuard {
+		_ScopeGuard(LZMAStream* self_) : self(self_) {}
+		~_ScopeGuard() {
+			self->hasPendingCallbacks--;
+			uv_cond_broadcast(&self->lifespanCond);
+		}
+		
+		LZMAStream* self;
+	};
+	_ScopeGuard guard(this);
+	
 	NanScope();
 	
 	Local<Function> bufferHandler = Local<Function>::Cast(NanObjectWrapHandle(this)->Get(NanNew<String>("bufferHandler")));
 	std::vector<uint8_t> outbuf;
+	
+#define CALL_BUFFER_HANDLER_WITH_ARGV \
+	if (!hasLock) lock.unlock(); \
+	bufferHandler->Call(NanObjectWrapHandle(this), 3, argv); \
+	if (!hasLock) lock.lock();
 	
 	while (outbufs.size() > 0) {
 		outbuf = std::move(outbufs.front());
@@ -178,8 +198,7 @@ void LZMAStream::invokeBufferHandlers(bool async) {
 			NanNewBufferHandle(reinterpret_cast<const char*>(outbuf.data()), outbuf.size()),
 			NanUndefined(), NanUndefined()
 		};
-		
-		bufferHandler->Call(NanObjectWrapHandle(this), 3, argv);
+		CALL_BUFFER_HANDLER_WITH_ARGV
 	}
 	
 	if (lastCodeResult != LZMA_OK) {
@@ -187,20 +206,19 @@ void LZMAStream::invokeBufferHandlers(bool async) {
 			NanNull(), NanUndefined(),
 			lastCodeResult == LZMA_STREAM_END ? Handle<Value>(NanNull()) : lzmaRetError(lastCodeResult)
 		};
-		
-		bufferHandler->Call(NanObjectWrapHandle(this), 3, argv);
+		CALL_BUFFER_HANDLER_WITH_ARGV
 	}
 	
 	if (shouldInvokeChunkCallbacks) {
 		Handle<Value> argv[3] = { NanUndefined(), NanNew<Boolean>(true), NanUndefined() };
-		bufferHandler->Call(NanObjectWrapHandle(this), 3, argv);
+		CALL_BUFFER_HANDLER_WITH_ARGV
+		
 		shouldInvokeChunkCallbacks = false;
 	}
 }
 
-void LZMAStream::doLZMACode(bool async) {
+void LZMAStream::doLZMACodeFromAsync() {
 	LZMA_ASYNC_LOCK(this)
-	LZMA_ASYNC_LOCK_LS(this)
 	
 	struct _ScopeGuard {
 		_ScopeGuard(LZMAStream* self_) : self(self_) {}
@@ -213,6 +231,10 @@ void LZMAStream::doLZMACode(bool async) {
 	};
 	_ScopeGuard guard(this);
 	
+	doLZMACode(true);
+}
+
+void LZMAStream::doLZMACode(bool async) {
 	bool invokedBufferHandlers = false;
 	
 	std::vector<uint8_t> outbuf(bufsize), inbuf;
@@ -232,7 +254,7 @@ void LZMAStream::doLZMACode(bool async) {
 					if (hasConsumedChunks) {
 						shouldInvokeChunkCallbacks = true;
 						
-						invokeBufferHandlers(async);
+						invokeBufferHandlers(async, true);
 						invokedBufferHandlers = true;
 					}
 					
@@ -279,13 +301,13 @@ void LZMAStream::doLZMACode(bool async) {
 			if (outsz > 0)
 				outbufs.emplace(outbuf.data(), outbuf.data() + outsz);
 			
-			invokeBufferHandlers(async);
+			invokeBufferHandlers(async, true);
 			invokedBufferHandlers = true;
 		}
 	}
 	
 	if (!invokedBufferHandlers)
-		invokeBufferHandlers(async);
+		invokeBufferHandlers(async, true);
 }
 
 NAN_METHOD(LZMAStream::Memusage) {

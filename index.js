@@ -22,7 +22,6 @@
 var native = require('bindings')('lzma_native.node');
 var stream = require('stream');
 var util = require('util');
-var fs = require('fs');
 var _ = require('lodash');
 
 _.extend(exports, native);
