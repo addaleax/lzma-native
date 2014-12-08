@@ -23,36 +23,65 @@ var native = require('bindings')('lzma_native.node');
 var stream = require('stream');
 var util = require('util');
 var fs = require('fs');
-var simpleDuplex = require('./simpleDuplex');
 var _ = require('lodash');
 
 _.extend(exports, native);
 
-exports.version = '0.1.3';
+exports.version = '0.2.0';
 
 var Stream = exports.Stream;
 
+Stream.curAsyncStreamCount = 0;
+Stream.maxAsyncStreamCount = 32;
+
 Stream.prototype.getStream = 
+Stream.prototype.asyncStream =
 Stream.prototype.syncStream = function(options) {
 	var nativeStream = this;
 	
 	var ret = function() {
 		ret.super_.call(this, options);
-		this.nativeStream = nativeStream;
-		this.stype = 'synchronous';
+		var self = this;
+		
+		self.nativeStream = nativeStream;
+		self.synchronous = (options.synchronous || !native.asyncCodeAvailable) ? true : false;
+		self.chunkCallbacks = [];
+		
+		if (!self.synchronous) {
+			Stream.curAsyncStreamCount++;
+			
+			self.on('finish', function() { Stream.curAsyncStreamCount--; });
+			self.on('error',  function() { Stream.curAsyncStreamCount--; });
+		}
+		
+		self.nativeStream.bufferHandler = function(buf, shouldInvokeChunkCallbacks, err) {
+			if (err)
+				self.emit('error', err);
+			
+			if (shouldInvokeChunkCallbacks) {
+				// rotate the chunkCallbacks property, since more callbacks
+				// may be added by the current ones
+				var chunkCallbacks = self.chunkCallbacks;
+				self.chunkCallbacks = [];
+				
+				while (chunkCallbacks.length > 0)
+					chunkCallbacks.shift()();
+			} else {
+				self.push(buf);
+			}
+		};
 	};
 	
 	util.inherits(ret, stream.Transform);
 	
 	ret.prototype._transform = function(chunk, encoding, callback) {
+		this.chunkCallbacks.push(callback);
+		
 		try {
-			this.nativeStream.code(chunk, _.bind(this.push, this));
+			this.nativeStream.code(chunk, !this.synchronous);
 		} catch (e) {
-			this.push(null);
 			this.emit('error', e);
 		}
-		
-		callback();
 	};
 	
 	ret.prototype._flush = function(callback) {
@@ -60,40 +89,6 @@ Stream.prototype.syncStream = function(options) {
 	}
 	
 	return new ret();
-}
-
-Stream.curAsyncStreamCount = 0;
-Stream.maxAsyncStreamCount = 32;
-Stream.prototype.asyncStream = native.asyncCodeAvailable ? function(options) {
-	var endpoints = this.asyncCode_();
-	if (!endpoints || endpoints.length != 2)
-		throw Error('asyncStream() could not successfully call underlying asyncCode_()');
-	
-	var readStream  = fs.createReadStream (null, { fd: endpoints[0] });
-	var writeStream = fs.createWriteStream(null, { fd: endpoints[1] });
-	
-	// keep the main lzma object alive during threaded compression
-	readStream._lzma = this;
-	
-	Stream.curAsyncStreamCount++;
-	var duplex = new simpleDuplex.SimpleDuplex(options, readStream, writeStream);
-	readStream.on('end', function() {
-		var lzma = readStream._lzma;
-		readStream._lzma = null;
-		Stream.curAsyncStreamCount--;
-		
-		try {
-			lzma.checkError();
-		} catch (e) {
-			duplex.emit('error', e);
-		}
-	});
-	
-	duplex.stype = 'asynchronous';
-	return duplex;
-} : function() {
-	// no native asyncCode, so we just use the synchronous method
-	return this.getStream();
 };
 
 Stream.prototype.rawEncoder = function(options) {
@@ -143,8 +138,10 @@ exports.createStream = function(coder, options) {
 	if (options.memlimit)
 		stream.memlimitSet(options.memlimit);
 	
-	return options.synchronous || ((Stream.curAsyncStreamCount >= Stream.maxAsyncStreamCount) && !options.forceAsynchronous)
-		? stream.syncStream() : stream.asyncStream();
+	if (!options.synchronous)
+		options.synchronous = ((Stream.curAsyncStreamCount >= Stream.maxAsyncStreamCount) && !options.forceAsynchronous);
+	
+	return stream.getStream(options);
 };
 
 exports.crc32 = function(input, encoding, presetCRC32) {

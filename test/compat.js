@@ -83,6 +83,7 @@ describe('LZMA.compress()/decompress()', function() {
 		var LZMA = new lzma.LZMA();
 		
 		LZMA.compress('Bananas', 9, function(result) {
+			assert.equal(result.toString('base64'), 'XQAAAAT//////////wAhGEnQgnOEP++//7v9AAA=');
 			LZMA.decompress(result, function(result) {
 				assert.ok(Buffer.isBuffer(result));
 				assert.equal(result.toString(), 'Bananas');

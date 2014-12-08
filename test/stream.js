@@ -24,7 +24,7 @@ describe('LZMAStream', function() {
 			stream.on('data', function() {});
 			
 			if (lzma.asyncCodeAvailable)
-				assert.equal(stream.stype, 'asynchronous');
+				assert.ok(!stream.synchronous);
 			
 			fs.createReadStream('test/hamlet.txt.lzma').pipe(stream);
 		});
@@ -35,7 +35,7 @@ describe('LZMAStream', function() {
 			stream.on('data', function() {});
 			
 			if (lzma.asyncCodeAvailable)
-				assert.equal(stream.stype, 'asynchronous');
+				assert.ok(!stream.synchronous);
 			
 			fs.createReadStream('test/hamlet.txt.xz').pipe(stream);
 		});
@@ -45,7 +45,7 @@ describe('LZMAStream', function() {
 			stream.on('end', done);
 			stream.on('data', function() {});
 			
-			assert.equal(stream.stype, 'synchronous');
+			assert.ok(stream.synchronous);
 			
 			fs.createReadStream('test/hamlet.txt.lzma').pipe(stream);
 		});
@@ -55,7 +55,7 @@ describe('LZMAStream', function() {
 			stream.on('end', done);
 			stream.on('data', function() {});
 			
-			assert.equal(stream.stype, 'synchronous');
+			assert.ok(stream.synchronous);
 			
 			fs.createReadStream('test/hamlet.txt.xz').pipe(stream);
 		});
@@ -122,7 +122,7 @@ describe('LZMAStream', function() {
 		
 		it('should be undone by autoDecoder in sync mode', function(done) {
 			var enc = lzma.createStream('aloneEncoder', {synchronous: true});
-			var dec = lzma.createStream('autoDecoder', {synchronous: true});
+			var dec = lzma.createStream('autoDecoder',  {synchronous: true});
 			var outfile = 'test/random.lzma.unauto';
 			var outstream = fs.createWriteStream(outfile);
 			
@@ -209,7 +209,7 @@ describe('LZMAStream', function() {
 				streams.push(lzma.createStream({synchronous: false}));
 			
 			for (var i = lzma.Stream.maxAsyncStreamCount + 1; i < lzma.Stream.maxAsyncStreamCount * 2; ++i)
-				assert.equal(streams[i].stype, 'synchronous');
+				assert.ok(streams[i].synchronous);
 				
 			for (var i = 0; i < lzma.Stream.maxAsyncStreamCount * 2; ++i) 
 				streams[i].end();
@@ -222,5 +222,9 @@ describe('LZMAStream', function() {
 			
 			done();
 		});
+	});
+	
+	after('should not have any open asynchronous streams', function() {
+		assert.equal(lzma.Stream.curAsyncStreamCount, 0);
 	});
 });

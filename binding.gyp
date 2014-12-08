@@ -7,7 +7,6 @@
 				"src/liblzma-functions.cpp",
 				"src/filter-array.cpp",
 				"src/lzma-stream.cpp",
-				"src/lzma-stream-asynccode.cpp",
 				"src/module.cpp"
 			],
 			"cflags": [

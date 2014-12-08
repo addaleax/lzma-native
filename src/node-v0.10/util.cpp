@@ -69,17 +69,21 @@ const char* lzmaStrError(lzma_ret rv) {
 	}
 }
 
+Handle<Value> lzmaRetError(lzma_ret rv) {
+	return Exception::Error(String::New(lzmaStrError(rv)));
+}
+
 Handle<Value> lzmaRet(lzma_ret rv) {
 	if (rv != LZMA_OK && rv != LZMA_STREAM_END)
-		ThrowException(Exception::Error(String::New(lzmaStrError(rv))));
+		ThrowException(lzmaRetError(rv));
 	
 	return Integer::New(rv);
 }
 
-bool readBufferFromObj(Handle<Value> value, const uint8_t*& ptr, size_t& len) {
+bool readBufferFromObj(Handle<Value> value, std::vector<uint8_t>& data) {
 	node::Buffer* buf = NULL;
-	ptr = NULL;
-	len = 0;
+	const uint8_t* ptr = NULL;
+	size_t len = 0;
 	
 	Local<Object> bufarg = Local<Object>::New(Handle<Object>::Cast(value));
 	if (bufarg.IsEmpty() || bufarg->IsUndefined() || bufarg->IsNull()) {
@@ -98,7 +102,7 @@ bool readBufferFromObj(Handle<Value> value, const uint8_t*& ptr, size_t& len) {
 		
 		if (node::Buffer::Length(buf) == 0) {
 		empty_buffer:
-			ptr = reinterpret_cast<const uint8_t*>("");
+			data.clear();
 			return true;
 		}
 			
@@ -125,6 +129,8 @@ bool readBufferFromObj(Handle<Value> value, const uint8_t*& ptr, size_t& len) {
 		ptr = reinterpret_cast<const uint8_t*>(node::Buffer::Data(buf)) + offset;
 		len = jslen;
 	}
+	
+	data = std::vector<uint8_t>(ptr, ptr + len);
 	
 	return true;
 }

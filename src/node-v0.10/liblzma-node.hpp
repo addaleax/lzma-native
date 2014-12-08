@@ -30,6 +30,7 @@
 #include <lzma.h>
 
 #include <vector>
+#include <queue>
 #include <string>
 
 namespace lzma {
@@ -64,10 +65,15 @@ namespace lzma {
 	Handle<Value> lzmaRet(lzma_ret rv);
 	
 	/**
-	 * Takes a Node.js SlowBuffer or Buffer as input and populates ptr and len accordingly.
+	 * Return a javascript exception representing rv.
+	 */
+	Handle<Value> lzmaRetError(lzma_ret rv);
+	
+	/**
+	 * Takes a Node.js SlowBuffer or Buffer as input and populates data accordingly.
 	 * Returns true on success, false on failure.
 	 */
-	bool readBufferFromObj(Handle<Value> value, const uint8_t*& ptr, size_t& len);
+	bool readBufferFromObj(Handle<Value> value, std::vector<uint8_t>& data);
 	
 	/**
 	 * Return a lzma_options_lzma struct as described by the v8 Object obj.
@@ -147,7 +153,8 @@ namespace lzma {
 			static void Init(Handle<Object> exports, Handle<Object> module);
 			
 		/* regard as private: */
-			void asyncWorker(void*);
+			void doLZMACode(bool async);
+			void invokeBufferHandlers(bool async);
 		private:	
 			explicit LZMAStream();
 			~LZMAStream();
@@ -162,8 +169,8 @@ namespace lzma {
 			uv_mutex_t lifespanMutex;
 			uv_cond_t lifespanCond;
 			uv_mutex_t mutex;
-			
-			static Handle<Value> AsyncCode(const Arguments& args);
+			uv_cond_t inputDataCond;
+			uv_async_t outputDataAsync;
 			
 #define LZMA_ASYNC_LOCK(strm)    uv_mutex_guard lock(strm->mutex);
 #define LZMA_ASYNC_LOCK_LS(strm) uv_mutex_guard lockLS(strm->lifespanMutex);
@@ -189,6 +196,12 @@ namespace lzma {
 			lzma_stream _;
 			size_t bufsize;
 			std::string error;
+			
+			bool shouldFinish;
+			bool shouldInvokeChunkCallbacks;
+			lzma_ret lastCodeResult;
+			std::queue<std::vector<uint8_t>> inbufs;
+			std::queue<std::vector<uint8_t>> outbufs;
 	};
 	
 	/**

@@ -93,15 +93,14 @@ Handle<Value> lzmaCRC32(const Arguments& args) {
 	if (arg.IsEmpty() || args[1]->IsUndefined())
 		arg = Integer::New(0);
 	
-	const uint8_t* data;
-	size_t datalen;
+	std::vector<uint8_t> data;
 	
-	if (!readBufferFromObj(args[0], data, datalen)) {
+	if (!readBufferFromObj(args[0], data)) {
 		ThrowException(Exception::TypeError(String::New("CRC32 expects Buffer as input")));
 		return scope.Close(Undefined());
 	}
 	
-	return scope.Close(Integer::NewFromUnsigned(lzma_crc32(data, datalen, arg->Value())));
+	return scope.Close(Integer::NewFromUnsigned(lzma_crc32(data.data(), data.size(), arg->Value())));
 }
 
 Handle<Value> lzmaRawEncoderMemusage(const Arguments& args) {
