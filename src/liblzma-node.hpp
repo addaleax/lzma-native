@@ -39,16 +39,29 @@ namespace lzma {
 	
 	/* internal util */
 	struct uv_mutex_guard {
-		explicit uv_mutex_guard(uv_mutex_t& m_, bool autolock = true) : m(m_) {
+		explicit uv_mutex_guard(uv_mutex_t& m_, bool autolock = true)
+			: locked(false), m(m_)
+		{
 			if (autolock)
 				lock(); 
 		}
 		
-		~uv_mutex_guard() { unlock(); }
+		~uv_mutex_guard() {
+			if (locked)
+				unlock();
+		}
 	
-		inline void lock () { uv_mutex_lock(&m); }
-		inline void unlock () { uv_mutex_unlock(&m); }
+		inline void lock () {
+			uv_mutex_lock(&m);
+			locked = true;
+		}
 		
+		inline void unlock () {
+			uv_mutex_unlock(&m);
+			locked = false;
+		}
+		
+		bool locked;
 		uv_mutex_t& m;
 	};
 	
@@ -168,7 +181,9 @@ namespace lzma {
 			static Handle<Value> _failMissingSelf();
 
 			bool hasRunningThread;
-			int hasPendingCallbacks;
+			bool hasPendingCallbacks;
+			bool hasRunningCallbacks;
+			bool isNearDeath;
 			
 			uv_cond_t lifespanCond;
 			uv_mutex_t mutex;

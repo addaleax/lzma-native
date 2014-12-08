@@ -43,7 +43,8 @@ namespace {
 Persistent<Function> LZMAStream::constructor;
 
 LZMAStream::LZMAStream()
-	: hasRunningThread(false), hasPendingCallbacks(0), bufsize(8192), shouldFinish(false),
+	: hasRunningThread(false), hasPendingCallbacks(false), hasRunningCallbacks(false),
+	isNearDeath(false), bufsize(8192), shouldFinish(false),
 	shouldInvokeChunkCallbacks(false), lastCodeResult(LZMA_OK) 
 {
 	std::memset(&_, 0, sizeof(lzma_stream));
@@ -57,10 +58,14 @@ LZMAStream::LZMAStream()
 LZMAStream::~LZMAStream() {
 	{
 		LZMA_ASYNC_LOCK(this)
+		isNearDeath = true;
 		
-		while (hasRunningThread || hasPendingCallbacks > 0)
+		uv_cond_broadcast(&inputDataCond);
+		while (hasRunningThread || hasPendingCallbacks || hasRunningCallbacks)
 			uv_cond_wait(&lifespanCond, &mutex);
 	}
+	
+	// no locking necessary from now on, we are the only active thread
 	
 	lzma_end(&_);
 	
@@ -160,19 +165,24 @@ void LZMAStream::invokeBufferHandlersFromAsync() {
 }
 
 void LZMAStream::invokeBufferHandlers(bool async, bool hasLock) {
+	uv_mutex_guard lock(mutex, !hasLock);
+	if (!hasLock && !hasPendingCallbacks)
+		return;
+	
 	if (async) {
-		hasPendingCallbacks++;
+		hasPendingCallbacks = true;
 		// this calls invokeBufferHandler(false) from the main loop thread
 		uv_async_send(&outputDataAsync);
 		return;
 	}
 	
-	uv_mutex_guard lock(mutex, !hasLock);
+	hasRunningCallbacks = true;
+	hasPendingCallbacks = false;
 	
 	struct _ScopeGuard {
 		_ScopeGuard(LZMAStream* self_) : self(self_) {}
 		~_ScopeGuard() {
-			self->hasPendingCallbacks--;
+			self->hasRunningCallbacks = false;
 			uv_cond_broadcast(&self->lifespanCond);
 		}
 		
@@ -210,10 +220,10 @@ void LZMAStream::invokeBufferHandlers(bool async, bool hasLock) {
 	}
 	
 	if (shouldInvokeChunkCallbacks) {
+		shouldInvokeChunkCallbacks = false;
+		
 		Handle<Value> argv[3] = { NanUndefined(), NanNew<Boolean>(true), NanUndefined() };
 		CALL_BUFFER_HANDLER_WITH_ARGV
-		
-		shouldInvokeChunkCallbacks = false;
 	}
 }
 
@@ -259,11 +269,11 @@ void LZMAStream::doLZMACode(bool async) {
 					}
 					
 					// wait until more data is available
-					while (inbufs.empty() && !shouldFinish)
+					while (inbufs.empty() && !shouldFinish && !isNearDeath)
 						uv_cond_wait(&inputDataCond, &mutex);
 				}
 				
-				if (action == LZMA_FINISH)
+				if (action == LZMA_FINISH || isNearDeath)
 					break;
 				
 				if (shouldFinish)
@@ -300,6 +310,9 @@ void LZMAStream::doLZMACode(bool async) {
 			
 			if (outsz > 0)
 				outbufs.emplace(outbuf.data(), outbuf.data() + outsz);
+			
+			if (lastCodeResult == LZMA_STREAM_END)
+				shouldInvokeChunkCallbacks = true;
 			
 			invokeBufferHandlers(async, true);
 			invokedBufferHandlers = true;

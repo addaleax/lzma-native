@@ -35,7 +35,7 @@ describe('Compressor/Decompressor', function() {
 			fs.unlink(outfile);
 			done();
 		});
-
+		
 		fs.createReadStream('test/random').pipe(enc).pipe(dec).pipe(outstream);
 	});
 });

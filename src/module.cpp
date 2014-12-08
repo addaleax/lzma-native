@@ -27,7 +27,7 @@ void moduleInit(Handle<Object> exports, Handle<Object> module) {
 	exports->Set(NanNew<String>("versionString"),            NanNew<FunctionTemplate>(lzmaVersionString)->GetFunction());
 	exports->Set(NanNew<String>("checkIsSupported"),         NanNew<FunctionTemplate>(lzmaCheckIsSupported)->GetFunction());
 	exports->Set(NanNew<String>("checkSize"),                NanNew<FunctionTemplate>(lzmaCheckSize)->GetFunction());
-	exports->Set(NanNew<String>("crc32_"),                    NanNew<FunctionTemplate>(lzmaCRC32)->GetFunction());
+	exports->Set(NanNew<String>("crc32_"),                   NanNew<FunctionTemplate>(lzmaCRC32)->GetFunction());
 	exports->Set(NanNew<String>("filterEncoderIsSupported"), NanNew<FunctionTemplate>(lzmaFilterEncoderIsSupported)->GetFunction());
 	exports->Set(NanNew<String>("filterDecoderIsSupported"), NanNew<FunctionTemplate>(lzmaFilterDecoderIsSupported)->GetFunction());
 	exports->Set(NanNew<String>("rawEncoderMemusage"),       NanNew<FunctionTemplate>(lzmaRawEncoderMemusage)->GetFunction());
