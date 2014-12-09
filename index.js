@@ -65,6 +65,12 @@ Stream.prototype.syncStream = function(options) {
 				
 				while (chunkCallbacks.length > 0)
 					chunkCallbacks.shift()();
+				
+				/* I know this looks like “magic/more magic”, but
+				 * apparently works around a bogus process.nextTick in
+				 * node v0.11. This probably does not affect real
+				 * applications which perform other I/O than LZMA compression. */
+				setTimeout(function() {}, 1);
 			} else {
 				self.push(buf);
 			}
@@ -85,7 +91,7 @@ Stream.prototype.syncStream = function(options) {
 	
 	ret.prototype._flush = function(callback) {
 		this._transform(null, null, callback);
-	}
+	};
 	
 	return new ret();
 };
