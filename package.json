@@ -6,7 +6,7 @@
 		"name": "Hauke Henningsen",
 		"email": "sqrt@entless.org"
 	},
-	"description": "Provides bindings to the native liblzma library",
+	"description": "Provides bindings to the native liblzma library (.xz file format, among others)",
 	"main": "index",
 	"dependencies": {
 		"bindings": "~1.2.1",

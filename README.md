@@ -47,7 +47,7 @@ var encoder = lzma.createStream('easyEncoder', {preset: 9});
 
 Here `easyEncoder` corresponds to the `xz` command line util, resp. its file format [.xz](https://en.wikipedia.org/wiki/.xz).
 For the older `.lzma` format, you can just use `aloneEncoder` instead. The decoder can automatically tell
-between both file formats.
+between these file formats.
 
 The API is loosely based on the native API, with a few bits of wrapper code added for convenience.
 Methods like `stream.code` and `lzma.crc32` accept Node.js `Buffer`s as arguments.
@@ -106,7 +106,7 @@ Other implementations of the LZMA algorithms for node.js and/or web clients incl
 Note that LZMA has been designed to have much faster decompression than
 compression, which is something you may want to take into account when
 choosing an compression algorithm for large files. Almost always, LZMA achieves
-higher compression ratios than most other algorithms, though.
+higher compression ratios than other algorithms, though.
 
 ## Acknowledgements
 
