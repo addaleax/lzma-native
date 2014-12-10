@@ -31,6 +31,7 @@
 #include <lzma.h>
 
 #include <vector>
+#include <set>
 #include <queue>
 #include <string>
 
@@ -168,6 +169,8 @@ namespace lzma {
 		/* regard as private: */
 			void doLZMACodeFromAsync();
 			void invokeBufferHandlersFromAsync();
+			static void odp_invoke();
+			static void odp_setup_once();
 		private:
 			void doLZMACode(bool async);
 			void invokeBufferHandlers(bool async, bool hasLock);
@@ -188,7 +191,11 @@ namespace lzma {
 			uv_cond_t lifespanCond;
 			uv_mutex_t mutex;
 			uv_cond_t inputDataCond;
-			uv_async_t outputDataAsync;
+			
+			static uv_async_t outputDataAsync;
+			static uv_once_t outputDataAsyncSetupOnce;
+			static std::set<LZMAStream*> outputDataPendingStreams;
+			static uv_mutex_t odp_mutex;
 			
 #define LZMA_ASYNC_LOCK(strm)    uv_mutex_guard lock(strm->mutex);
 

@@ -21,6 +21,10 @@
 #include <cstring>
 
 namespace lzma {
+uv_async_t LZMAStream::outputDataAsync;
+uv_mutex_t LZMAStream::odp_mutex;
+uv_once_t LZMAStream::outputDataAsyncSetupOnce = UV_ONCE_INIT;
+std::set<LZMAStream*> LZMAStream::outputDataPendingStreams;
 
 namespace {
 	extern "C" void worker(void* opaque) {
@@ -34,13 +38,33 @@ namespace {
 	, int status
 #endif
 	) {
-		LZMAStream* self = static_cast<LZMAStream*>(async->data);
-		
-		self->invokeBufferHandlersFromAsync();
+		LZMAStream::odp_invoke();
+	}
+	
+	extern "C" void output_data_async_setup() {
+		LZMAStream::odp_setup_once();
 	}
 }
 
 Persistent<Function> LZMAStream::constructor;
+
+void LZMAStream::odp_setup_once() {
+	uv_mutex_init(&odp_mutex);
+	uv_async_init(uv_default_loop(), &outputDataAsync, invoke_buffer_handlers_async);
+}
+
+void LZMAStream::odp_invoke() {
+	std::set<LZMAStream*> pendingStreams;
+	
+	{
+		uv_mutex_guard odp_lock(odp_mutex);
+		
+		std::swap(pendingStreams, outputDataPendingStreams);
+	}
+	
+	for (std::set<LZMAStream*>::const_iterator it = pendingStreams.begin(); it != pendingStreams.end(); ++it)
+		(*it)->invokeBufferHandlersFromAsync();
+}
 
 LZMAStream::LZMAStream()
 	: hasRunningThread(false), hasPendingCallbacks(false), hasRunningCallbacks(false),
@@ -51,8 +75,6 @@ LZMAStream::LZMAStream()
 	uv_mutex_init(&mutex);
 	uv_cond_init(&lifespanCond);
 	uv_cond_init(&inputDataCond);
-	uv_async_init(uv_default_loop(), &outputDataAsync, invoke_buffer_handlers_async);
-	outputDataAsync.data = static_cast<void*>(this);
 }
 
 LZMAStream::~LZMAStream() {
@@ -60,8 +82,16 @@ LZMAStream::~LZMAStream() {
 		LZMA_ASYNC_LOCK(this)
 		isNearDeath = true;
 		
+		{
+			// we do not need to invoke any output callbacks
+			// since there are no references to us anyway
+			uv_mutex_guard odp_lock(odp_mutex);
+			
+			outputDataPendingStreams.erase(this);
+		}
+		
 		uv_cond_broadcast(&inputDataCond);
-		while (hasRunningThread || hasPendingCallbacks || hasRunningCallbacks)
+		while (hasRunningThread || hasRunningCallbacks)
 			uv_cond_wait(&lifespanCond, &mutex);
 	}
 	
@@ -72,7 +102,6 @@ LZMAStream::~LZMAStream() {
 	uv_mutex_destroy(&mutex);
 	uv_cond_destroy(&lifespanCond);
 	uv_cond_destroy(&inputDataCond);
-	uv_unref((uv_handle_t*) &outputDataAsync);
 }
 
 void LZMAStream::Init(Handle<Object> exports, Handle<Object> module) {
@@ -171,6 +200,12 @@ void LZMAStream::invokeBufferHandlers(bool async, bool hasLock) {
 	
 	if (async) {
 		hasPendingCallbacks = true;
+		
+		uv_once(&outputDataAsyncSetupOnce, odp_setup_once);
+		
+		uv_mutex_guard odp_lock(odp_mutex);
+		
+		outputDataPendingStreams.insert(this);
 		// this calls invokeBufferHandler(false) from the main loop thread
 		uv_async_send(&outputDataAsync);
 		return;
