@@ -190,8 +190,11 @@ describe('LZMAStream', function() {
 			
 			outstream.on('finish', function() {
 				assert.ok(fs.readFileSync(outfile).toString('ascii') == '');
-				fs.unlink(outfile);
-				done();
+				
+				process.nextTick(function() {
+					fs.unlink(outfile);
+					done();
+				});
 			});
 			
 			enc.pipe(dec).pipe(outstream);

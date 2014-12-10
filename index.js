@@ -37,6 +37,14 @@ Stream.prototype.getStream =
 Stream.prototype.asyncStream =
 Stream.prototype.syncStream = function(options) {
 	var nativeStream = this;
+
+	var _forceNextTickCb = function() {
+		/* I know this looks like “magic/more magic”, but
+		 * apparently works around a bogus process.nextTick in
+		 * node v0.11. This probably does not affect real
+		 * applications which perform other I/O than LZMA compression. */
+		setTimeout(function() {}, 1);
+	};
 	
 	var ret = function() {
 		ret.super_.call(this, options);
@@ -54,8 +62,11 @@ Stream.prototype.syncStream = function(options) {
 		}
 		
 		self.nativeStream.bufferHandler = function(buf, shouldInvokeChunkCallbacks, err) {
-			if (err)
+			if (err) {
+				self.push(null);
 				self.emit('error', err);
+				_forceNextTickCb();
+			}
 			
 			if (shouldInvokeChunkCallbacks) {
 				// rotate the chunkCallbacks property, since more callbacks
@@ -66,11 +77,7 @@ Stream.prototype.syncStream = function(options) {
 				while (chunkCallbacks.length > 0)
 					chunkCallbacks.shift()();
 				
-				/* I know this looks like “magic/more magic”, but
-				 * apparently works around a bogus process.nextTick in
-				 * node v0.11. This probably does not affect real
-				 * applications which perform other I/O than LZMA compression. */
-				setTimeout(function() {}, 1);
+				_forceNextTickCb();
 			} else {
 				self.push(buf);
 			}
