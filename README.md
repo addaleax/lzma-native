@@ -1,8 +1,8 @@
 lzma-native
 ===========
 
-[![NPM Version](https://img.shields.io/npm/v/lzma-native.svg?style=flat)](https://npmjs.org/package/lzma-native)
-[![NPM Downloads](https://img.shields.io/npm/dm/lzma-native.svg?style=flat)](https://npmjs.org/package/lzma-native)
+[![NPM Version](https://img.shields.io/npm/v/lzma-native.svg)](https://npmjs.org/package/lzma-native)
+[![NPM Downloads](https://img.shields.io/npm/dm/lzma-native.svg)](https://npmjs.org/package/lzma-native)
 [![Build Status](https://travis-ci.org/addaleax/lzma-native.png)](https://travis-ci.org/addaleax/lzma-native)
 [![Dependency Status](https://david-dm.org/addaleax/lzma-native.svg)](https://david-dm.org/addaleax/lzma-native)
 [![devDependency Status](https://david-dm.org/addaleax/lzma-native/dev-status.svg)](https://david-dm.org/addaleax/lzma-native#info=devDependencies)
