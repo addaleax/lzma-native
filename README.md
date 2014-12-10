@@ -30,7 +30,7 @@ other LZMA libraries so you can use it nearly as a drop-in replacement:
 * [node-xz](https://github.com/robey/node-xz) via `lzma.Compressor` and `lzma.Decompressor`
 * [LZMA-JS](https://github.com/nmrugg/LZMA-JS) via `lzma.LZMA().compress` and `lzma.LZMA().decompress`,
   though without actual support for progress functions and returning `Buffer` objects
-  instead of integer arrays.
+  instead of integer arrays. (This produces output in the `.lzma` file format, *not* the `.xz` format!)
 
 The above example code mimicks the functionality of the `xz` command line util (i. e. 
 reads input from `stdin` and writes compressed data to `stdout`).
@@ -49,11 +49,16 @@ Here `easyEncoder` corresponds to the `xz` command line util, resp. its file for
 For the older `.lzma` format, you can just use `aloneEncoder` instead. The decoder can automatically tell
 between these file formats.
 
-The API is loosely based on the native API, with a few bits of wrapper code added for convenience.
-Methods like `stream.code` and `lzma.crc32` accept Node.js `Buffer`s as arguments.
+You can also use non-streaming functions for convenience, akin to the [LZMA-JS](https://github.com/nmrugg/LZMA-JS) API:
 
-Unless you set `.synchronous = true` in `createStream`’s second parameter, the library will use its
-own thread for compression (if compiled with support for that).
+* `lzma.compress(string, [options], on_finish)`, where `on_finish` will be called with a Buffer in the `.xz` format
+* `lzma.decompress(buffer, [options], on_finish)`, where `on_finish` will be called with a string.
+
+The functions API is loosely based on the native API, with a few bits of wrapper code added for convenience.
+Methods like `lzma.crc32` accept Node.js `Buffer`s as arguments.
+
+Unless you set `.synchronous = true` in `createStream`’s `options` parameter, the library will use its
+own thread for compression.
 
 The `encoder` object here is an instance of `stream.Duplex` (see the [Node.js docs](http://nodejs.org/api/stream.html)),
 so you could also manually perform any of the write and read operations that you’re familiar with on it.

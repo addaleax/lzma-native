@@ -3,7 +3,7 @@
 var lzma = require('../');
 var assert = require('assert');
 
-// this test relies on mocha’s 2000 ms test timeout
+// this test relies on mocha’s 2000 ms test timeout (only in case it fails, of course)
 describe('regression-#1', function() {
 	it('should perform correctly', function(done) {
 		var complete = 0;
