@@ -169,7 +169,7 @@ NAN_METHOD(LZMAStream::Code) {
 			self->shouldFinish = true;
 	}
 	
-	self->inbufs.push(std::move(inputData));
+	self->inbufs.push(LZMA_NATIVE_MOVE(inputData));
 	
 	bool hadRunningThread = self->hasRunningThread;
 	bool async = args[1]->BooleanValue() || hadRunningThread;
@@ -236,7 +236,7 @@ void LZMAStream::invokeBufferHandlers(bool async, bool hasLock) {
 	if (!hasLock) lock.lock();
 	
 	while (outbufs.size() > 0) {
-		outbuf = std::move(outbufs.front());
+		outbuf = LZMA_NATIVE_MOVE(outbufs.front());
 		outbufs.pop();
 		
 		Handle<Value> argv[3] = {
@@ -322,7 +322,7 @@ void LZMAStream::doLZMACode(bool async) {
 			}
 			
 			while (_.avail_in == 0 && !inbufs.empty()) {
-				inbuf = std::move(inbufs.front());
+				inbuf = LZMA_NATIVE_MOVE(inbufs.front());
 				inbufs.pop();
 			
 				_.next_in = inbuf.data();
@@ -343,8 +343,13 @@ void LZMAStream::doLZMACode(bool async) {
 		if (_.avail_out == 0 || _.avail_in == 0 || lastCodeResult == LZMA_STREAM_END) {
 			size_t outsz = outbuf.size() - _.avail_out;
 			
-			if (outsz > 0)
+			if (outsz > 0) {
+#if __cplusplus > 199711L
 				outbufs.emplace(outbuf.data(), outbuf.data() + outsz);
+#else
+				outbufs.push(std::vector<uint8_t>(outbuf.data(), outbuf.data() + outsz));
+#endif
+			}
 			
 			if (lastCodeResult == LZMA_STREAM_END)
 				shouldInvokeChunkCallbacks = true;

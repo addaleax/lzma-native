@@ -35,6 +35,12 @@
 #include <queue>
 #include <string>
 
+#if __cplusplus > 199711L
+#define LZMA_NATIVE_MOVE std::move
+#else
+#define LZMA_NATIVE_MOVE
+#endif
+
 namespace lzma {
 	using namespace v8;
 	
@@ -224,8 +230,8 @@ namespace lzma {
 			bool shouldFinish;
 			bool shouldInvokeChunkCallbacks;
 			lzma_ret lastCodeResult;
-			std::queue<std::vector<uint8_t>> inbufs;
-			std::queue<std::vector<uint8_t>> outbufs;
+			std::queue<std::vector<uint8_t> > inbufs;
+			std::queue<std::vector<uint8_t> > outbufs;
 	};
 	
 	/**

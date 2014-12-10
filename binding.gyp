@@ -9,9 +9,6 @@
 				"src/lzma-stream.cpp",
 				"src/module.cpp"
 			],
-			"cflags": [
-				"-std=c++0x",
-			],
 			"include_dirs" : [
 				"build/liblzma/build/include",
 				"<!(node -e \"require('nan')\")"
