@@ -79,18 +79,19 @@ LZMAStream::LZMAStream()
 
 LZMAStream::~LZMAStream() {
 	{
+		// we do not need to invoke any output callbacks
+		// since there are no references to us anyway
+		uv_mutex_guard odp_lock(odp_mutex);
+		
+		outputDataPendingStreams.erase(this);
+	}
+	
+	{
 		LZMA_ASYNC_LOCK(this)
+		
 		isNearDeath = true;
-		
-		{
-			// we do not need to invoke any output callbacks
-			// since there are no references to us anyway
-			uv_mutex_guard odp_lock(odp_mutex);
-			
-			outputDataPendingStreams.erase(this);
-		}
-		
 		uv_cond_broadcast(&inputDataCond);
+		
 		while (hasRunningThread || hasRunningCallbacks)
 			uv_cond_wait(&lifespanCond, &mutex);
 	}
@@ -102,49 +103,6 @@ LZMAStream::~LZMAStream() {
 	uv_mutex_destroy(&mutex);
 	uv_cond_destroy(&lifespanCond);
 	uv_cond_destroy(&inputDataCond);
-}
-
-void LZMAStream::Init(Handle<Object> exports, Handle<Object> module) {
-	Local<FunctionTemplate> tpl = NanNew<FunctionTemplate>(New);
-	tpl->SetClassName(NanNew<String>("LZMAStream"));
-	tpl->InstanceTemplate()->SetInternalFieldCount(1);
-	
-	tpl->PrototypeTemplate()->Set(NanNew<String>("code"),           NanNew<FunctionTemplate>(Code)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NanNew<String>("memusage"),       NanNew<FunctionTemplate>(Memusage)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NanNew<String>("getCheck"),       NanNew<FunctionTemplate>(GetCheck)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NanNew<String>("memlimitGet"),    NanNew<FunctionTemplate>(MemlimitSet)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NanNew<String>("memlimitSet"),    NanNew<FunctionTemplate>(MemlimitGet)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NanNew<String>("totalIn"),        NanNew<FunctionTemplate>(TotalIn)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NanNew<String>("totalOut"),       NanNew<FunctionTemplate>(TotalOut)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NanNew<String>("rawEncoder_"),    NanNew<FunctionTemplate>(RawEncoder)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NanNew<String>("rawDecoder_"),    NanNew<FunctionTemplate>(RawDecoder)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NanNew<String>("filtersUpdate"),  NanNew<FunctionTemplate>(FiltersUpdate)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NanNew<String>("easyEncoder_"),   NanNew<FunctionTemplate>(EasyEncoder)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NanNew<String>("streamEncoder_"), NanNew<FunctionTemplate>(StreamEncoder)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NanNew<String>("aloneEncoder"),   NanNew<FunctionTemplate>(AloneEncoder)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NanNew<String>("streamDecoder_"), NanNew<FunctionTemplate>(StreamDecoder)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NanNew<String>("autoDecoder_"),   NanNew<FunctionTemplate>(AutoDecoder)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NanNew<String>("aloneDecoder_"),  NanNew<FunctionTemplate>(AloneDecoder)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NanNew<String>("checkError"),     NanNew<FunctionTemplate>(CheckError)->GetFunction());
-	NanAssignPersistent(constructor, tpl->GetFunction());
-	exports->Set(NanNew<String>("Stream"), NanNew<Function>(constructor));
-}
-
-NAN_METHOD(LZMAStream::New) {
-	NanScope();
-	
-	if (args.IsConstructCall()) {
-		(new LZMAStream())->Wrap(args.This());
-		NanReturnValue(args.This());
-	} else {
-		Local<Value> argv[0] = {};
-		NanReturnValue(NanNew<Function>(constructor)->NewInstance(0, argv));
-	}
-}
-
-Handle<Value> LZMAStream::_failMissingSelf() {
-	NanThrowTypeError("LZMAStream methods need to be called on an LZMAStream object");
-	return NanUndefined();
 }
 
 NAN_METHOD(LZMAStream::Code) {
@@ -177,6 +135,8 @@ NAN_METHOD(LZMAStream::Code) {
 	
 	if (async) {
 		if (!hadRunningThread) {
+			uv_once(&outputDataAsyncSetupOnce, odp_setup_once);
+			
 			uv_thread_t worker_id;
 			uv_thread_create(&worker_id, worker, static_cast<void*>(self));
 		}
@@ -200,8 +160,6 @@ void LZMAStream::invokeBufferHandlers(bool async, bool hasLock) {
 	
 	if (async) {
 		hasPendingCallbacks = true;
-		
-		uv_once(&outputDataAsyncSetupOnce, odp_setup_once);
 		
 		uv_mutex_guard odp_lock(odp_mutex);
 		
@@ -361,6 +319,49 @@ void LZMAStream::doLZMACode(bool async) {
 	
 	if (!invokedBufferHandlers)
 		invokeBufferHandlers(async, true);
+}
+
+void LZMAStream::Init(Handle<Object> exports, Handle<Object> module) {
+	Local<FunctionTemplate> tpl = NanNew<FunctionTemplate>(New);
+	tpl->SetClassName(NanNew<String>("LZMAStream"));
+	tpl->InstanceTemplate()->SetInternalFieldCount(1);
+	
+	tpl->PrototypeTemplate()->Set(NanNew<String>("code"),           NanNew<FunctionTemplate>(Code)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NanNew<String>("memusage"),       NanNew<FunctionTemplate>(Memusage)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NanNew<String>("getCheck"),       NanNew<FunctionTemplate>(GetCheck)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NanNew<String>("memlimitGet"),    NanNew<FunctionTemplate>(MemlimitSet)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NanNew<String>("memlimitSet"),    NanNew<FunctionTemplate>(MemlimitGet)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NanNew<String>("totalIn"),        NanNew<FunctionTemplate>(TotalIn)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NanNew<String>("totalOut"),       NanNew<FunctionTemplate>(TotalOut)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NanNew<String>("rawEncoder_"),    NanNew<FunctionTemplate>(RawEncoder)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NanNew<String>("rawDecoder_"),    NanNew<FunctionTemplate>(RawDecoder)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NanNew<String>("filtersUpdate"),  NanNew<FunctionTemplate>(FiltersUpdate)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NanNew<String>("easyEncoder_"),   NanNew<FunctionTemplate>(EasyEncoder)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NanNew<String>("streamEncoder_"), NanNew<FunctionTemplate>(StreamEncoder)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NanNew<String>("aloneEncoder"),   NanNew<FunctionTemplate>(AloneEncoder)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NanNew<String>("streamDecoder_"), NanNew<FunctionTemplate>(StreamDecoder)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NanNew<String>("autoDecoder_"),   NanNew<FunctionTemplate>(AutoDecoder)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NanNew<String>("aloneDecoder_"),  NanNew<FunctionTemplate>(AloneDecoder)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NanNew<String>("checkError"),     NanNew<FunctionTemplate>(CheckError)->GetFunction());
+	NanAssignPersistent(constructor, tpl->GetFunction());
+	exports->Set(NanNew<String>("Stream"), NanNew<Function>(constructor));
+}
+
+NAN_METHOD(LZMAStream::New) {
+	NanScope();
+	
+	if (args.IsConstructCall()) {
+		(new LZMAStream())->Wrap(args.This());
+		NanReturnValue(args.This());
+	} else {
+		Local<Value> argv[0] = {};
+		NanReturnValue(NanNew<Function>(constructor)->NewInstance(0, argv));
+	}
+}
+
+Handle<Value> LZMAStream::_failMissingSelf() {
+	NanThrowTypeError("LZMAStream methods need to be called on an LZMAStream object");
+	return NanUndefined();
 }
 
 NAN_METHOD(LZMAStream::Memusage) {

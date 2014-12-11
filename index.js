@@ -57,8 +57,8 @@ Stream.prototype.syncStream = function(options) {
 		if (!self.synchronous) {
 			Stream.curAsyncStreamCount++;
 			
-			self.on('finish', function() { Stream.curAsyncStreamCount--; });
-			self.on('error',  function() { Stream.curAsyncStreamCount--; });
+			self.once('finish', function() { Stream.curAsyncStreamCount--; });
+			self.once('error',  function() { Stream.curAsyncStreamCount--; });
 		}
 		
 		self.nativeStream.bufferHandler = function(buf, shouldInvokeChunkCallbacks, err) {
@@ -190,7 +190,7 @@ function singleStringCoding(stream, string, on_finish, on_progress) {
 	var buffers = [];
 
 	stream.on('data', function(b) { buffers.push(b); });
-	stream.on('end', function() {
+	stream.once('end', function() {
 		on_progress(1);
 		on_finish(Buffer.concat(buffers));
 	});
