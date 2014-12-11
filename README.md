@@ -95,6 +95,12 @@ Also, all encoders accept a `.memlimit` option.
 
 This package includes the native C library, so there is no need to install it separately.
 
+**Note on version 0.2.1**
+Due to a suspected memory leak when using asynchronous (de)compression,
+for version 0.2.1 this feature has been temporarily disabled.
+I’m working on tracking things down and resolving this!
+(See lzma-native/#3).
+
 ## Licensing
 
 The original C library package contains code under various licenses,

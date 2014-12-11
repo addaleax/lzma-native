@@ -24,9 +24,10 @@ var stream = require('stream');
 var util = require('util');
 var _ = require('lodash');
 
+native.asyncCodeAvailable = false;
 _.extend(exports, native);
 
-exports.version = '0.2.0';
+exports.version = '0.2.1';
 
 var Stream = exports.Stream;
 
