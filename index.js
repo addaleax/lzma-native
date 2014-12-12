@@ -30,7 +30,7 @@ exports.version = '0.2.0';
 
 var Stream = exports.Stream;
 
-Stream.curAsyncStreamCount = 0;
+Stream.curAsyncStreams = [];
 Stream.maxAsyncStreamCount = 32;
 
 Stream.prototype.getStream = 
@@ -55,10 +55,16 @@ Stream.prototype.syncStream = function(options) {
 		self.chunkCallbacks = [];
 		
 		if (!self.synchronous) {
-			Stream.curAsyncStreamCount++;
+			Stream.curAsyncStreams.push(self);
+			var cleanup = function() {
+				var index = Stream.curAsyncStreams.indexOf(self);
+				
+				if (index != -1)
+					array.splice(index, 1);
+			}
 			
-			self.once('finish', function() { Stream.curAsyncStreamCount--; });
-			self.once('error',  function() { Stream.curAsyncStreamCount--; });
+			self.once('finish', cleanup);
+			self.once('error',  cleanup);
 		}
 		
 		self.nativeStream.bufferHandler = function(buf, shouldInvokeChunkCallbacks, err) {
@@ -151,7 +157,7 @@ exports.createStream = function(coder, options) {
 		stream.memlimitSet(options.memlimit);
 	
 	if (!options.synchronous)
-		options.synchronous = ((Stream.curAsyncStreamCount >= Stream.maxAsyncStreamCount) && !options.forceAsynchronous);
+		options.synchronous = ((Stream.curAsyncStreams.length >= Stream.maxAsyncStreamCount) && !options.forceAsynchronous);
 	
 	return stream.getStream(options);
 };
