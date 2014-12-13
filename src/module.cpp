@@ -20,8 +20,8 @@
 
 namespace lzma {
 
-void moduleInit(Handle<Object> exports, Handle<Object> module) {
-	LZMAStream::Init(exports, module);
+void moduleInit(Handle<Object> exports) {
+	LZMAStream::Init(exports);
 	
 	exports->Set(NanNew<String>("versionNumber"),            NanNew<FunctionTemplate>(lzmaVersionNumber)->GetFunction());
 	exports->Set(NanNew<String>("versionString"),            NanNew<FunctionTemplate>(lzmaVersionString)->GetFunction());

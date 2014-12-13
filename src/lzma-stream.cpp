@@ -363,7 +363,7 @@ void LZMAStream::doLZMACode(bool async) {
 		invokeBufferHandlers(async, true);
 }
 
-void LZMAStream::Init(Handle<Object> exports, Handle<Object> module) {
+void LZMAStream::Init(Handle<Object> exports) {
 	Local<FunctionTemplate> tpl = NanNew<FunctionTemplate>(New);
 	tpl->SetClassName(NanNew<String>("LZMAStream"));
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
