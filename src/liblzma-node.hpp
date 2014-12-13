@@ -41,10 +41,15 @@
 #define LZMA_NATIVE_MOVE
 #endif
 
+#if NODE_MODULE_VERSION >= 11
+#define LZMA_ASYNC_AVAILABLE
+#endif
+
 namespace lzma {
 	using namespace v8;
 	
 	/* internal util */
+#ifdef LZMA_ASYNC_AVAILABLE
 	struct uv_mutex_guard {
 		explicit uv_mutex_guard(uv_mutex_t& m_, bool autolock = true)
 			: locked(false), m(m_)
@@ -71,6 +76,7 @@ namespace lzma {
 		bool locked;
 		uv_mutex_t& m;
 	};
+#endif
 	
 	/* util */
 	/**
@@ -171,6 +177,7 @@ namespace lzma {
 	class LZMAStream : public node::ObjectWrap {
 		public:
 			static void Init(Handle<Object> exports, Handle<Object> module);
+			static const bool asyncCodeAvailable;
 			
 		/* regard as private: */
 			void doLZMACodeFromAsync();
@@ -193,17 +200,24 @@ namespace lzma {
 			bool hasPendingCallbacks;
 			bool hasRunningCallbacks;
 			bool isNearDeath;
-			
+
+#ifdef LZMA_ASYNC_AVAILABLE
 			uv_cond_t lifespanCond;
 			uv_mutex_t mutex;
 			uv_cond_t inputDataCond;
 			
 			static uv_async_t outputDataAsync;
 			static uv_once_t outputDataAsyncSetupOnce;
-			static std::set<LZMAStream*> outputDataPendingStreams;
 			static uv_mutex_t odp_mutex;
 			
 #define LZMA_ASYNC_LOCK(strm)    uv_mutex_guard lock(strm->mutex);
+#define LZMA_ODP_LOCK(mutex)     uv_mutex_guard odp_lock(mutex);
+#else
+#define LZMA_ASYNC_LOCK(strm)
+#define LZMA_ODP_LOCK(strm)
+#endif
+
+			static std::set<LZMAStream*> outputDataPendingStreams;
 
 			static NAN_METHOD(Code);
 			static NAN_METHOD(Memusage);

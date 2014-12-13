@@ -108,7 +108,7 @@ void moduleInit(Handle<Object> exports, Handle<Object> module) {
 	exports->Set(NanNew<String>("VERSION"),                  NanNew<Number>(LZMA_VERSION));
 	exports->Set(NanNew<String>("VERSION_STRING"),           NanNew<String>(LZMA_VERSION_STRING));
 	
-	exports->Set(NanNew<String>("asyncCodeAvailable"),       NanNew<Boolean>(true));
+	exports->Set(NanNew<String>("asyncCodeAvailable"),       NanNew<Boolean>(LZMAStream::asyncCodeAvailable));
 }
 
 }
