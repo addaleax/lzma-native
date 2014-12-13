@@ -178,6 +178,7 @@ namespace lzma {
 			static void odp_invoke();
 			static void odp_setup_once();
 		private:
+			void resetUnderlying();
 			void doLZMACode(bool async);
 			void invokeBufferHandlers(bool async, bool hasLock);
 			

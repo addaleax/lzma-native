@@ -77,6 +77,13 @@ LZMAStream::LZMAStream()
 	uv_cond_init(&inputDataCond);
 }
 
+void LZMAStream::resetUnderlying() {
+	lzma_end(&_);
+	
+	std::memset(&_, 0, sizeof(lzma_stream));
+	lastCodeResult = LZMA_OK;
+}
+
 LZMAStream::~LZMAStream() {
 	{
 		// we do not need to invoke any output callbacks
@@ -98,7 +105,7 @@ LZMAStream::~LZMAStream() {
 	
 	// no locking necessary from now on, we are the only active thread
 	
-	lzma_end(&_);
+	resetUnderlying();
 	
 	uv_mutex_destroy(&mutex);
 	uv_cond_destroy(&lifespanCond);
@@ -205,10 +212,14 @@ void LZMAStream::invokeBufferHandlers(bool async, bool hasLock) {
 	}
 	
 	if (lastCodeResult != LZMA_OK) {
-		Handle<Value> argv[3] = { 
-			NanNull(), NanUndefined(),
-			lastCodeResult == LZMA_STREAM_END ? Handle<Value>(NanNull()) : lzmaRetError(lastCodeResult)
-		};
+		Handle<Value> errorArg = Handle<Value>(NanNull());
+		
+		if (lastCodeResult != LZMA_STREAM_END)
+			errorArg = lzmaRetError(lastCodeResult);
+		
+		resetUnderlying(); // resets lastCodeResult!
+		
+		Handle<Value> argv[3] = { NanNull(), NanUndefined(), errorArg };
 		CALL_BUFFER_HANDLER_WITH_ARGV
 	}
 	
@@ -250,7 +261,8 @@ void LZMAStream::doLZMACode(bool async) {
 	shouldInvokeChunkCallbacks = false;
 	bool hasConsumedChunks = false;
 	
-	while (true) {
+	// _.internal is set to NULL when lzma_end() is called via resetUnderlying()
+	while (_.internal) {
 		if (_.avail_in == 0 && _.avail_out != 0) { // more input neccessary?
 			if (inbufs.empty()) { // more input available?
 				if (async) {
@@ -302,18 +314,24 @@ void LZMAStream::doLZMACode(bool async) {
 			size_t outsz = outbuf.size() - _.avail_out;
 			
 			if (outsz > 0) {
-#if __cplusplus > 199711L
+#if __cplusplus > 199711L // C++11
 				outbufs.emplace(outbuf.data(), outbuf.data() + outsz);
 #else
 				outbufs.push(std::vector<uint8_t>(outbuf.data(), outbuf.data() + outsz));
 #endif
 			}
 			
+			// save status, since invokeBufferHandlers() may reset
+			lzma_ret oldLCR = lastCodeResult;
+			
 			if (lastCodeResult == LZMA_STREAM_END)
 				shouldInvokeChunkCallbacks = true;
 			
 			invokeBufferHandlers(async, true);
 			invokedBufferHandlers = true;
+			
+			if (oldLCR == LZMA_STREAM_END)
+				break;
 		}
 	}
 	
