@@ -60,7 +60,7 @@ Stream.prototype.syncStream = function(options) {
 				var index = Stream.curAsyncStreams.indexOf(self);
 				
 				if (index != -1)
-					array.splice(index, 1);
+					Stream.curAsyncStreams.splice(index, 1);
 			}
 			
 			self.once('finish', cleanup);
