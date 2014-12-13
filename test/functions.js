@@ -1,6 +1,7 @@
 'use strict';
 
 var assert = require('assert');
+var fs = require('fs');
 
 var lzma = require('../');
 
@@ -153,6 +154,15 @@ describe('lzma', function() {
 		it('should be monotonous in the preset parameter', function() {
 			for (var i = 1; i < 9; ++i)
 				assert.ok(lzma.easyDecoderMemusage(i+1) >= lzma.easyDecoderMemusage(i));
+		});
+	});
+	
+	/* meta stuff */
+	describe('.version', function() {
+		it('should be the same as the package.json version', function() {
+			var pj = JSON.parse(fs.readFileSync('package.json'));
+			
+			assert.strictEqual(pj.version, lzma.version);
 		});
 	});
 });

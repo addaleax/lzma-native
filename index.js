@@ -26,7 +26,7 @@ var _ = require('lodash');
 
 _.extend(exports, native);
 
-exports.version = '0.2.0';
+exports.version = '0.2.2';
 
 var Stream = exports.Stream;
 
