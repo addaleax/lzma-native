@@ -7,7 +7,8 @@ var lzma = require('../');
 
 function fsCreateWriteStream(filename) {
 	var s = fs.createWriteStream(filename);
-	s.on('close', function() { s.emit('finish'); });
+	if (process.version.match(/^v0.8/))
+		s.on('close', function() { s.emit('finish'); });
 	return s;
 }
 
