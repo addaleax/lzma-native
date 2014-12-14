@@ -5,6 +5,12 @@ var fs = require('fs');
 
 var lzma = require('../');
 
+function fsCreateWriteStream(filename) {
+	var s = fs.createWriteStream(filename);
+	s.on('close', function() { s.emit('finish'); });
+	return s;
+}
+
 function bufferEqual(a, b) {
 	if (a.length != b.length)
 		return false;
@@ -94,7 +100,7 @@ describe('LZMAStream', function() {
 			var enc = lzma.createStream('aloneEncoder');
 			var dec = lzma.createStream('autoDecoder');
 			var outfile = 'test/random.lzma.unauto';
-			var outstream = fs.createWriteStream(outfile);
+			var outstream = fsCreateWriteStream(outfile);
 			
 			outstream.on('finish', function() {
 				assert.ok(bufferEqual(fs.readFileSync('test/random'), fs.readFileSync(outfile)));
@@ -109,7 +115,7 @@ describe('LZMAStream', function() {
 			var enc = lzma.createStream('aloneEncoder');
 			var dec = lzma.createStream('aloneDecoder');
 			var outfile = 'test/random.lzma.unlzma';
-			var outstream = fs.createWriteStream(outfile);
+			var outstream = fsCreateWriteStream(outfile);
 			
 			outstream.on('finish', function() {
 				assert.ok(bufferEqual(fs.readFileSync('test/random'), fs.readFileSync(outfile)));
@@ -124,7 +130,7 @@ describe('LZMAStream', function() {
 			var enc = lzma.createStream('aloneEncoder', {synchronous: true});
 			var dec = lzma.createStream('autoDecoder',  {synchronous: true});
 			var outfile = 'test/random.lzma.unauto';
-			var outstream = fs.createWriteStream(outfile);
+			var outstream = fsCreateWriteStream(outfile);
 			
 			outstream.on('finish', function() {
 				assert.ok(bufferEqual(fs.readFileSync('test/random'), fs.readFileSync(outfile)));
@@ -139,7 +145,7 @@ describe('LZMAStream', function() {
 			var enc = lzma.createStream('aloneEncoder', {synchronous: true});
 			var dec = lzma.createStream('aloneDecoder', {synchronous: true});
 			var outfile = 'test/random.lzma.unlzma';
-			var outstream = fs.createWriteStream(outfile);
+			var outstream = fsCreateWriteStream(outfile);
 			
 			outstream.on('finish', function() {
 				assert.ok(bufferEqual(fs.readFileSync('test/random'), fs.readFileSync(outfile)));
@@ -156,7 +162,7 @@ describe('LZMAStream', function() {
 			var enc = lzma.createStream('easyEncoder');
 			var dec = lzma.createStream('autoDecoder');
 			var outfile = 'test/random.xz.unauto';
-			var outstream = fs.createWriteStream(outfile);
+			var outstream = fsCreateWriteStream(outfile);
 			
 			outstream.on('finish', function() {
 				assert.ok(bufferEqual(fs.readFileSync('test/random'), fs.readFileSync(outfile)));
@@ -171,7 +177,7 @@ describe('LZMAStream', function() {
 			var enc = lzma.createStream('easyEncoder', {synchronous: true});
 			var dec = lzma.createStream('autoDecoder', {synchronous: true});
 			var outfile = 'test/random.xz.unauto';
-			var outstream = fs.createWriteStream(outfile);
+			var outstream = fsCreateWriteStream(outfile);
 			
 			outstream.on('finish', function() {
 				assert.ok(bufferEqual(fs.readFileSync('test/random'), fs.readFileSync(outfile)));
@@ -186,7 +192,7 @@ describe('LZMAStream', function() {
 			var enc = lzma.createStream('easyEncoder', {synchronous: true});
 			var dec = lzma.createStream('autoDecoder', {synchronous: true});
 			var outfile = 'test/empty.xz.unauto';
-			var outstream = fs.createWriteStream(outfile);
+			var outstream = fsCreateWriteStream(outfile);
 			
 			outstream.on('finish', function() {
 				assert.ok(fs.readFileSync(outfile).toString('ascii') == '');

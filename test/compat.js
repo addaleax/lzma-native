@@ -5,6 +5,12 @@ var fs = require('fs');
 
 var lzma = require('../');
 
+function fsCreateWriteStream(filename) {
+	var s = fs.createWriteStream(filename);
+	s.on('close', function() { s.emit('finish'); });
+	return s;
+}
+
 function bufferEqual(a, b) {
 	if (a.length != b.length)
 		return false;
@@ -28,7 +34,7 @@ describe('Compressor/Decompressor', function() {
 		var enc = new lzma.Compressor();
 		var dec = new lzma.Decompressor();
 		var outfile = 'test/random.lzma.unlzma';
-		var outstream = fs.createWriteStream(outfile);
+		var outstream = fsCreateWriteStream(outfile);
 		
 		outstream.on('finish', function() {
 			assert.ok(bufferEqual(fs.readFileSync('test/random'), fs.readFileSync(outfile)));
