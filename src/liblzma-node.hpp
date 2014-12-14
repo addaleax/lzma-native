@@ -176,7 +176,7 @@ namespace lzma {
 	 */
 	class LZMAStream : public node::ObjectWrap {
 		public:
-			static void Init(Handle<Object> exports, Handle<Object> module);
+			static void Init(Handle<Object> exports);
 			static const bool asyncCodeAvailable;
 			
 		/* regard as private: */
@@ -252,7 +252,7 @@ namespace lzma {
 	/**
 	 * Node.js addon init function
 	 */
-	void moduleInit(Handle<Object> exports, Handle<Object> module);
+	void moduleInit(Handle<Object> exports);
 }
 
 #endif

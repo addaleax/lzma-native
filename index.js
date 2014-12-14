@@ -20,7 +20,7 @@
 'use strict';
 
 var native = require('bindings')('lzma_native.node');
-var stream = require('stream');
+var stream = require('readable-stream');
 var util = require('util');
 var _ = require('lodash');
 

@@ -80,12 +80,13 @@ Handle<Value> lzmaRet(lzma_ret rv) {
 	return NanNew<Integer>(rv);
 }
 
-bool readBufferFromObj(Handle<Value> buf, std::vector<uint8_t>& data) {
-	if (buf.IsEmpty() || !node::Buffer::HasInstance(buf)) {
+bool readBufferFromObj(Handle<Value> buf_, std::vector<uint8_t>& data) {
+	if (buf_.IsEmpty() || !node::Buffer::HasInstance(buf_)) {
 		NanThrowTypeError("Exptected Buffer as input");
 		return false;
 	}
 	
+	Handle<Object> buf = Handle<Object>::Cast(buf_);
 	size_t len = node::Buffer::Length(buf);
 	const uint8_t* ptr = reinterpret_cast<const uint8_t*>(len > 0 ? node::Buffer::Data(buf) : "");
 	
