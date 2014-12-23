@@ -23,8 +23,8 @@
 			[
 				{
 					"action_name" : "build",
-					 # a hack to run deps/xz-5.0.6 ./configure during `node-gyp configure`
-					'inputs': ['<!@(sh liblzma-config.sh <(module_root_dir)/build <(module_root_dir)/deps/xz-5.0.6.tar.bz2)'],
+					 # a hack to run deps/xz-5.0.8 ./configure during `node-gyp configure`
+					'inputs': ['<!@(sh liblzma-config.sh <(module_root_dir)/build <(module_root_dir)/deps/xz-5.0.8.tar.bz2)'],
 					'outputs': [''],
 					'action': [
 					# run deps/mhash `make`
