@@ -11,7 +11,7 @@
 	"dependencies": {
 		"bindings": "~1.2.1",
 		"lodash": "~2.4.1",
-		"commander": "~2.5.0",
+		"commander": "~2.6.0",
 		"nan": "~1.4.1",
 		"readable-stream": "~1.1"
 	},
