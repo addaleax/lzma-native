@@ -1,10 +1,19 @@
 language: node_js
 node_js:
-   - "0.11"
-   - "0.10"
-   - "0.8"
+  - "0.11"
+  - "0.10"
+  - "0.8"
+env:
+  - CXXFLAGS=-std=c++98 CXX=g++ CC=gcc
+  - CXXFLAGS=-std=c++0x CXX=g++ CC=gcc
+  - CXXFLAGS=-std=c++98 CXX=clang++ CC=clang
+  - CXXFLAGS=-std=c++0x CXX=clang++ CC=clang
 before_install:
   - sudo pip install cpp-coveralls coveralls-merge
+  - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+  - sudo apt-get update -qq
+  - if [ "$CXX" = "clang++" ]; then sudo apt-get install -y -qq libstdc++-4.8-dev; fi
+  - if [ "$CXX" = "g++" ]; then sudo apt-get install -y -qq g++-4.8; export CXX="g++-4.8" CC="gcc-4.8"; fi
 install:
   - LDFLAGS=--coverage CFLAGS=--coverage CXXFLAGS=--coverage npm install
 script:
