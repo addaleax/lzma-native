@@ -236,7 +236,6 @@ namespace lzma {
 			static NAN_METHOD(StreamDecoder);
 			static NAN_METHOD(AutoDecoder);
 			static NAN_METHOD(AloneDecoder);
-			static NAN_METHOD(CheckError);
 			
 			lzma_stream _;
 			size_t bufsize;

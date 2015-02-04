@@ -100,3 +100,17 @@ describe('LZMA.compress()/decompress()', function() {
 		});
 	});
 });
+
+describe('lzma.compress()/decompress()', function() {
+	it('can round-trip', function(done) {
+		lzma.compress('Bananas', 9, function(result) {
+			assert.equal(result.toString('base64'), '/Td6WFoAAAFpIt42AgAhARwAAAAQz1jMAQAGQmFuYW5hcwAA0aJr3wABGwcS69QXkEKZDQEAAAAAAVla');
+			lzma.decompress(result, function(result) {
+				assert.ok(Buffer.isBuffer(result));
+				assert.equal(result.toString(), 'Bananas');
+				
+				done();
+			});
+		});
+	});
+});

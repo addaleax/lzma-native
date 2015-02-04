@@ -398,7 +398,6 @@ void LZMAStream::Init(Handle<Object> exports) {
 	tpl->PrototypeTemplate()->Set(NanNew<String>("streamDecoder_"), NanNew<FunctionTemplate>(StreamDecoder)->GetFunction());
 	tpl->PrototypeTemplate()->Set(NanNew<String>("autoDecoder_"),   NanNew<FunctionTemplate>(AutoDecoder)->GetFunction());
 	tpl->PrototypeTemplate()->Set(NanNew<String>("aloneDecoder_"),  NanNew<FunctionTemplate>(AloneDecoder)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NanNew<String>("checkError"),     NanNew<FunctionTemplate>(CheckError)->GetFunction());
 	NanAssignPersistent(constructor, tpl->GetFunction());
 	exports->Set(NanNew<String>("Stream"), NanNew<Function>(constructor));
 }
@@ -612,22 +611,6 @@ NAN_METHOD(LZMAStream::AloneDecoder) {
 	uint64_t memlimit = NumberToUint64ClampNullMax(args[0]);
 	
 	NanReturnValue(lzmaRet(lzma_alone_decoder(&self->_, memlimit)));
-}
-
-NAN_METHOD(LZMAStream::CheckError) {
-	NanScope();
-	
-	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(args.This());
-	if (!self)
-		NanReturnValue(_failMissingSelf());
-	LZMA_ASYNC_LOCK(self)
-	
-	if (!self->error.empty()) {
-		NanThrowError(self->error.c_str());
-		self->error.clear();
-	}
-	
-	NanReturnUndefined();
 }
 
 }
