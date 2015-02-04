@@ -26,7 +26,7 @@ var _ = require('lodash');
 
 _.extend(exports, native);
 
-exports.version = '0.2.6';
+exports.version = '0.2.7';
 
 var Stream = exports.Stream;
 
@@ -36,6 +36,8 @@ Stream.maxAsyncStreamCount = 32;
 Stream.prototype.getStream = 
 Stream.prototype.asyncStream =
 Stream.prototype.syncStream = function(options) {
+	options = options || {};
+	
 	var nativeStream = this;
 
 	var _forceNextTickCb = function() {
@@ -61,6 +63,8 @@ Stream.prototype.syncStream = function(options) {
 				
 				if (index != -1)
 					Stream.curAsyncStreams.splice(index, 1);
+				
+				self.nativeStream = null;
 			}
 			
 			self.once('finish', cleanup);
@@ -68,26 +72,35 @@ Stream.prototype.syncStream = function(options) {
 		}
 		
 		self.nativeStream.bufferHandler = function(buf, shouldInvokeChunkCallbacks, err) {
-			if (err) {
-				self.push(null);
-				self.emit('error', err);
-				_forceNextTickCb();
-			}
+			process.nextTick(function() {
+				if (err) {
+					self.push(null);
+					self.emit('error', err);
+					_forceNextTickCb();
+				}
+				
+				if (shouldInvokeChunkCallbacks) {
+					// rotate the chunkCallbacks property, since more callbacks
+					// may be added by the current ones
+					var chunkCallbacks = self.chunkCallbacks;
+					self.chunkCallbacks = [];
+					
+					while (chunkCallbacks.length > 0)
+						chunkCallbacks.shift()();
+					
+					_forceNextTickCb();
+				} else {
+					self.push(buf);
+				}
+			});
 			
-			if (shouldInvokeChunkCallbacks) {
-				// rotate the chunkCallbacks property, since more callbacks
-				// may be added by the current ones
-				var chunkCallbacks = self.chunkCallbacks;
-				self.chunkCallbacks = [];
-				
-				while (chunkCallbacks.length > 0)
-					chunkCallbacks.shift()();
-				
-				_forceNextTickCb();
-			} else {
-				self.push(buf);
-			}
+			_forceNextTickCb();
 		};
+		
+		// add all methods from the native Stream
+		_.each(native.Stream.prototype, function(i, key) {
+			self[key] = function() { return self.nativeStream[key].apply(self.nativeStream, arguments); };
+		});
 	};
 	
 	util.inherits(ret, stream.Transform);

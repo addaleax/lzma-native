@@ -47,10 +47,6 @@ namespace {
 	) {
 		LZMAStream::odp_invoke();
 	}
-	
-	extern "C" void output_data_async_setup() {
-		LZMAStream::odp_setup_once();
-	}
 }
 
 Persistent<Function> LZMAStream::constructor;
@@ -389,8 +385,8 @@ void LZMAStream::Init(Handle<Object> exports) {
 	tpl->PrototypeTemplate()->Set(NanNew<String>("code"),           NanNew<FunctionTemplate>(Code)->GetFunction());
 	tpl->PrototypeTemplate()->Set(NanNew<String>("memusage"),       NanNew<FunctionTemplate>(Memusage)->GetFunction());
 	tpl->PrototypeTemplate()->Set(NanNew<String>("getCheck"),       NanNew<FunctionTemplate>(GetCheck)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NanNew<String>("memlimitGet"),    NanNew<FunctionTemplate>(MemlimitSet)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NanNew<String>("memlimitSet"),    NanNew<FunctionTemplate>(MemlimitGet)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NanNew<String>("memlimitGet"),    NanNew<FunctionTemplate>(MemlimitGet)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NanNew<String>("memlimitSet"),    NanNew<FunctionTemplate>(MemlimitSet)->GetFunction());
 	tpl->PrototypeTemplate()->Set(NanNew<String>("totalIn"),        NanNew<FunctionTemplate>(TotalIn)->GetFunction());
 	tpl->PrototypeTemplate()->Set(NanNew<String>("totalOut"),       NanNew<FunctionTemplate>(TotalOut)->GetFunction());
 	tpl->PrototypeTemplate()->Set(NanNew<String>("rawEncoder_"),    NanNew<FunctionTemplate>(RawEncoder)->GetFunction());

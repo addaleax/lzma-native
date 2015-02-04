@@ -234,6 +234,48 @@ describe('LZMAStream', function() {
 		});
 	});
 	
+	describe('#memusage', function() {
+		it('should return a meaningful value when decoding', function(done) {
+			var stream = lzma.createStream('autoDecoder', {synchronous: true});
+			stream.on('end', done);
+			stream.on('data', function() {});
+			
+			fs.createReadStream('test/hamlet.txt.lzma').pipe(stream);
+			assert.ok(stream.memusage() > 0);
+		});
+	});
+	
+	describe('#memlimitGet/#memlimitSet', function() {
+		it('should set values of memory limits', function(done) {
+			var stream = lzma.createStream('autoDecoder', {synchronous: true});
+			stream.on('end', done);
+			stream.on('data', function() {});
+			
+			assert.ok(stream.memlimitGet() > 0);
+			stream.memlimitSet(1 << 30);
+			assert.equal(stream.memlimitGet(), 1 << 30);
+			fs.createReadStream('test/hamlet.txt.lzma').pipe(stream);
+		});
+	});
+	
+	describe('#totalIn/#totalOut', function() {
+		it('should return meaningful values during the coding process', function(done) {
+			var stream = lzma.createStream('autoDecoder', {synchronous: true});
+			var valuesWereSet = false;
+			
+			stream.on('end', function() {
+				assert(valuesWereSet);
+				done()
+			});
+			
+			stream.on('data', function() {
+				valuesWereSet = valuesWereSet || stream.totalIn() > 0 && stream.totalOut() > 0;
+			});
+			
+			fs.createReadStream('test/hamlet.txt.lzma').pipe(stream);
+		});
+	});
+	
 	after('should not have any open asynchronous streams', function() {
 		assert.equal(lzma.Stream.curAsyncStreams.length, 0);
 	});
