@@ -10,7 +10,7 @@
 	"main": "index",
 	"dependencies": {
 		"bindings": "~1.2.1",
-		"lodash": "~3.0.0",
+		"lodash": "~3.1.0",
 		"commander": "~2.6.0",
 		"nan": "~1.6.1",
 		"readable-stream": "~1.1.13"
@@ -40,7 +40,9 @@
 		"url": "https://github.com/addaleax/lzma-native/issues"
 	},
 	"devDependencies": {
-		"mocha": "*"
+		"mocha": "*",
+		"istanbul": "*",
+		"coveralls": "git+https://github.com/addaleax/node-coveralls.git#write-to-stdout"
 	},
 	"scripts": {
 		"test": "mocha -s 200 test"

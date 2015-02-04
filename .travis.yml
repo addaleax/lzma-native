@@ -3,3 +3,13 @@ node_js:
    - "0.11"
    - "0.10"
    - "0.8"
+before_install:
+  - sudo pip install cpp-coveralls coveralls-merge
+install:
+  - LDFLAGS=--coverage CFLAGS=--coverage CXXFLAGS=--coverage npm install
+script:
+  - ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec -s 200
+after_success:
+  - coveralls --gcov-options '\-lp' --build-root build --exclude build/liblzma --exclude node_modules --dump coverage/cppfiles.json
+  - ./node_modules/coveralls/bin/coveralls.js -w < coverage/lcov.info > coverage/jsfiles.json
+  - coveralls-merge coverage/jsfiles.json coverage/cppfiles.json
