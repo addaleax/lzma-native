@@ -6,8 +6,8 @@ node_js:
 env:
   - CXXFLAGS=-std=c++98 CXX=g++ CC=gcc
   - CXXFLAGS=-std=c++0x CXX=g++ CC=gcc
-  - CXXFLAGS=-std=c++98 CXX=clang++ CC=clang
-  - CXXFLAGS=-std=c++0x CXX=clang++ CC=clang
+  - CXXFLAGS=-std=c++98 CXX="$(pwd)/clang-wrap.sh clang++" CC="$(pwd)/clang-wrap.sh clang"
+  - CXXFLAGS=-std=c++0x CXX="$(pwd)/clang-wrap.sh clang++" CC="$(pwd)/clang-wrap.sh clang"
 before_install:
   - sudo pip install cpp-coveralls coveralls-merge
   - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
