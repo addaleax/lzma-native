@@ -12,7 +12,7 @@
 		"bindings": "~1.2.1",
 		"lodash": "~3.1.0",
 		"commander": "~2.6.0",
-		"nan": "~1.6.1",
+		"nan": "~1.6.2",
 		"readable-stream": "~1.1.13"
 	},
 	"keywords": [
