@@ -38,8 +38,6 @@ Stream.prototype.asyncStream =
 Stream.prototype.syncStream = function(options) {
 	options = options || {};
 	
-	var nativeStream = this;
-
 	var _forceNextTickCb = function() {
 		/* I know this looks like “magic/more magic”, but
 		 * apparently works around a bogus process.nextTick in
@@ -48,7 +46,7 @@ Stream.prototype.syncStream = function(options) {
 		setTimeout(function() {}, 1);
 	};
 	
-	var ret = function() {
+	var ret = function(nativeStream) {
 		ret.super_.call(this, options);
 		var self = this;
 		
@@ -119,7 +117,7 @@ Stream.prototype.syncStream = function(options) {
 		this._transform(null, null, callback);
 	};
 	
-	return new ret();
+	return new ret(this);
 };
 
 Stream.prototype.rawEncoder = function(options) {

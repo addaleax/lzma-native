@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+'use strict';
 
 /* Based on cscott’s binary for the lzma-purejs library, licensed under BSD license */
 
@@ -54,12 +55,22 @@ if (level && program.decompress) {
 }
 
 var input = process.stdin, output = process.stdout;
+var usesStdout = true;
 
-if (program.args.length > 0) 
-	input = fs.openSync(program.args.shift(), 'r');
 if (program.args.length > 0)
-	output = fs.openSync(program.args.shift(), 'w');
+	input = fs.createReadStream(program.args.shift());
+if (program.args.length > 0) {
+	output = fs.createWriteStream(program.args.shift());
+	usesStdout = false;
+}
 
 var encoder = lzma.createStream(program.compress ? 'easyEncoder' : 'autoDecoder', { preset: level || lzma.PRESET_DEFAULT });
 
+if (usesStdout)
+	encoder.on('finish', function() { process.nextTick(function() { process.exit(0); }); });
+
 input.pipe(encoder).pipe(output);
+
+output.on('finish', function() {
+	process.exit(0);
+});
