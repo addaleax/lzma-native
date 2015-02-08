@@ -182,8 +182,6 @@ namespace lzma {
 		/* regard as private: */
 			void doLZMACodeFromAsync();
 			void invokeBufferHandlersFromAsync();
-			static void odp_invoke();
-			static void odp_setup_once();
 		private:
 			void resetUnderlying();
 			void doLZMACode(bool async);
@@ -207,18 +205,12 @@ namespace lzma {
 			uv_mutex_t mutex;
 			uv_cond_t inputDataCond;
 			
-			static uv_async_t outputDataAsync;
-			static uv_once_t outputDataAsyncSetupOnce;
-			static uv_mutex_t odp_mutex;
+			uv_async_t* outputDataAsync;
 			
 #define LZMA_ASYNC_LOCK(strm)    uv_mutex_guard lock(strm->mutex);
-#define LZMA_ODP_LOCK(mutex)     uv_mutex_guard odp_lock(mutex);
 #else
 #define LZMA_ASYNC_LOCK(strm)
-#define LZMA_ODP_LOCK(strm)
 #endif
-
-			static std::set<LZMAStream*> outputDataPendingStreams;
 
 			static NAN_METHOD(Code);
 			static NAN_METHOD(Memusage);
