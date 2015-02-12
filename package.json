@@ -1,6 +1,6 @@
 {
 	"name": "lzma-native",
-	"version": "0.2.8",
+	"version": "0.2.9",
 	"engines": { "node": ">=0.8" },
 	"author": {
 		"name": "Hauke Henningsen",
@@ -10,7 +10,7 @@
 	"main": "index",
 	"dependencies": {
 		"bindings": "~1.2.1",
-		"lodash": "~3.1.0",
+		"util-extend": "~1.0.1",
 		"commander": "~2.6.0",
 		"nan": "~1.6.2",
 		"readable-stream": "~1.1.13"

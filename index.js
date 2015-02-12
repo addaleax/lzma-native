@@ -22,11 +22,11 @@
 var native = require('bindings')('lzma_native.node');
 var stream = require('readable-stream');
 var util = require('util');
-var _ = require('lodash');
+var extend = require('util-extend');
 
-_.extend(exports, native);
+extend(exports, native);
 
-exports.version = '0.2.8';
+exports.version = '0.2.9';
 
 var Stream = exports.Stream;
 
@@ -96,7 +96,7 @@ Stream.prototype.syncStream = function(options) {
 		};
 		
 		// add all methods from the native Stream
-		_.each(native.Stream.prototype, function(i, key) {
+		Object.keys(native.Stream.prototype).forEach(function(key) {
 			self[key] = function() { return self.nativeStream[key].apply(self.nativeStream, arguments); };
 		});
 	};
@@ -150,19 +150,19 @@ Stream.prototype.aloneDecoder = function(options) {
 
 var createStream =
 exports.createStream = function(coder, options) {
-	if ((_.isObject(coder) || _.isNumber(options)) && !options) {
+	if (['number', 'object'].indexOf(typeof coder) != -1 && !options) {
 		options = coder;
 		coder = null;
 	}
 	
-	if (_.isNumber(options))
-		options = {preset: options};
+	if (parseInt(options) == options)
+		options = {preset: parseInt(options)};
 	
 	coder = coder || 'easyEncoder';
 	options = options || {};
 	
 	var stream = new Stream();
-	_.bind(stream[coder], stream)(options);
+	stream[coder](options);
 	
 	if (options.memlimit)
 		stream.memlimitSet(options.memlimit);
@@ -187,7 +187,7 @@ exports.crc32 = function(input, encoding, presetCRC32) {
 
 /* compatibility: node-xz (https://github.com/robey/node-xz) */
 exports.Compressor = function(preset, options) {
-	options = _.clone(options || {});
+	options = extend({}, options);
 	
 	if (preset)
 		options.preset = preset;
@@ -227,8 +227,8 @@ exports.LZMA = function() {
 		compress: function(string, mode, on_finish, on_progress) {
 			var opt = {};
 
-			if (_.isNumber(mode) && mode >= 1 && mode <= 9)
-				opt.preset = mode;
+			if (parseInt(mode) == mode && mode >= 1 && mode <= 9)
+				opt.preset = parseInt(mode);
 
 			var stream = createStream('aloneEncoder', opt);
 			
