@@ -1,6 +1,6 @@
 {
 	"name": "lzma-native",
-	"version": "0.2.9",
+	"version": "0.2.10",
 	"engines": { "node": ">=0.8" },
 	"author": {
 		"name": "Hauke Henningsen",
@@ -33,7 +33,8 @@
 		"url": "https://github.com/addaleax/lzma-native.git"
 	},
 	"scripts": {
-		"install": "node-gyp rebuild"
+		"install": "node-gyp rebuild",
+		"test": "mocha -s 200 test"
 	},
 	"gypfile": true,
 	"bugs": {
@@ -43,8 +44,5 @@
 		"mocha": "*",
 		"istanbul": "*",
 		"coveralls": "git+https://github.com/addaleax/node-coveralls.git#write-to-stdout"
-	},
-	"scripts": {
-		"test": "mocha -s 200 test"
 	}
 }

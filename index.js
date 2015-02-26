@@ -26,7 +26,7 @@ var extend = require('util-extend');
 
 extend(exports, native);
 
-exports.version = '0.2.9';
+exports.version = '0.2.10';
 
 var Stream = exports.Stream;
 
