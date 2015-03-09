@@ -6,8 +6,8 @@ node_js:
 env:
   - CXXFLAGS=-std=c++98 CXX=g++ CC=gcc
   - CXXFLAGS=-std=c++0x CXX=g++ CC=gcc
-  - CXXFLAGS=-std=c++98 CXX="$(pwd)/clang-wrap.sh clang++" CC="$(pwd)/clang-wrap.sh clang"
-  - CXXFLAGS=-std=c++0x CXX="$(pwd)/clang-wrap.sh clang++" CC="$(pwd)/clang-wrap.sh clang"
+  - CXXFLAGS=-std=c++98 CXX=clang++ CC=clang NPMOPT=--clang=1
+  - CXXFLAGS=-std=c++0x CXX=clang++ CC=clang NPMOPT=--clang=1
 before_install:
   - sudo pip install cpp-coveralls coveralls-merge
   - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
@@ -15,7 +15,7 @@ before_install:
   - if [ "$CXX" = "clang++" ]; then sudo apt-get install -y -qq libstdc++-4.8-dev; fi
   - if [ "$CXX" = "g++" ]; then sudo apt-get install -y -qq g++-4.8; export CXX="g++-4.8" CC="gcc-4.8"; fi
 install:
-  - LDFLAGS=--coverage CFLAGS=--coverage CXXFLAGS=--coverage npm install
+  - env LDFLAGS=--coverage CFLAGS="$CFLAGS --coverage" CXXFLAGS="$CXXFLAGS --coverage" npm install $NPMOPT
 script:
   - ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec -s 200
 after_success:
