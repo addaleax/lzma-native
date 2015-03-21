@@ -8,6 +8,9 @@
 	},
 	"description": "Provides bindings to the native liblzma library (.xz file format, among others)",
 	"main": "index",
+	"bin": {
+		"lzmajs": "./bin/lzmajs"
+	},
 	"dependencies": {
 		"bindings": "~1.2.1",
 		"util-extend": "~1.0.1",
