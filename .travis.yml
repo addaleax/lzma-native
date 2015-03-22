@@ -3,6 +3,8 @@ node_js:
   - "0.12"
   - "0.10"
   - "0.8"
+  - "iojs-v1.0"
+  - "iojs"
 env:
   - CXXFLAGS=-std=c++98 CXX=g++ CC=gcc
   - CXXFLAGS=-std=c++0x CXX=g++ CC=gcc
