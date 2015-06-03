@@ -39,8 +39,8 @@ describe('LZMAStream', function() {
 	var random_data;
 
 	function encodeAndDecode(enc, dec, done, data) {
-		if (!data)
-			data = random_data;
+		data = data || random_data;
+		
 		data.duplicate().pipe(enc).pipe(dec).pipe(bl(function(err, buf) {
 			assert.ok(bufferEqual(data, buf));
 			done(err);
