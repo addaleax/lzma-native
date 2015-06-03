@@ -46,6 +46,7 @@
 	"devDependencies": {
 		"mocha": "*",
 		"istanbul": "*",
+		"bl": "*",
 		"coveralls": "git+https://github.com/addaleax/node-coveralls.git#write-to-stdout"
 	}
 }
