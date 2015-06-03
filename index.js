@@ -113,6 +113,11 @@ Stream.prototype.syncStream = function(options) {
 		}
 	};
 	
+	ret.prototype._writev = function(chunks, callback) {
+		chunks = chunks.map(function (chunk) { return chunk.chunk; });
+		this._write(Buffer.concat(chunks), null, callback);
+	};
+
 	ret.prototype._flush = function(callback) {
 		this._transform(null, null, callback);
 	};
