@@ -15,6 +15,7 @@
 			],
 			"dependencies" : [ "liblzma" ],
 			"libraries" : [ "<(module_root_dir)/build/liblzma/build/lib/liblzma.a" ],
+			"cflags": ["-std=c++11"]
 		},
 		{
 			"target_name" : "liblzma",
