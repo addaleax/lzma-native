@@ -15,7 +15,7 @@
 		"bindings": "~1.2.1",
 		"util-extend": "~1.0.1",
 		"commander": "~2.8.0",
-		"nan": "~1.7.0",
+		"nan": "~1.8.4",
 		"readable-stream": "~1.1.13"
 	},
 	"keywords": [
