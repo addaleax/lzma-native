@@ -5,10 +5,8 @@ node_js:
   - "iojs-v1.0"
   - "iojs"
 env:
-  - CXXFLAGS=-std=c++98 CXX=g++ CC=gcc
-  - CXXFLAGS=-std=c++0x CXX=g++ CC=gcc
-  - CXXFLAGS=-std=c++98 CXX=clang++ CC=clang NPMOPT=--clang=1
-  - CXXFLAGS=-std=c++0x CXX=clang++ CC=clang NPMOPT=--clang=1
+  - CXX=g++ CC=gcc
+  - CXX=clang++ CC=clang NPMOPT=--clang=1
 before_install:
   - sudo pip install cpp-coveralls coveralls-merge
   - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
