@@ -2,6 +2,8 @@
 
 var assert = require('assert');
 var fs = require('fs');
+var util = require('util');
+var stream = require('readable-stream');
 
 var lzma = require('../');
 
@@ -22,6 +24,14 @@ function bufferEqual(a, b) {
 	
 	return true;
 }
+
+function NullStream(options) {
+	stream.Writable.call(this, options);
+}
+util.inherits(NullStream, stream.Writable);
+NullStream.prototype._write = function(chunk, encoding, callback) {
+	callback();
+};
 
 describe('LZMAStream', function() {
 	describe('#autoDecoder', function() {
@@ -207,6 +217,41 @@ describe('LZMAStream', function() {
 			enc.pipe(dec).pipe(outstream);
 			enc.end('');
 		});
+
+		it('should be reasonably fast for one big chunk', function(done) {
+			// “node createData.js | xz -9 > /dev/null” takes about 120ms for me.
+			this.timeout(360); // three times as long as the above shell pipeline
+			var outstream = new NullStream();
+			outstream.on('finish', done);
+			var enc = lzma.createStream('easyEncoder');
+			enc.pipe(outstream);
+			var x = 0, y = 0, str = '';
+			for (var i = 0; i < 1000; ++i) {
+				var data = {type: "position", x: x, y: y, i: i};
+				str += JSON.stringify(data) + ",\n";
+				x += (i * 101) % 307;
+				y += (i * 211) % 307;
+			}
+			enc.end(str);
+		});
+
+		it('should be reasonably fast for many small chunks', function(done) {
+			// “node createData.js | xz -9 > /dev/null” takes about 120ms for me.
+			this.timeout(360); // three times as long as the above shell pipeline
+			var outstream = new NullStream();
+			outstream.on('finish', done);
+			var enc = lzma.createStream('easyEncoder');
+			enc.pipe(outstream);
+			var x = 0, y = 0;
+			for (var i = 0; i < 1000; ++i) {
+				var data = {type: "position", x: x, y: y, i: i};
+				enc.write(JSON.stringify(data) + ",\n");
+				x += (i * 101) % 307;
+				y += (i * 211) % 307;
+			}
+			enc.end();
+		});
+
 	});
 	
 	describe('#createStream', function() {
