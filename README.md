@@ -108,8 +108,8 @@ Other implementations of the LZMA algorithms for node.js and/or web clients incl
 
 * [lzma-purejs](https://github.com/cscott/lzma-purejs)
 * [LZMA-JS](https://github.com/nmrugg/LZMA-JS)
-* [node-xz](https://github.com/robey/node-xz)
-* [node-liblzma](https://github.com/oorabona/node-liblzma)
+* [node-xz](https://github.com/robey/node-xz) (native)
+* [node-liblzma](https://github.com/oorabona/node-liblzma) (native)
 
 Note that LZMA has been designed to have much faster decompression than
 compression, which is something you may want to take into account when
