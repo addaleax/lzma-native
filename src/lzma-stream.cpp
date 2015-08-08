@@ -51,7 +51,7 @@ namespace {
 	}
 }
 
-Persistent<Function> LZMAStream::constructor;
+Nan::Persistent<Function, CopyablePersistentTraits<Function> > LZMAStream::constructor;
 
 LZMAStream::LZMAStream()
 	: hasRunningThread(false), hasPendingCallbacks(false), hasRunningCallbacks(false),
@@ -104,7 +104,7 @@ LZMAStream::~LZMAStream() {
 }
 
 NAN_METHOD(LZMAStream::Code) {
-	LZMAStream* self = node::ObjectWrap::Unwrap<LZMAStream>(info.This());
+	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
 	if (!self) {
 		_failMissingSelf(info);
 		return;
@@ -372,7 +372,7 @@ void LZMAStream::Init(Local<Object> exports) {
 	tpl->PrototypeTemplate()->Set(NewString("streamDecoder_"), Nan::New<FunctionTemplate>(StreamDecoder)->GetFunction());
 	tpl->PrototypeTemplate()->Set(NewString("autoDecoder_"),   Nan::New<FunctionTemplate>(AutoDecoder)->GetFunction());
 	tpl->PrototypeTemplate()->Set(NewString("aloneDecoder_"),  Nan::New<FunctionTemplate>(AloneDecoder)->GetFunction());
-	constructor = Persistent<Function>(tpl->GetFunction());
+	constructor = Nan::Persistent<Function, CopyablePersistentTraits<Function> >(tpl->GetFunction());
 	exports->Set(NewString("Stream"), Nan::New<Function>(constructor));
 }
 
@@ -392,7 +392,7 @@ void LZMAStream::_failMissingSelf(const Nan::FunctionCallbackInfo<Value>& info) 
 }
 
 NAN_METHOD(LZMAStream::Memusage) {
-	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(info.This());
+	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
 	if (!self)
 		info.GetReturnValue().SetUndefined();
 	LZMA_ASYNC_LOCK(self)
@@ -401,7 +401,7 @@ NAN_METHOD(LZMAStream::Memusage) {
 }
 
 NAN_METHOD(LZMAStream::GetCheck) {
-	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(info.This());
+	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
 	if (!self) {
 		_failMissingSelf(info);
 		return;
@@ -413,7 +413,7 @@ NAN_METHOD(LZMAStream::GetCheck) {
 }
 
 NAN_METHOD(LZMAStream::TotalIn) {
-	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(info.This());
+	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
 	if (!self) {
 		_failMissingSelf(info);
 		return;
@@ -425,7 +425,7 @@ NAN_METHOD(LZMAStream::TotalIn) {
 }
 
 NAN_METHOD(LZMAStream::TotalOut) {
-	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(info.This());
+	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
 	if (!self) {
 		_failMissingSelf(info);
 		return;
@@ -437,7 +437,7 @@ NAN_METHOD(LZMAStream::TotalOut) {
 }
 
 NAN_METHOD(LZMAStream::MemlimitGet) {
-	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(info.This());
+	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
 	if (!self) {
 		_failMissingSelf(info);
 		return;
@@ -449,7 +449,7 @@ NAN_METHOD(LZMAStream::MemlimitGet) {
 }
 
 NAN_METHOD(LZMAStream::MemlimitSet) {
-	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(info.This());
+	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
 	if (!self) {
 		_failMissingSelf(info);
 		return;
@@ -467,7 +467,7 @@ NAN_METHOD(LZMAStream::MemlimitSet) {
 }
 
 NAN_METHOD(LZMAStream::RawEncoder) {
-	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(info.This());
+	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
 	if (!self) {
 		_failMissingSelf(info);
 		return;
@@ -481,7 +481,7 @@ NAN_METHOD(LZMAStream::RawEncoder) {
 }
 
 NAN_METHOD(LZMAStream::RawDecoder) {
-	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(info.This());
+	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
 	if (!self) {
 		_failMissingSelf(info);
 		return;
@@ -495,7 +495,7 @@ NAN_METHOD(LZMAStream::RawDecoder) {
 }
 
 NAN_METHOD(LZMAStream::FiltersUpdate) {
-	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(info.This());
+	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
 	if (!self) {
 		_failMissingSelf(info);
 		return;
@@ -509,7 +509,7 @@ NAN_METHOD(LZMAStream::FiltersUpdate) {
 }
 
 NAN_METHOD(LZMAStream::EasyEncoder) {
-	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(info.This());
+	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
 	if (!self) {
 		_failMissingSelf(info);
 		return;
@@ -524,7 +524,7 @@ NAN_METHOD(LZMAStream::EasyEncoder) {
 }
 
 NAN_METHOD(LZMAStream::StreamEncoder) {
-	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(info.This());
+	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
 	if (!self) {
 		_failMissingSelf(info);
 		return;
@@ -539,7 +539,7 @@ NAN_METHOD(LZMAStream::StreamEncoder) {
 }
 
 NAN_METHOD(LZMAStream::AloneEncoder) {
-	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(info.This());
+	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
 	if (!self) {
 		_failMissingSelf(info);
 		return;
@@ -554,7 +554,7 @@ NAN_METHOD(LZMAStream::AloneEncoder) {
 }
 
 NAN_METHOD(LZMAStream::StreamDecoder) {
-	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(info.This());
+	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
 	if (!self) {
 		_failMissingSelf(info);
 		return;
@@ -569,7 +569,7 @@ NAN_METHOD(LZMAStream::StreamDecoder) {
 }
 
 NAN_METHOD(LZMAStream::AutoDecoder) {
-	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(info.This());
+	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
 	if (!self) {
 		_failMissingSelf(info);
 		return;
@@ -584,7 +584,7 @@ NAN_METHOD(LZMAStream::AutoDecoder) {
 }
 
 NAN_METHOD(LZMAStream::AloneDecoder) {
-	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(info.This());
+	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
 	if (!self) {
 		_failMissingSelf(info);
 		return;

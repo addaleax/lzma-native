@@ -17,7 +17,6 @@
  **/
  
 #include "liblzma-node.hpp"
-#include <iostream>
 
 namespace lzma {
 
@@ -31,7 +30,6 @@ NAN_METHOD(lzmaVersionString) {
 
 NAN_METHOD(lzmaCheckIsSupported) {
 	Local<Integer> arg = Local<Integer>::Cast(info[0]);
-	std::cerr << "info[0] = " << arg->Value() << std::endl;
 	
 	info.GetReturnValue().Set((bool)lzma_check_is_supported((lzma_check) arg->Value()));
 }

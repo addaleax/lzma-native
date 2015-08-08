@@ -224,7 +224,7 @@ namespace lzma {
 			explicit LZMAStream();
 			~LZMAStream();
 			
-			static Persistent<Function> constructor;
+			static Nan::Persistent<Function, CopyablePersistentTraits<Function> > constructor;
 			static NAN_METHOD(New);
 			
 			static void _failMissingSelf(const Nan::FunctionCallbackInfo<Value>& info);
