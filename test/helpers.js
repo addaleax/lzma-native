@@ -12,12 +12,23 @@ function fsCreateWriteStream(filename) {
 }
 
 function bufferEqual(a, b) {
+	/* The bl module does not expose array indexing for its instances,
+	 * however, Buffer.get is deprecated and will be removed.
+	 * (See https://github.com/nodejs/io.js/blob/60a974d200/lib/buffer.js#L425)
+	 * => All incoming objects will be coerced to Buffer */
+	if (!Buffer.isBuffer(a))
+		a = a.slice();
+	
+	if (!Buffer.isBuffer(b))
+		b = b.slice();
+	
 	if (a.length != b.length)
 		return false;
 	
-	for (var i = 0; i < a.length; ++i)
+	for (var i = 0; i < a.length; ++i) {
 		if (a[i] != b[i])
 			return false;
+	}
 	
 	return true;
 }
