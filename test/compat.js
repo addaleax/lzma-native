@@ -2,26 +2,9 @@
 
 var assert = require('assert');
 var fs = require('fs');
+var helpers = require('./helpers.js');
 
 var lzma = require('../');
-
-function fsCreateWriteStream(filename) {
-	var s = fs.createWriteStream(filename);
-	if (process.version.match(/^v0.8/))
-		s.on('close', function() { s.emit('finish'); });
-	return s;
-}
-
-function bufferEqual(a, b) {
-	if (a.length != b.length)
-		return false;
-	
-	for (var i = 0; i < a.length; ++i)
-		if (a[i] != b[i])
-			return false;
-	
-	return true;
-}
 
 describe('Compressor/Decompressor', function() {
 	it('can compress', function(done) {
@@ -35,10 +18,10 @@ describe('Compressor/Decompressor', function() {
 		var enc = new lzma.Compressor();
 		var dec = new lzma.Decompressor();
 		var outfile = 'test/random.lzma.unlzma';
-		var outstream = fsCreateWriteStream(outfile);
+		var outstream = helpers.fsCreateWriteStream(outfile);
 		
 		outstream.on('finish', function() {
-			assert.ok(bufferEqual(fs.readFileSync('test/random'), fs.readFileSync(outfile)));
+			assert.ok(helpers.bufferEqual(fs.readFileSync('test/random'), fs.readFileSync(outfile)));
 			fs.unlink(outfile);
 			done();
 		});

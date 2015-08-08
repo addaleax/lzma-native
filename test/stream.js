@@ -2,47 +2,19 @@
 
 var assert = require('assert');
 var fs = require('fs');
-var util = require('util');
-var stream = require('readable-stream');
 var bl = require('bl');
+var helpers = require('./helpers.js');
 
 var lzma = require('../');
 
-function fsCreateWriteStream(filename) {
-	var s = fs.createWriteStream(filename);
-	if (process.version.match(/^v0.8/))
-		s.on('close', function() { s.emit('finish'); });
-	return s;
-}
-
-function bufferEqual(a, b) {
-	if (a.length != b.length)
-		return false;
-	
-	for (var i = 0; i < a.length; ++i)
-		if (a.get(i) != b.get(i))
-			return false;
-	
-	return true;
-}
-
-function NullStream(options) {
-	stream.Writable.call(this, options);
-}
-util.inherits(NullStream, stream.Writable);
-NullStream.prototype._write = function(chunk, encoding, callback) {
-	callback();
-};
-
 describe('LZMAStream', function() {
-
 	var random_data;
 
 	function encodeAndDecode(enc, dec, done, data) {
 		data = data || random_data;
 		
 		data.duplicate().pipe(enc).pipe(dec).pipe(bl(function(err, buf) {
-			assert.ok(bufferEqual(data, buf));
+			assert.ok(helpers.bufferEqual(data, buf));
 			done(err);
 		}));
 	}
@@ -172,7 +144,7 @@ describe('LZMAStream', function() {
 		it('should be reasonably fast for one big chunk', function(done) {
 			// “node createData.js | xz -9 > /dev/null” takes about 120ms for me.
 			this.timeout(360); // three times as long as the above shell pipeline
-			var outstream = new NullStream();
+			var outstream = new helpers.NullStream();
 			outstream.on('finish', done);
 			var enc = lzma.createStream('easyEncoder');
 			enc.pipe(outstream);
@@ -189,7 +161,7 @@ describe('LZMAStream', function() {
 		it('should be reasonably fast for many small chunks', function(done) {
 			// “node createData.js | xz -9 > /dev/null” takes about 120ms for me.
 			this.timeout(360); // three times as long as the above shell pipeline
-			var outstream = new NullStream();
+			var outstream = new helpers.NullStream();
 			outstream.on('finish', done);
 			var enc = lzma.createStream('easyEncoder');
 			enc.pipe(outstream);
