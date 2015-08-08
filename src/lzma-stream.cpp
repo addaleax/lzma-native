@@ -51,7 +51,7 @@ namespace {
 	}
 }
 
-Nan::Persistent<Function, CopyablePersistentTraits<Function> > LZMAStream::constructor;
+Nan::Persistent<Function> LZMAStream::constructor;
 
 LZMAStream::LZMAStream()
 	: hasRunningThread(false), hasPendingCallbacks(false), hasRunningCallbacks(false),
@@ -372,7 +372,7 @@ void LZMAStream::Init(Local<Object> exports) {
 	tpl->PrototypeTemplate()->Set(NewString("streamDecoder_"), Nan::New<FunctionTemplate>(StreamDecoder)->GetFunction());
 	tpl->PrototypeTemplate()->Set(NewString("autoDecoder_"),   Nan::New<FunctionTemplate>(AutoDecoder)->GetFunction());
 	tpl->PrototypeTemplate()->Set(NewString("aloneDecoder_"),  Nan::New<FunctionTemplate>(AloneDecoder)->GetFunction());
-	constructor = Nan::Persistent<Function, CopyablePersistentTraits<Function> >(tpl->GetFunction());
+	NanAssignPersistent(constructor, tpl);
 	exports->Set(NewString("Stream"), Nan::New<Function>(constructor));
 }
 
