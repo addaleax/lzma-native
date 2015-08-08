@@ -372,7 +372,7 @@ void LZMAStream::Init(Local<Object> exports) {
 	tpl->PrototypeTemplate()->Set(NewString("streamDecoder_"), Nan::New<FunctionTemplate>(StreamDecoder)->GetFunction());
 	tpl->PrototypeTemplate()->Set(NewString("autoDecoder_"),   Nan::New<FunctionTemplate>(AutoDecoder)->GetFunction());
 	tpl->PrototypeTemplate()->Set(NewString("aloneDecoder_"),  Nan::New<FunctionTemplate>(AloneDecoder)->GetFunction());
-	NanAssignPersistent(constructor, tpl);
+	constructor.Reset(tpl->GetFunction());
 	exports->Set(NewString("Stream"), Nan::New<Function>(constructor));
 }
 
