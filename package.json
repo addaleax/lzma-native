@@ -25,12 +25,7 @@
 		"xz"
 	],
 	"homepage": "https://github.com/addaleax/lzma-native",
-	"licenses": [
-		{
-			"type": "LGPL-3.0+",
-			"url": "https://github.com/addaleax/lzma-native/raw/master/LICENSE"
-		}
-	],
+	"license": "LGPL-3.0+",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/addaleax/lzma-native.git"
