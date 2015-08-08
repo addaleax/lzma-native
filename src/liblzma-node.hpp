@@ -82,7 +82,7 @@ namespace lzma {
 	/**
 	 * Return the filter constant associated with a v8 String handle
 	 */
-	lzma_vli FilterByName(Handle<Value> v);
+	lzma_vli FilterByName(Local<Value> v);
 	
 	/**
 	 * Return a string describing the error indicated by rv
@@ -93,40 +93,74 @@ namespace lzma {
 	 * If rv represents an error, throw a javascript exception representing it.
 	 * Always returns rv as a v8 Integer.
 	 */
-	Handle<Value> lzmaRet(lzma_ret rv);
+	Local<Value> lzmaRet(lzma_ret rv);
 	
 	/**
 	 * Return a javascript exception representing rv.
 	 */
-	Handle<Value> lzmaRetError(lzma_ret rv);
+	Local<Value> lzmaRetError(lzma_ret rv);
 	
 	/**
 	 * Takes a Node.js SlowBuffer or Buffer as input and populates data accordingly.
 	 * Returns true on success, false on failure.
 	 */
-	bool readBufferFromObj(Handle<Value> value, std::vector<uint8_t>& data);
+	bool readBufferFromObj(Local<Value> value, std::vector<uint8_t>& data);
 	
 	/**
 	 * Return a lzma_options_lzma struct as described by the v8 Object obj.
 	 */
-	lzma_options_lzma parseOptionsLZMA (Handle<Object> obj);
+	lzma_options_lzma parseOptionsLZMA (Local<Object> obj);
 	
 	/**
 	 * Return a v8 Number representation of an uint64_t where UINT64_MAX will be mapped to null
 	 */
-	Handle<Value> Uint64ToNumberMaxNull(uint64_t in);
+	Local<Value> Uint64ToNumberMaxNull(uint64_t in);
 	
 	/**
 	 * Return a v8 Number representation of an uint64_t where 0 will be mapped to null
 	 */
-	Handle<Value> Uint64ToNumber0Null(uint64_t in);
+	Local<Value> Uint64ToNumber0Null(uint64_t in);
 	
 	/**
 	 * Return a uint64_t representation of a v8 Number,
 	 * where values above UINT64_MAX map to UINT64_MAX and null to UINT64_MAX.
 	 * Throws an TypeError if the input is not a number.
 	 */
-	uint64_t NumberToUint64ClampNullMax(Handle<Value> in);
+	uint64_t NumberToUint64ClampNullMax(Local<Value> in);
+	
+	/**
+	 * Convert Nan MaybeLocal values to Local, replacing
+	 * empty values with undefined
+	 */
+	inline Local<Value> EmptyToUndefined(Nan::MaybeLocal<Value> v) {
+		if (v.IsEmpty())
+			return Nan::Undefined();
+		
+		return v.ToLocalChecked();
+	}
+	
+	/**
+	 * Create a new v8 String
+	 */
+	template<typename T>
+	inline Local<String> NewString(T value) {
+		return Nan::New<String>(value).ToLocalChecked();
+	}
+	
+	/**
+	 * Return an integer property of an object (which can be passed to Nan::Get),
+	 * providing a default value if no such property is present
+	 */
+	template<typename T>
+	inline uint64_t GetIntegerProperty(T& obj, const char* name, uint64_t def) {
+		Local<Value> v = EmptyToUndefined(Nan::Get(obj, NewString(name)));
+		
+		if (v->IsUndefined())
+			return def;
+		
+		Nan::MaybeLocal<Integer> i = Nan::To<Integer>(v);
+		return i.IsEmpty() ? def : i.ToLocalChecked()->Value();
+	}
 	
 	/* bindings in one-to-one correspondence to the lzma functions */
 	NAN_METHOD(lzmaVersionNumber);
@@ -174,9 +208,9 @@ namespace lzma {
 	/**
 	 * Node.js object wrap for lzma_stream wrapper. Corresponds to exports.Stream
 	 */
-	class LZMAStream : public node::ObjectWrap {
+	class LZMAStream : public Nan::ObjectWrap {
 		public:
-			static void Init(Handle<Object> exports);
+			static void Init(Local<Object> exports);
 			static const bool asyncCodeAvailable;
 			
 		/* regard as private: */
@@ -190,10 +224,10 @@ namespace lzma {
 			explicit LZMAStream();
 			~LZMAStream();
 			
-			static Persistent<Function> constructor;
+			static Nan::Persistent<Function> constructor;
 			static NAN_METHOD(New);
 			
-			static Handle<Value> _failMissingSelf();
+			static void _failMissingSelf(const Nan::FunctionCallbackInfo<Value>& info);
 
 			bool hasRunningThread;
 			bool hasPendingCallbacks;
@@ -243,7 +277,7 @@ namespace lzma {
 	/**
 	 * Node.js addon init function
 	 */
-	void moduleInit(Handle<Object> exports);
+	void moduleInit(Local<Object> exports);
 }
 
 #endif

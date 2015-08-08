@@ -21,22 +21,22 @@
 namespace lzma {
 
 FilterArray::FilterArray(Local<Array> arr) : ok_(false) {
-	NanScope();
+	Nan::HandleScope();
 	
 	size_t len = arr.IsEmpty() ? 0 : arr->Length();
 	
-	Local<String> id_ = NanNew<String>("id");
-	Local<String> options_ = NanNew<String>("options");
+	Local<String> id_ = NewString("id");
+	Local<String> options_ = NewString("options");
 	
 	for (size_t i = 0; i < len; ++i) {
-		Local<Object> entry = Local<Object>::Cast(arr->Get(i));
+		Local<Object> entry = Local<Object>::Cast(EmptyToUndefined(Nan::Get(arr, i)));
 		if (entry.IsEmpty() || entry->IsUndefined()) {
-			NanThrowTypeError("Filter array needs object entries");
+			Nan::ThrowTypeError("Filter array needs object entries");
 			return;
 		}
 		
-		Local<String> id = Local<String>::Cast(entry->Get(id_));
-		Local<Object> opt = Local<Object>::Cast(entry->Get(options_));
+		Local<String> id = Local<String>::Cast(EmptyToUndefined(Nan::Get(entry, id_)));
+		Local<Object> opt = Local<Object>::Cast(EmptyToUndefined(Nan::Get(entry, options_)));
 		
 		lzma_filter f;
 		f.id = FilterByName(id);
@@ -52,8 +52,8 @@ FilterArray::FilterArray(Local<Array> arr) : ok_(false) {
 		
 		switch (f.id) {
 			case LZMA_FILTER_DELTA:
-				bopt.delta.type = (lzma_delta_type) Local<Integer>::Cast(opt->Get(NanNew<String>("type")))->Value();
-				bopt.delta.dist = Local<Integer>::Cast(opt->Get(NanNew<String>("dist")))->Value();
+				bopt.delta.type = (lzma_delta_type) GetIntegerProperty(opt, "type", LZMA_DELTA_TYPE_BYTE);
+				bopt.delta.dist = GetIntegerProperty(opt, "dist", 1);
 				f.options = &bopt.delta;
 				break;
 			case LZMA_FILTER_LZMA1:
@@ -62,7 +62,7 @@ FilterArray::FilterArray(Local<Array> arr) : ok_(false) {
 				f.options = &bopt.lzma;
 				break;
 			default:
-				NanThrowTypeError("LZMA Wrapper library understands .options only for DELTA and LZMA1, LZMA2 filters");
+				Nan::ThrowTypeError("LZMA Wrapper library understands .options only for DELTA and LZMA1, LZMA2 filters");
 				return;
 		}
 		
