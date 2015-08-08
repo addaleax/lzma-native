@@ -195,7 +195,7 @@ void LZMAStream::invokeBufferHandlers(bool async, bool hasLock) {
 	};
 	_ScopeGuard guard(this);
 	
-	Nan::HandleScope();
+	Nan::HandleScope scope;
 	
 	Local<Function> bufferHandler = Local<Function>::Cast(EmptyToUndefined(Nan::Get(handle(), NewString("bufferHandler"))));
 	std::vector<uint8_t> outbuf;
