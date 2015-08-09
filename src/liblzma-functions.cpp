@@ -87,6 +87,7 @@ NAN_METHOD(lzmaCRC32) {
 	if (!readBufferFromObj(info[0], data)) {
 		Nan::ThrowTypeError("CRC32 expects Buffer as input");
 		info.GetReturnValue().SetUndefined();
+		return;
 	}
 	
 	info.GetReturnValue().Set(Nan::New<Number>(lzma_crc32(data.data(), data.size(), arg->Value())));
@@ -99,6 +100,7 @@ NAN_METHOD(lzmaRawEncoderMemusage) {
 	if (!filters.ok()) {
 		Nan::ThrowTypeError("rawEncoderMemusage requires filter array as arguments");
 		info.GetReturnValue().SetUndefined();
+		return;
 	}
 	
 	info.GetReturnValue().Set(Uint64ToNumberMaxNull(lzma_raw_encoder_memusage(filters.array())));
@@ -111,6 +113,7 @@ NAN_METHOD(lzmaRawDecoderMemusage) {
 	if (!filters.ok()) {
 		Nan::ThrowTypeError("rawDecoderMemusage requires filter array as arguments");
 		info.GetReturnValue().SetUndefined();
+		return;
 	}
 	
 	info.GetReturnValue().Set(Uint64ToNumberMaxNull(lzma_raw_decoder_memusage(filters.array())));

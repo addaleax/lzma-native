@@ -326,7 +326,7 @@ void LZMAStream::doLZMACode(bool async) {
 			size_t outsz = outbuf.size() - _.avail_out;
 			
 			if (outsz > 0) {
-#if __cplusplus > 199711L // C++11
+#ifndef LZMA_NO_CXX11_RVALUE_REFERENCES // C++11
 				outbufs.emplace(outbuf.data(), outbuf.data() + outsz);
 #else
 				outbufs.push(std::vector<uint8_t>(outbuf.data(), outbuf.data() + outsz));
@@ -393,8 +393,10 @@ void LZMAStream::_failMissingSelf(const Nan::FunctionCallbackInfo<Value>& info) 
 
 NAN_METHOD(LZMAStream::Memusage) {
 	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
-	if (!self)
-		info.GetReturnValue().SetUndefined();
+	if (!self) {
+		_failMissingSelf(info);
+		return;
+	}
 	LZMA_ASYNC_LOCK(self)
 	
 	info.GetReturnValue().Set(Uint64ToNumber0Null(lzma_memusage(&self->_)));
