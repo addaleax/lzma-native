@@ -326,7 +326,7 @@ void LZMAStream::doLZMACode(bool async) {
 			size_t outsz = outbuf.size() - _.avail_out;
 			
 			if (outsz > 0) {
-#if __cplusplus > 199711L // C++11
+#ifndef LZMA_NO_CXX11_RVALUE_REFERENCES // C++11
 				outbufs.emplace(outbuf.data(), outbuf.data() + outsz);
 #else
 				outbufs.push(std::vector<uint8_t>(outbuf.data(), outbuf.data() + outsz));

@@ -36,10 +36,16 @@
 #include <string>
 #include <utility>
 
-#if __cplusplus > 199711L
-#define LZMA_NATIVE_MOVE std::move
+// C++11 features in libstdc++ shipped with Apple Clang
+// See e.g. http://svn.boost.org/trac/boost/ticket/8092
+#if __cplusplus <= 199711L || (__APPLE__ && (__GNUC_LIBSTD__ <= 4) && (__GNUC_LIBSTD_MINOR__ <= 2))
+# define LZMA_NO_CXX11_RVALUE_REFERENCES
+#endif
+
+#ifndef LZMA_NO_CXX11_RVALUE_REFERENCES
+# define LZMA_NATIVE_MOVE std::move
 #else
-#define LZMA_NATIVE_MOVE
+# define LZMA_NATIVE_MOVE
 #endif
 
 #if NODE_MODULE_VERSION >= 11
