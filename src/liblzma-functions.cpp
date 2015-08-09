@@ -1,6 +1,6 @@
 /**
  * lzma-native - Node.js bindings for liblzma
- * Copyright (C) 2014 Hauke Henningsen <sqrt@entless.org>
+ * Copyright (C) 2014-2015 Hauke Henningsen <sqrt@entless.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
