@@ -180,8 +180,8 @@ exports.createStream = function(coder, options) {
 
 exports.crc32 = function(input, encoding, presetCRC32) {
 	if (typeof encoding == 'number') {
-		encoding = null;
 		presetCRC32 = encoding;
+		encoding = null;
 	}
 	
 	if (typeof input == 'string') 

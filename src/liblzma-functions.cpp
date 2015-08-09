@@ -106,31 +106,27 @@ NAN_METHOD(lzmaCRC32) {
 NAN_METHOD(lzmaRawEncoderMemusage) {
 	NanScope();
 	Local<Array> arg = Local<Array>::Cast(args[0]);
-	if (arg.IsEmpty() || args[0]->IsUndefined()) {
+	
+	const FilterArray filters(arg);
+	if (!filters.ok()) {
 		NanThrowTypeError("rawEncoderMemusage requires filter array as arguments");
 		NanReturnUndefined();
 	}
 	
-	const FilterArray fa(arg);
-	if (!fa.ok()) 
-		NanReturnUndefined();
-	
-	NanReturnValue(Uint64ToNumberMaxNull(lzma_raw_encoder_memusage(fa.array())));
+	NanReturnValue(Uint64ToNumberMaxNull(lzma_raw_encoder_memusage(filters.array())));
 }
 
 NAN_METHOD(lzmaRawDecoderMemusage) {
 	NanScope();
 	Local<Array> arg = Local<Array>::Cast(args[0]);
-	if (arg.IsEmpty() || args[0]->IsUndefined()) {
-		NanThrowTypeError("rawdecoderMemusage requires filter array as arguments");
+	
+	const FilterArray filters(arg);
+	if (!filters.ok()) {
+		NanThrowTypeError("rawEncoderMemusage requires filter array as arguments");
 		NanReturnUndefined();
 	}
 	
-	const FilterArray fa(arg);
-	if (!fa.ok()) 
-		NanReturnUndefined();
-	
-	NanReturnValue(Uint64ToNumberMaxNull(lzma_raw_decoder_memusage(fa.array())));
+	NanReturnValue(Uint64ToNumberMaxNull(lzma_raw_decoder_memusage(filters.array())));
 }
 
 }

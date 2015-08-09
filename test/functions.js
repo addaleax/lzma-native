@@ -50,12 +50,30 @@ describe('lzma', function() {
 		});
 	});
 	
+	var exampleSentenceWords = ['The ', 'quick ', 'brown ', 'fox ', 'jumps ', 'over ', 'the ', 'lazy ', 'dog'];
+	var exampleSentence = exampleSentenceWords.join('');
+	
 	describe('#crc32', function() {
 		it('should be the standard CRC32 value for a few strings', function() {
 			assert.strictEqual(0x00000000, lzma.crc32(''));
-			assert.strictEqual(0x414fa339, lzma.crc32('The quick brown fox jumps over the lazy dog'));
-			assert.strictEqual(0x414fa339, lzma.crc32(new Buffer('The quick brown fox jumps over the lazy dog')));
+			assert.strictEqual(0x414fa339, lzma.crc32(exampleSentence));
+			assert.strictEqual(0x414fa339, lzma.crc32(new Buffer(exampleSentence)));
 			assert.strictEqual(0xafabd35e, lzma.crc32('crc32'));
+		});
+		
+		it('should allow cumulative calculation of the checksum', function() {
+			var crc32Rev = function(prev, cur) {
+				return lzma.crc32(cur, prev);
+			};
+			
+			assert.strictEqual(lzma.crc32(exampleSentence),
+				exampleSentenceWords.reduce(crc32Rev, 0));
+		});
+		
+		it('should fail if the input type is not obvious', function() {
+			assert.throws(function() {
+				lzma.crc32({some: 'object'});
+			});
 		});
 	});
 	
@@ -116,6 +134,11 @@ describe('lzma', function() {
 				assert.ok(lzma.rawEncoderMemusage([{id: lzma.FILTER_LZMA2, preset: i+1}])
 					>= lzma.rawEncoderMemusage([{id: lzma.FILTER_LZMA2, preset: i}]));
 		});
+		
+		it('should fail if input is not an array of filter objects', function() {
+			assert.throws(function() { lzma.rawEncoderMemusage(null) });
+			assert.throws(function() { lzma.rawEncoderMemusage([null]) });
+		});
 	});
 	
 	describe('#rawDecoderMemusage', function() {
@@ -132,6 +155,11 @@ describe('lzma', function() {
 			for (var i = 1; i < 9; ++i)
 				assert.ok(lzma.rawDecoderMemusage([{id: lzma.FILTER_LZMA2, preset: i+1}])
 					>= lzma.rawDecoderMemusage([{id: lzma.FILTER_LZMA2, preset: i}]));
+		});
+		
+		it('should fail if input is not an array of filter objects', function() {
+			assert.throws(function() { lzma.rawEncoderMemusage(null) });
+			assert.throws(function() { lzma.rawEncoderMemusage([null]) });
 		});
 	});
 	
