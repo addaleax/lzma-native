@@ -31,7 +31,6 @@ FilterArray::FilterArray(Local<Array> arr) : ok_(false) {
 	for (size_t i = 0; i < len; ++i) {
 		Local<Object> entry = Local<Object>::Cast(arr->Get(i));
 		if (entry.IsEmpty() || entry->IsUndefined() || entry->IsNull() || !entry->Has(id_)) {
-		need_object_entries:
 			NanThrowTypeError("Filter array needs object entries");
 			return;
 		}
