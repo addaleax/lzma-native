@@ -218,6 +218,7 @@ process.stdin.pipe(compressor).pipe(process.stdout);
 <a name="api-create-stream"></a>
 #### `lzma.createStream()`
 `lzma.createStream(coder, options)`
+
 Param       |  Type            |  Description
 ----------- | ---------------- | --------------
 [`coder`]   | string           | Any of the [supported coder names](#api-coders), e.g. `"easyEncoder"` (default) or `"autoDecoder"`.
@@ -265,6 +266,7 @@ Less likely to be of interest to you, but also available:
 <a name="api-options-preset"></a>
 <a name="api-options-flags"></a>
 <a name="api-options-synchronous"></a>
+
 Option name   |  Type      |  Description
 ------------- | ---------- | -------------
 `check`       | check      |  Any of `lzma.CHECK_CRC32`, `lzma.CHECK_CRC64`, `lzma.CHECK_NONE`, `lzma.CHECK_SHA256`
