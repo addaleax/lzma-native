@@ -22,8 +22,8 @@
 
 namespace lzma {
 
-lzma_vli FilterByName(Handle<Value> v) {
-	NanUtf8String cmpto(v);
+lzma_vli FilterByName(Local<Value> v) {
+	Nan::Utf8String cmpto(v);
 	if (cmpto.length() == 0)
 		return LZMA_VLI_UNKNOWN;
 	
@@ -69,24 +69,24 @@ const char* lzmaStrError(lzma_ret rv) {
 	}
 }
 
-Handle<Value> lzmaRetError(lzma_ret rv) {
-	return Exception::Error(NanNew<String>(lzmaStrError(rv)));
+Local<Value> lzmaRetError(lzma_ret rv) {
+	return Nan::Error(lzmaStrError(rv));
 }
 
-Handle<Value> lzmaRet(lzma_ret rv) {
+Local<Value> lzmaRet(lzma_ret rv) {
 	if (rv != LZMA_OK && rv != LZMA_STREAM_END)
-		NanThrowError(lzmaRetError(rv));
+		Nan::ThrowError(lzmaRetError(rv));
 	
-	return NanNew<Integer>(rv);
+	return Nan::New<Integer>(rv);
 }
 
-bool readBufferFromObj(Handle<Value> buf_, std::vector<uint8_t>& data) {
+bool readBufferFromObj(Local<Value> buf_, std::vector<uint8_t>& data) {
 	if (buf_.IsEmpty() || !node::Buffer::HasInstance(buf_)) {
-		NanThrowTypeError("Exptected Buffer as input");
+		Nan::ThrowTypeError("Exptected Buffer as input");
 		return false;
 	}
 	
-	Handle<Object> buf = Handle<Object>::Cast(buf_);
+	Local<Object> buf = Local<Object>::Cast(buf_);
 	size_t len = node::Buffer::Length(buf);
 	const uint8_t* ptr = reinterpret_cast<const uint8_t*>(len > 0 ? node::Buffer::Data(buf) : "");
 	
@@ -95,63 +95,56 @@ bool readBufferFromObj(Handle<Value> buf_, std::vector<uint8_t>& data) {
 	return true;
 }
 
-lzma_options_lzma parseOptionsLZMA (Handle<Object> obj) {
-	NanScope();
+lzma_options_lzma parseOptionsLZMA (Local<Object> obj) {
+	Nan::HandleScope();
 	lzma_options_lzma r;
 	
 	if (obj.IsEmpty() || obj->IsUndefined())
-		obj = NanNew<Object>();
+		obj = Nan::New<Object>();
 	
-	Local<Value> dict_size = obj->Get(NanNew<String>("dictSize"));
-	Local<Value> lp = obj->Get(NanNew<String>("lp"));
-	Local<Value> lc = obj->Get(NanNew<String>("lc"));
-	Local<Value> pb = obj->Get(NanNew<String>("pb"));
-	Local<Value> mode = obj->Get(NanNew<String>("mode"));
-	Local<Value> nice_len = obj->Get(NanNew<String>("niceLen"));
-	Local<Value> mf = obj->Get(NanNew<String>("mf"));
-	Local<Value> depth = obj->Get(NanNew<String>("depth"));
-	Local<Value> preset = obj->Get(NanNew<String>("preset"));
-	r.dict_size = dict_size.IsEmpty() || dict_size->IsUndefined() ? LZMA_DICT_SIZE_DEFAULT : Local<Integer>::Cast(dict_size)->Value();
-	r.lc = lc.IsEmpty() || lc->IsUndefined() ? LZMA_LC_DEFAULT : Local<Integer>::Cast(lc)->Value();
-	r.lp = lp.IsEmpty() || lp->IsUndefined() ? LZMA_LP_DEFAULT : Local<Integer>::Cast(lp)->Value();
-	r.pb = pb.IsEmpty() || pb->IsUndefined() ? LZMA_PB_DEFAULT : Local<Integer>::Cast(pb)->Value();
-	r.mode = mode.IsEmpty() || mode->IsUndefined() ? LZMA_MODE_FAST : (lzma_mode)Local<Integer>::Cast(mode)->Value();
-	r.nice_len = nice_len.IsEmpty() || nice_len->IsUndefined() ? 64 : Local<Integer>::Cast(nice_len)->Value();
-	r.mf = mf.IsEmpty() || mf->IsUndefined() ? LZMA_MF_HC4 : (lzma_match_finder)Local<Integer>::Cast(mf)->Value();
-	r.depth = mf.IsEmpty() || depth->IsUndefined() ? 0 : Local<Integer>::Cast(depth)->Value();
+	r.dict_size = GetIntegerProperty(obj, "dictSize", LZMA_DICT_SIZE_DEFAULT);
+	r.lp = GetIntegerProperty(obj, "lp", LZMA_LP_DEFAULT);
+	r.lc = GetIntegerProperty(obj, "lc", LZMA_LC_DEFAULT);
+	r.pb = GetIntegerProperty(obj, "pb", LZMA_PB_DEFAULT);
+	r.mode = (lzma_mode)GetIntegerProperty(obj, "mode", (uint64_t)LZMA_MODE_FAST);
+	r.nice_len = GetIntegerProperty(obj, "niceLen", 64);
+	r.mf = (lzma_match_finder)GetIntegerProperty(obj, "mf", (uint64_t)LZMA_MF_HC4);
+	r.depth = GetIntegerProperty(obj, "depth", 0);
+	uint64_t preset_ = GetIntegerProperty(obj, "preset", UINT64_MAX);
+	
 	r.preset_dict = NULL;
 	
-	if (!preset.IsEmpty() && !preset->IsUndefined()) 
-		lzma_lzma_preset(&r, Local<Integer>::Cast(preset)->Value());
+	if (preset_ != UINT64_MAX) 
+		lzma_lzma_preset(&r, preset_);
 	
 	return r;
 }
 
-Handle<Value> Uint64ToNumberMaxNull(uint64_t in) {
+Local<Value> Uint64ToNumberMaxNull(uint64_t in) {
 	if (in == UINT64_MAX)
-		return NanNull();
+		return Nan::Null();
 	else
-		return NanNew<Number>(in);
+		return Nan::New<Number>(in);
 }
 
-Handle<Value> Uint64ToNumber0Null(uint64_t in) {
+Local<Value> Uint64ToNumber0Null(uint64_t in) {
 	if (in == 0)
-		return NanNull();
+		return Nan::Null();
 	else
-		return NanNew<Number>(in);
+		return Nan::New<Number>(in);
 }
 
-uint64_t NumberToUint64ClampNullMax(Handle<Value> in) {
+uint64_t NumberToUint64ClampNullMax(Local<Value> in) {
 	if (in->IsNull() || in->IsUndefined())
 		return UINT64_MAX;
 	
-	Handle<Number> n = Handle<Number>::Cast(in);
+	Local<Number> n = Local<Number>::Cast(in);
 	if (n.IsEmpty() && !in.IsEmpty()) {
-		NanThrowTypeError("Number required");
+		Nan::ThrowTypeError("Number required");
 		return UINT64_MAX;
 	}
 	
-	Handle<Integer> integer = Handle<Integer>::Cast(n);
+	Local<Integer> integer = Local<Integer>::Cast(n);
 	if (!integer.IsEmpty())
 		return integer->Value();
 	
