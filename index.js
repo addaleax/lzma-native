@@ -33,9 +33,7 @@ var Stream = exports.Stream;
 Stream.curAsyncStreams = [];
 Stream.maxAsyncStreamCount = 32;
 
-Stream.prototype.getStream = 
-Stream.prototype.asyncStream =
-Stream.prototype.syncStream = function(options) {
+Stream.prototype.getStream = function(options) {
 	options = options || {};
 	
 	var _forceNextTickCb = function() {
