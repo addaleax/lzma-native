@@ -3,7 +3,6 @@ node_js:
   - "0.12"
   - "0.10"
   - "iojs-v1.0"
-  - "iojs"
 env:
   - CXX=g++ CC=gcc
   - CXX=clang++ CC=clang NPMOPT=--clang=1
