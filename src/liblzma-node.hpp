@@ -34,6 +34,7 @@
 #include <set>
 #include <queue>
 #include <string>
+#include <utility>
 
 #if __cplusplus > 199711L
 #define LZMA_NATIVE_MOVE std::move
