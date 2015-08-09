@@ -100,12 +100,53 @@ describe('LZMA.compress()/decompress()', function() {
 			});
 		});
 	});
+	
+	it('can round-trip, even for compressed data which uses LZMA2', function(done) {
+		var LZMA = new lzma.LZMA();
+		
+		lzma.compress('Bananas', function(result) {
+			LZMA.decompress(result, function(result) {
+				assert.equal(result.toString(), 'Bananas');
+				
+				done();
+			});
+		});
+	});
 });
 
+var BananasCompressed = '/Td6WFoAAAFpIt42AgAhARwAAAAQz1jMAQAGQmFuYW5hcwAA0aJr3wABGwcS69QXkEKZDQEAAAAAAVla';
 describe('lzma.compress()/decompress()', function() {
 	it('can round-trip', function(done) {
 		lzma.compress('Bananas', 9, function(result) {
-			assert.equal(result.toString('base64'), '/Td6WFoAAAFpIt42AgAhARwAAAAQz1jMAQAGQmFuYW5hcwAA0aJr3wABGwcS69QXkEKZDQEAAAAAAVla');
+			assert.equal(result.toString('base64'), BananasCompressed);
+			lzma.decompress(result, function(result) {
+				assert.ok(Buffer.isBuffer(result));
+				assert.equal(result.toString(), 'Bananas');
+				
+				done();
+			});
+		});
+	});
+	
+	it('can round-trip with Q promises enabled', function() {
+		return lzma.compress('Bananas', 9).then(function(result) {
+			assert.equal(result.toString('base64'), BananasCompressed);
+			return lzma.decompress(result);
+		}).then(function(result) {
+			assert.ok(Buffer.isBuffer(result));
+			assert.equal(result.toString(), 'Bananas');
+		});
+	});
+});
+
+describe('lzma.compress()/decompress() without promises', function() {
+	var oldQ;
+	before('disable Q',  function() { oldQ = lzma._setQ(null); });
+	after('re-enable Q', function() { lzma._setQ(oldQ); });
+	
+	it('can round-trip', function(done) {
+		lzma.compress('Bananas', 9, function(result) {
+			assert.equal(result.toString('base64'), BananasCompressed);
 			lzma.decompress(result, function(result) {
 				assert.ok(Buffer.isBuffer(result));
 				assert.equal(result.toString(), 'Bananas');

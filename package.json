@@ -42,6 +42,7 @@
 		"mocha": "*",
 		"istanbul": "*",
 		"bl": "*",
-		"coveralls": "git+https://github.com/addaleax/node-coveralls.git#write-to-stdout"
+		"coveralls": "git+https://github.com/addaleax/node-coveralls.git#write-to-stdout",
+		"q": "^1.4.1"
 	}
 }
