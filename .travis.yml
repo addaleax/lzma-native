@@ -6,6 +6,9 @@ node_js:
   - "iojs-v2.0"
   - "iojs-v3.0"
   - "iojs"
+os:
+  - linux
+  - osx
 sudo: false
 cache:
   - pip
