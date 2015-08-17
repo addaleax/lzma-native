@@ -16,6 +16,13 @@ of `.xz` (and legacy `.lzma`) files, both stream-based and string-based.
 <a name="example-usage"></a>
 ## Example usage
 
+<a name="installation"></a>
+### Installation
+Simply install `lzma-native` via npm:
+```bash
+$ npm install --save lzma-native
+```
+
 <a name="streams-usage"></a>
 ### For streams
 
