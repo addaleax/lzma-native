@@ -24,18 +24,21 @@ var stream = require('readable-stream');
 var util = require('util');
 var extend = require('util-extend');
 
+var Q = null; // Q is an optional dependency
+try {
+	Q = require('q');
+} catch(e) {}
+
 extend(exports, native);
 
-exports.version = '0.2.14';
+exports.version = '0.3.0';
 
 var Stream = exports.Stream;
 
 Stream.curAsyncStreams = [];
 Stream.maxAsyncStreamCount = 32;
 
-Stream.prototype.getStream = 
-Stream.prototype.asyncStream =
-Stream.prototype.syncStream = function(options) {
+Stream.prototype.getStream = function(options) {
 	options = options || {};
 	
 	var _forceNextTickCb = function() {
@@ -153,6 +156,7 @@ Stream.prototype.aloneDecoder = function(options) {
 	return this.aloneDecoder_(options.memlimit || null);
 };
 
+/* helper functions for easy creation of streams */
 var createStream =
 exports.createStream = function(coder, options) {
 	if (['number', 'object'].indexOf(typeof coder) != -1 && !options) {
@@ -176,6 +180,14 @@ exports.createStream = function(coder, options) {
 		options.synchronous = ((Stream.curAsyncStreams.length >= Stream.maxAsyncStreamCount) && !options.forceAsynchronous);
 	
 	return stream.getStream(options);
+};
+
+exports.createCompressor = function(options) {
+	return createStream('easyEncoder', options);
+};
+
+exports.createDecompressor = function(options) {
+	return createStream('autoDecoder', options);
 };
 
 exports.crc32 = function(input, encoding, presetCRC32) {
@@ -209,15 +221,30 @@ function singleStringCoding(stream, string, on_finish, on_progress) {
 	on_progress = on_progress || function() {};
 	on_finish = on_finish || function() {};
 	
+	var deferred = null;
+	
+	if (Q) {
+		deferred = Q.defer();
+		
+		stream.on('error', function(e) {
+			deferred.reject(e);
+		});
+	}
+	
 	var buffers = [];
 
 	stream.on('data', function(b) { buffers.push(b); });
 	stream.once('end', function() {
-		on_progress(1);
-		on_finish(Buffer.concat(buffers));
+		var result = Buffer.concat(buffers);
+		
+		on_progress(1.0);
+		on_finish(result);
+		
+		if (deferred)
+			deferred.resolve(result);
 	});
 
-	on_progress(0);
+	on_progress(0.0);
 	
 	// possibly our input is an array of byte integers
 	// or a typed array
@@ -225,6 +252,9 @@ function singleStringCoding(stream, string, on_finish, on_progress) {
 		string = new Buffer(string);
 	
 	stream.end(string);
+	
+	if (deferred)
+		return deferred.promise;
 }
 
 exports.LZMA = function() {
@@ -240,7 +270,7 @@ exports.LZMA = function() {
 			return singleStringCoding(stream, string, on_finish, on_progress);
 		},
 		decompress: function(byte_array, on_finish, on_progress) {
-			var stream = createStream('aloneDecoder');
+			var stream = createStream('autoDecoder');
 			
 			return singleStringCoding(stream, byte_array, on_finish, on_progress);
 		}
@@ -265,6 +295,13 @@ exports.decompress = function(string, opt, on_finish) {
 	
 	var stream = createStream('autoDecoder', opt);
 	return singleStringCoding(stream, string, on_finish);
+};
+
+// helper for tests to enable/disable Q promises
+exports._setQ = function(newQ) {
+	var oldQ = Q;
+	Q = newQ;
+	return oldQ;
 };
 
 })();

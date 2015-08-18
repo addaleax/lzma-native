@@ -20,95 +20,95 @@
 
 namespace lzma {
 
-void moduleInit(Handle<Object> exports) {
+void moduleInit(Local<Object> exports) {
 	LZMAStream::Init(exports);
 	
-	exports->Set(NanNew<String>("versionNumber"),            NanNew<FunctionTemplate>(lzmaVersionNumber)->GetFunction());
-	exports->Set(NanNew<String>("versionString"),            NanNew<FunctionTemplate>(lzmaVersionString)->GetFunction());
-	exports->Set(NanNew<String>("checkIsSupported"),         NanNew<FunctionTemplate>(lzmaCheckIsSupported)->GetFunction());
-	exports->Set(NanNew<String>("checkSize"),                NanNew<FunctionTemplate>(lzmaCheckSize)->GetFunction());
-	exports->Set(NanNew<String>("crc32_"),                   NanNew<FunctionTemplate>(lzmaCRC32)->GetFunction());
-	exports->Set(NanNew<String>("filterEncoderIsSupported"), NanNew<FunctionTemplate>(lzmaFilterEncoderIsSupported)->GetFunction());
-	exports->Set(NanNew<String>("filterDecoderIsSupported"), NanNew<FunctionTemplate>(lzmaFilterDecoderIsSupported)->GetFunction());
-	exports->Set(NanNew<String>("rawEncoderMemusage"),       NanNew<FunctionTemplate>(lzmaRawEncoderMemusage)->GetFunction());
-	exports->Set(NanNew<String>("rawDecoderMemusage"),       NanNew<FunctionTemplate>(lzmaRawDecoderMemusage)->GetFunction());
-	exports->Set(NanNew<String>("mfIsSupported"),            NanNew<FunctionTemplate>(lzmaMfIsSupported)->GetFunction());
-	exports->Set(NanNew<String>("modeIsSupported"),          NanNew<FunctionTemplate>(lzmaModeIsSupported)->GetFunction());
-	exports->Set(NanNew<String>("easyEncoderMemusage"),      NanNew<FunctionTemplate>(lzmaEasyEncoderMemusage)->GetFunction());
-	exports->Set(NanNew<String>("easyDecoderMemusage"),      NanNew<FunctionTemplate>(lzmaEasyDecoderMemusage)->GetFunction());
+	exports->Set(NewString("versionNumber"),            Nan::New<FunctionTemplate>(lzmaVersionNumber)->GetFunction());
+	exports->Set(NewString("versionString"),            Nan::New<FunctionTemplate>(lzmaVersionString)->GetFunction());
+	exports->Set(NewString("checkIsSupported"),         Nan::New<FunctionTemplate>(lzmaCheckIsSupported)->GetFunction());
+	exports->Set(NewString("checkSize"),                Nan::New<FunctionTemplate>(lzmaCheckSize)->GetFunction());
+	exports->Set(NewString("crc32_"),                   Nan::New<FunctionTemplate>(lzmaCRC32)->GetFunction());
+	exports->Set(NewString("filterEncoderIsSupported"), Nan::New<FunctionTemplate>(lzmaFilterEncoderIsSupported)->GetFunction());
+	exports->Set(NewString("filterDecoderIsSupported"), Nan::New<FunctionTemplate>(lzmaFilterDecoderIsSupported)->GetFunction());
+	exports->Set(NewString("rawEncoderMemusage"),       Nan::New<FunctionTemplate>(lzmaRawEncoderMemusage)->GetFunction());
+	exports->Set(NewString("rawDecoderMemusage"),       Nan::New<FunctionTemplate>(lzmaRawDecoderMemusage)->GetFunction());
+	exports->Set(NewString("mfIsSupported"),            Nan::New<FunctionTemplate>(lzmaMfIsSupported)->GetFunction());
+	exports->Set(NewString("modeIsSupported"),          Nan::New<FunctionTemplate>(lzmaModeIsSupported)->GetFunction());
+	exports->Set(NewString("easyEncoderMemusage"),      Nan::New<FunctionTemplate>(lzmaEasyEncoderMemusage)->GetFunction());
+	exports->Set(NewString("easyDecoderMemusage"),      Nan::New<FunctionTemplate>(lzmaEasyDecoderMemusage)->GetFunction());
 	
 	// enum lzma_ret
-	exports->Set(NanNew<String>("OK"),                NanNew<Number>(LZMA_OK));
-	exports->Set(NanNew<String>("STREAM_END"),        NanNew<Number>(LZMA_STREAM_END));
-	exports->Set(NanNew<String>("NO_CHECK"),          NanNew<Number>(LZMA_NO_CHECK));
-	exports->Set(NanNew<String>("UNSUPPORTED_CHECK"), NanNew<Number>(LZMA_UNSUPPORTED_CHECK));
-	exports->Set(NanNew<String>("GET_CHECK"),         NanNew<Number>(LZMA_GET_CHECK));
-	exports->Set(NanNew<String>("MEM_ERROR"),         NanNew<Number>(LZMA_MEM_ERROR));
-	exports->Set(NanNew<String>("MEMLIMIT_ERROR"),    NanNew<Number>(LZMA_MEMLIMIT_ERROR));
-	exports->Set(NanNew<String>("FORMAT_ERROR"),      NanNew<Number>(LZMA_FORMAT_ERROR));
-	exports->Set(NanNew<String>("OPTIONS_ERROR"),     NanNew<Number>(LZMA_OPTIONS_ERROR));
-	exports->Set(NanNew<String>("DATA_ERROR"),        NanNew<Number>(LZMA_DATA_ERROR));
-	exports->Set(NanNew<String>("BUF_ERROR"),         NanNew<Number>(LZMA_BUF_ERROR));
-	exports->Set(NanNew<String>("PROG_ERROR"),        NanNew<Number>(LZMA_PROG_ERROR));
+	exports->Set(NewString("OK"),                Nan::New<Number>(LZMA_OK));
+	exports->Set(NewString("STREAM_END"),        Nan::New<Number>(LZMA_STREAM_END));
+	exports->Set(NewString("NO_CHECK"),          Nan::New<Number>(LZMA_NO_CHECK));
+	exports->Set(NewString("UNSUPPORTED_CHECK"), Nan::New<Number>(LZMA_UNSUPPORTED_CHECK));
+	exports->Set(NewString("GET_CHECK"),         Nan::New<Number>(LZMA_GET_CHECK));
+	exports->Set(NewString("MEM_ERROR"),         Nan::New<Number>(LZMA_MEM_ERROR));
+	exports->Set(NewString("MEMLIMIT_ERROR"),    Nan::New<Number>(LZMA_MEMLIMIT_ERROR));
+	exports->Set(NewString("FORMAT_ERROR"),      Nan::New<Number>(LZMA_FORMAT_ERROR));
+	exports->Set(NewString("OPTIONS_ERROR"),     Nan::New<Number>(LZMA_OPTIONS_ERROR));
+	exports->Set(NewString("DATA_ERROR"),        Nan::New<Number>(LZMA_DATA_ERROR));
+	exports->Set(NewString("BUF_ERROR"),         Nan::New<Number>(LZMA_BUF_ERROR));
+	exports->Set(NewString("PROG_ERROR"),        Nan::New<Number>(LZMA_PROG_ERROR));
 	
 	// enum lzma_action
-	exports->Set(NanNew<String>("RUN"),        NanNew<Number>(LZMA_RUN));
-	exports->Set(NanNew<String>("SYNC_FLUSH"), NanNew<Number>(LZMA_SYNC_FLUSH));
-	exports->Set(NanNew<String>("FULL_FLUSH"), NanNew<Number>(LZMA_FULL_FLUSH));
-	exports->Set(NanNew<String>("FINISH"),     NanNew<Number>(LZMA_FINISH));
+	exports->Set(NewString("RUN"),        Nan::New<Number>(LZMA_RUN));
+	exports->Set(NewString("SYNC_FLUSH"), Nan::New<Number>(LZMA_SYNC_FLUSH));
+	exports->Set(NewString("FULL_FLUSH"), Nan::New<Number>(LZMA_FULL_FLUSH));
+	exports->Set(NewString("FINISH"),     Nan::New<Number>(LZMA_FINISH));
 	
 	// enum lzma_check
-	exports->Set(NanNew<String>("CHECK_NONE"),   NanNew<Number>(LZMA_CHECK_NONE));
-	exports->Set(NanNew<String>("CHECK_CRC32"),  NanNew<Number>(LZMA_CHECK_CRC32));
-	exports->Set(NanNew<String>("CHECK_CRC64"),  NanNew<Number>(LZMA_CHECK_CRC64));
-	exports->Set(NanNew<String>("CHECK_SHA256"), NanNew<Number>(LZMA_CHECK_SHA256));
+	exports->Set(NewString("CHECK_NONE"),   Nan::New<Number>(LZMA_CHECK_NONE));
+	exports->Set(NewString("CHECK_CRC32"),  Nan::New<Number>(LZMA_CHECK_CRC32));
+	exports->Set(NewString("CHECK_CRC64"),  Nan::New<Number>(LZMA_CHECK_CRC64));
+	exports->Set(NewString("CHECK_SHA256"), Nan::New<Number>(LZMA_CHECK_SHA256));
 	
 	// lzma_match_finder
-	exports->Set(NanNew<String>("MF_HC3"), NanNew<Number>(LZMA_MF_HC3));
-	exports->Set(NanNew<String>("MF_HC4"), NanNew<Number>(LZMA_MF_HC4));
-	exports->Set(NanNew<String>("MF_BT2"), NanNew<Number>(LZMA_MF_BT2));
-	exports->Set(NanNew<String>("MF_BT3"), NanNew<Number>(LZMA_MF_BT3));
-	exports->Set(NanNew<String>("MF_BT4"), NanNew<Number>(LZMA_MF_BT4));
+	exports->Set(NewString("MF_HC3"), Nan::New<Number>(LZMA_MF_HC3));
+	exports->Set(NewString("MF_HC4"), Nan::New<Number>(LZMA_MF_HC4));
+	exports->Set(NewString("MF_BT2"), Nan::New<Number>(LZMA_MF_BT2));
+	exports->Set(NewString("MF_BT3"), Nan::New<Number>(LZMA_MF_BT3));
+	exports->Set(NewString("MF_BT4"), Nan::New<Number>(LZMA_MF_BT4));
 	
 	// lzma_mode
-	exports->Set(NanNew<String>("MODE_FAST"),   NanNew<Number>(LZMA_MODE_FAST));
-	exports->Set(NanNew<String>("MODE_NORMAL"), NanNew<Number>(LZMA_MODE_NORMAL));
+	exports->Set(NewString("MODE_FAST"),   Nan::New<Number>(LZMA_MODE_FAST));
+	exports->Set(NewString("MODE_NORMAL"), Nan::New<Number>(LZMA_MODE_NORMAL));
 	
 	// defines
-	exports->Set(NanNew<String>("FILTER_X86"),               NanNew<String>("LZMA_FILTER_X86"));
-	exports->Set(NanNew<String>("FILTER_POWERPC"),           NanNew<String>("LZMA_FILTER_POWERPC"));
-	exports->Set(NanNew<String>("FILTER_IA64"),              NanNew<String>("LZMA_FILTER_IA64"));
-	exports->Set(NanNew<String>("FILTER_ARM"),               NanNew<String>("LZMA_FILTER_ARM"));
-	exports->Set(NanNew<String>("FILTER_ARMTHUMB"),          NanNew<String>("LZMA_FILTER_ARMTHUMB"));
-	exports->Set(NanNew<String>("FILTER_SPARC"),             NanNew<String>("LZMA_FILTER_SPARC"));
-	exports->Set(NanNew<String>("FILTER_DELTA"),             NanNew<String>("LZMA_FILTER_DELTA"));
-	exports->Set(NanNew<String>("FILTERS_MAX"),              NanNew<String>("LZMA_FILTERS_MAX"));
-	exports->Set(NanNew<String>("FILTER_LZMA1"),             NanNew<String>("LZMA_FILTER_LZMA1"));
-	exports->Set(NanNew<String>("FILTER_LZMA2"),             NanNew<String>("LZMA_FILTER_LZMA2"));
-	exports->Set(NanNew<String>("VLI_UNKNOWN"),              NanNew<String>("LZMA_VLI_UNKNOWN"));
+	exports->Set(NewString("FILTER_X86"),               NewString("LZMA_FILTER_X86"));
+	exports->Set(NewString("FILTER_POWERPC"),           NewString("LZMA_FILTER_POWERPC"));
+	exports->Set(NewString("FILTER_IA64"),              NewString("LZMA_FILTER_IA64"));
+	exports->Set(NewString("FILTER_ARM"),               NewString("LZMA_FILTER_ARM"));
+	exports->Set(NewString("FILTER_ARMTHUMB"),          NewString("LZMA_FILTER_ARMTHUMB"));
+	exports->Set(NewString("FILTER_SPARC"),             NewString("LZMA_FILTER_SPARC"));
+	exports->Set(NewString("FILTER_DELTA"),             NewString("LZMA_FILTER_DELTA"));
+	exports->Set(NewString("FILTERS_MAX"),              NewString("LZMA_FILTERS_MAX"));
+	exports->Set(NewString("FILTER_LZMA1"),             NewString("LZMA_FILTER_LZMA1"));
+	exports->Set(NewString("FILTER_LZMA2"),             NewString("LZMA_FILTER_LZMA2"));
+	exports->Set(NewString("VLI_UNKNOWN"),              NewString("LZMA_VLI_UNKNOWN"));
 	
-	exports->Set(NanNew<String>("VLI_BYTES_MAX"),            NanNew<Number>(LZMA_VLI_BYTES_MAX));
-	exports->Set(NanNew<String>("CHECK_ID_MAX"),             NanNew<Number>(LZMA_CHECK_ID_MAX));
-	exports->Set(NanNew<String>("CHECK_SIZE_MAX"),           NanNew<Number>(LZMA_CHECK_SIZE_MAX));
-	exports->Set(NanNew<String>("PRESET_DEFAULT"),           NanNew<Number>(LZMA_PRESET_DEFAULT));
-	exports->Set(NanNew<String>("PRESET_LEVEL_MASK"),        NanNew<Number>(LZMA_PRESET_LEVEL_MASK));
-	exports->Set(NanNew<String>("PRESET_EXTREME"),           NanNew<Number>(LZMA_PRESET_EXTREME));
-	exports->Set(NanNew<String>("TELL_NO_CHECK"),            NanNew<Number>(LZMA_TELL_NO_CHECK));
-	exports->Set(NanNew<String>("TELL_UNSUPPORTED_CHECK"),   NanNew<Number>(LZMA_TELL_UNSUPPORTED_CHECK));
-	exports->Set(NanNew<String>("TELL_ANY_CHECK"),           NanNew<Number>(LZMA_TELL_ANY_CHECK));
-	exports->Set(NanNew<String>("CONCATENATED"),             NanNew<Number>(LZMA_CONCATENATED));
-	exports->Set(NanNew<String>("STREAM_HEADER_SIZE"),       NanNew<Number>(LZMA_STREAM_HEADER_SIZE));
-	exports->Set(NanNew<String>("VERSION_MAJOR"),            NanNew<Number>(LZMA_VERSION_MAJOR));
-	exports->Set(NanNew<String>("VERSION_MINOR"),            NanNew<Number>(LZMA_VERSION_MINOR));
-	exports->Set(NanNew<String>("VERSION_PATCH"),            NanNew<Number>(LZMA_VERSION_PATCH));
-	exports->Set(NanNew<String>("VERSION_STABILITY"),        NanNew<Number>(LZMA_VERSION_STABILITY));
-	exports->Set(NanNew<String>("VERSION_STABILITY_ALPHA"),  NanNew<Number>(LZMA_VERSION_STABILITY_ALPHA));
-	exports->Set(NanNew<String>("VERSION_STABILITY_BETA"),   NanNew<Number>(LZMA_VERSION_STABILITY_BETA));
-	exports->Set(NanNew<String>("VERSION_STABILITY_STABLE"), NanNew<Number>(LZMA_VERSION_STABILITY_STABLE));
-	exports->Set(NanNew<String>("VERSION"),                  NanNew<Number>(LZMA_VERSION));
-	exports->Set(NanNew<String>("VERSION_STRING"),           NanNew<String>(LZMA_VERSION_STRING));
+	exports->Set(NewString("VLI_BYTES_MAX"),            Nan::New<Number>(LZMA_VLI_BYTES_MAX));
+	exports->Set(NewString("CHECK_ID_MAX"),             Nan::New<Number>(LZMA_CHECK_ID_MAX));
+	exports->Set(NewString("CHECK_SIZE_MAX"),           Nan::New<Number>(LZMA_CHECK_SIZE_MAX));
+	exports->Set(NewString("PRESET_DEFAULT"),           Nan::New<Number>(LZMA_PRESET_DEFAULT));
+	exports->Set(NewString("PRESET_LEVEL_MASK"),        Nan::New<Number>(LZMA_PRESET_LEVEL_MASK));
+	exports->Set(NewString("PRESET_EXTREME"),           Nan::New<Number>(LZMA_PRESET_EXTREME));
+	exports->Set(NewString("TELL_NO_CHECK"),            Nan::New<Number>(LZMA_TELL_NO_CHECK));
+	exports->Set(NewString("TELL_UNSUPPORTED_CHECK"),   Nan::New<Number>(LZMA_TELL_UNSUPPORTED_CHECK));
+	exports->Set(NewString("TELL_ANY_CHECK"),           Nan::New<Number>(LZMA_TELL_ANY_CHECK));
+	exports->Set(NewString("CONCATENATED"),             Nan::New<Number>(LZMA_CONCATENATED));
+	exports->Set(NewString("STREAM_HEADER_SIZE"),       Nan::New<Number>(LZMA_STREAM_HEADER_SIZE));
+	exports->Set(NewString("VERSION_MAJOR"),            Nan::New<Number>(LZMA_VERSION_MAJOR));
+	exports->Set(NewString("VERSION_MINOR"),            Nan::New<Number>(LZMA_VERSION_MINOR));
+	exports->Set(NewString("VERSION_PATCH"),            Nan::New<Number>(LZMA_VERSION_PATCH));
+	exports->Set(NewString("VERSION_STABILITY"),        Nan::New<Number>(LZMA_VERSION_STABILITY));
+	exports->Set(NewString("VERSION_STABILITY_ALPHA"),  Nan::New<Number>(LZMA_VERSION_STABILITY_ALPHA));
+	exports->Set(NewString("VERSION_STABILITY_BETA"),   Nan::New<Number>(LZMA_VERSION_STABILITY_BETA));
+	exports->Set(NewString("VERSION_STABILITY_STABLE"), Nan::New<Number>(LZMA_VERSION_STABILITY_STABLE));
+	exports->Set(NewString("VERSION"),                  Nan::New<Number>(LZMA_VERSION));
+	exports->Set(NewString("VERSION_STRING"),           NewString(LZMA_VERSION_STRING));
 	
-	exports->Set(NanNew<String>("asyncCodeAvailable"),       NanNew<Boolean>(LZMAStream::asyncCodeAvailable));
+	exports->Set(NewString("asyncCodeAvailable"),       Nan::New<Boolean>(LZMAStream::asyncCodeAvailable));
 }
 
 }

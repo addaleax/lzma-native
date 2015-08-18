@@ -51,7 +51,7 @@ namespace {
 	}
 }
 
-Persistent<Function> LZMAStream::constructor;
+Nan::Persistent<Function> LZMAStream::constructor;
 
 LZMAStream::LZMAStream()
 	: hasRunningThread(false), hasPendingCallbacks(false), hasRunningCallbacks(false),
@@ -104,22 +104,22 @@ LZMAStream::~LZMAStream() {
 }
 
 NAN_METHOD(LZMAStream::Code) {
-	NanScope();
-	
-	LZMAStream* self = node::ObjectWrap::Unwrap<LZMAStream>(args.This());
-	if (!self)
-		NanReturnValue(_failMissingSelf());
+	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
+	if (!self) {
+		_failMissingSelf(info);
+		return;
+	}
 	
 	LZMA_ASYNC_LOCK(self)
 	
 	std::vector<uint8_t> inputData;
 	
-	Local<Object> bufarg = Local<Object>::Cast(args[0]);
+	Local<Object> bufarg = Local<Object>::Cast(info[0]);
 	if (bufarg.IsEmpty() || bufarg->IsUndefined() || bufarg->IsNull()) {
 		self->shouldFinish = true;
 	} else {
 		if (!readBufferFromObj(bufarg, inputData)) 
-			NanReturnUndefined();
+			info.GetReturnValue().SetUndefined();
 		
 		if (inputData.empty())
 			self->shouldFinish = true;
@@ -128,7 +128,7 @@ NAN_METHOD(LZMAStream::Code) {
 	self->inbufs.push(LZMA_NATIVE_MOVE(inputData));
 	
 	bool hadRunningThread = self->hasRunningThread;
-	bool async = args[1]->BooleanValue() || hadRunningThread;
+	bool async = info[1]->BooleanValue() || hadRunningThread;
 	self->hasRunningThread = async;
 	
 	if (async) {
@@ -146,7 +146,7 @@ NAN_METHOD(LZMAStream::Code) {
 		self->doLZMACode(false);
 	}
 	
-	NanReturnUndefined();
+	info.GetReturnValue().SetUndefined();
 }
 
 void LZMAStream::invokeBufferHandlersFromAsync() {
@@ -195,43 +195,43 @@ void LZMAStream::invokeBufferHandlers(bool async, bool hasLock) {
 	};
 	_ScopeGuard guard(this);
 	
-	NanScope();
+	Nan::HandleScope scope;
 	
-	Local<Function> bufferHandler = Local<Function>::Cast(NanObjectWrapHandle(this)->Get(NanNew<String>("bufferHandler")));
+	Local<Function> bufferHandler = Local<Function>::Cast(EmptyToUndefined(Nan::Get(handle(), NewString("bufferHandler"))));
 	std::vector<uint8_t> outbuf;
 	
 #define CALL_BUFFER_HANDLER_WITH_ARGV \
 	POSSIBLY_UNLOCK_MX; \
-	bufferHandler->Call(NanObjectWrapHandle(this), 3, argv); \
+	bufferHandler->Call(handle(), 3, argv); \
 	POSSIBLY_LOCK_MX;
 	
 	while (outbufs.size() > 0) {
 		outbuf = LZMA_NATIVE_MOVE(outbufs.front());
 		outbufs.pop();
 		
-		Handle<Value> argv[3] = {
-			NanNewBufferHandle(reinterpret_cast<const char*>(outbuf.data()), outbuf.size()),
-			NanUndefined(), NanUndefined()
+		Local<Value> argv[3] = {
+			Nan::CopyBuffer(reinterpret_cast<const char*>(outbuf.data()), outbuf.size()).ToLocalChecked(),
+			Nan::Undefined(), Nan::Undefined()
 		};
 		CALL_BUFFER_HANDLER_WITH_ARGV
 	}
 	
 	if (lastCodeResult != LZMA_OK) {
-		Handle<Value> errorArg = Handle<Value>(NanNull());
+		Local<Value> errorArg = Local<Value>(Nan::Null());
 		
 		if (lastCodeResult != LZMA_STREAM_END)
 			errorArg = lzmaRetError(lastCodeResult);
 		
 		resetUnderlying(); // resets lastCodeResult!
 		
-		Handle<Value> argv[3] = { NanNull(), NanUndefined(), errorArg };
+		Local<Value> argv[3] = { Nan::Null(), Nan::Undefined(), errorArg };
 		CALL_BUFFER_HANDLER_WITH_ARGV
 	}
 	
 	if (shouldInvokeChunkCallbacks) {
 		shouldInvokeChunkCallbacks = false;
 		
-		Handle<Value> argv[3] = { NanUndefined(), NanNew<Boolean>(true), NanUndefined() };
+		Local<Value> argv[3] = { Nan::Undefined(), Nan::New<Boolean>(true), Nan::Undefined() };
 		CALL_BUFFER_HANDLER_WITH_ARGV
 	}
 }
@@ -351,240 +351,252 @@ void LZMAStream::doLZMACode(bool async) {
 		invokeBufferHandlers(async, true);
 }
 
-void LZMAStream::Init(Handle<Object> exports) {
-	Local<FunctionTemplate> tpl = NanNew<FunctionTemplate>(New);
-	tpl->SetClassName(NanNew<String>("LZMAStream"));
+void LZMAStream::Init(Local<Object> exports) {
+	Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(New);
+	tpl->SetClassName(NewString("LZMAStream"));
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 	
-	tpl->PrototypeTemplate()->Set(NanNew<String>("code"),           NanNew<FunctionTemplate>(Code)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NanNew<String>("memusage"),       NanNew<FunctionTemplate>(Memusage)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NanNew<String>("getCheck"),       NanNew<FunctionTemplate>(GetCheck)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NanNew<String>("memlimitGet"),    NanNew<FunctionTemplate>(MemlimitGet)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NanNew<String>("memlimitSet"),    NanNew<FunctionTemplate>(MemlimitSet)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NanNew<String>("totalIn"),        NanNew<FunctionTemplate>(TotalIn)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NanNew<String>("totalOut"),       NanNew<FunctionTemplate>(TotalOut)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NanNew<String>("rawEncoder_"),    NanNew<FunctionTemplate>(RawEncoder)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NanNew<String>("rawDecoder_"),    NanNew<FunctionTemplate>(RawDecoder)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NanNew<String>("filtersUpdate"),  NanNew<FunctionTemplate>(FiltersUpdate)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NanNew<String>("easyEncoder_"),   NanNew<FunctionTemplate>(EasyEncoder)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NanNew<String>("streamEncoder_"), NanNew<FunctionTemplate>(StreamEncoder)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NanNew<String>("aloneEncoder"),   NanNew<FunctionTemplate>(AloneEncoder)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NanNew<String>("streamDecoder_"), NanNew<FunctionTemplate>(StreamDecoder)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NanNew<String>("autoDecoder_"),   NanNew<FunctionTemplate>(AutoDecoder)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NanNew<String>("aloneDecoder_"),  NanNew<FunctionTemplate>(AloneDecoder)->GetFunction());
-	NanAssignPersistent(constructor, tpl->GetFunction());
-	exports->Set(NanNew<String>("Stream"), NanNew<Function>(constructor));
+	tpl->PrototypeTemplate()->Set(NewString("code"),           Nan::New<FunctionTemplate>(Code)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NewString("memusage"),       Nan::New<FunctionTemplate>(Memusage)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NewString("getCheck"),       Nan::New<FunctionTemplate>(GetCheck)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NewString("memlimitGet"),    Nan::New<FunctionTemplate>(MemlimitGet)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NewString("memlimitSet"),    Nan::New<FunctionTemplate>(MemlimitSet)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NewString("totalIn"),        Nan::New<FunctionTemplate>(TotalIn)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NewString("totalOut"),       Nan::New<FunctionTemplate>(TotalOut)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NewString("rawEncoder_"),    Nan::New<FunctionTemplate>(RawEncoder)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NewString("rawDecoder_"),    Nan::New<FunctionTemplate>(RawDecoder)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NewString("filtersUpdate"),  Nan::New<FunctionTemplate>(FiltersUpdate)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NewString("easyEncoder_"),   Nan::New<FunctionTemplate>(EasyEncoder)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NewString("streamEncoder_"), Nan::New<FunctionTemplate>(StreamEncoder)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NewString("aloneEncoder"),   Nan::New<FunctionTemplate>(AloneEncoder)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NewString("streamDecoder_"), Nan::New<FunctionTemplate>(StreamDecoder)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NewString("autoDecoder_"),   Nan::New<FunctionTemplate>(AutoDecoder)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NewString("aloneDecoder_"),  Nan::New<FunctionTemplate>(AloneDecoder)->GetFunction());
+	constructor.Reset(tpl->GetFunction());
+	exports->Set(NewString("Stream"), Nan::New<Function>(constructor));
 }
 
 NAN_METHOD(LZMAStream::New) {
-	NanScope();
-	
-	if (args.IsConstructCall()) {
-		(new LZMAStream())->Wrap(args.This());
-		NanReturnValue(args.This());
+	if (info.IsConstructCall()) {
+		(new LZMAStream())->Wrap(info.This());
+		info.GetReturnValue().Set(info.This());
 	} else {
 		Local<Value> argv[0] = {};
-		NanReturnValue(NanNew<Function>(constructor)->NewInstance(0, argv));
+		info.GetReturnValue().Set(Nan::New<Function>(constructor)->NewInstance(0, argv));
 	}
 }
 
-Handle<Value> LZMAStream::_failMissingSelf() {
-	NanThrowTypeError("LZMAStream methods need to be called on an LZMAStream object");
-	return NanUndefined();
+void LZMAStream::_failMissingSelf(const Nan::FunctionCallbackInfo<Value>& info) {
+	Nan::ThrowTypeError("LZMAStream methods need to be called on an LZMAStream object");
+	info.GetReturnValue().SetUndefined();
 }
 
 NAN_METHOD(LZMAStream::Memusage) {
-	NanScope();
-	
-	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(args.This());
-	if (!self)
-		NanReturnUndefined();
+	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
+	if (!self) {
+		_failMissingSelf(info);
+		return;
+	}
 	LZMA_ASYNC_LOCK(self)
 	
-	NanReturnValue(Uint64ToNumber0Null(lzma_memusage(&self->_)));
+	info.GetReturnValue().Set(Uint64ToNumber0Null(lzma_memusage(&self->_)));
 }
 
 NAN_METHOD(LZMAStream::GetCheck) {
-	NanScope();
+	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
+	if (!self) {
+		_failMissingSelf(info);
+		return;
+	}
 	
-	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(args.This());
-	if (!self)
-		NanReturnValue(_failMissingSelf());
 	LZMA_ASYNC_LOCK(self)
 	
-	NanReturnValue(NanNew<Number>(lzma_get_check(&self->_)));
+	info.GetReturnValue().Set(Nan::New<Number>(lzma_get_check(&self->_)));
 }
 
 NAN_METHOD(LZMAStream::TotalIn) {
-	NanScope();
+	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
+	if (!self) {
+		_failMissingSelf(info);
+		return;
+	}
 	
-	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(args.This());
-	if (!self)
-		NanReturnValue(_failMissingSelf());
 	LZMA_ASYNC_LOCK(self)
 	
-	NanReturnValue(NanNew<Number>(self->_.total_in));
+	info.GetReturnValue().Set(Nan::New<Number>(self->_.total_in));
 }
 
 NAN_METHOD(LZMAStream::TotalOut) {
-	NanScope();
+	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
+	if (!self) {
+		_failMissingSelf(info);
+		return;
+	}
 	
-	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(args.This());
-	if (!self)
-		NanReturnValue(_failMissingSelf());
 	LZMA_ASYNC_LOCK(self)
 	
-	NanReturnValue(NanNew<Number>(self->_.total_out));
+	info.GetReturnValue().Set(Nan::New<Number>(self->_.total_out));
 }
 
 NAN_METHOD(LZMAStream::MemlimitGet) {
-	NanScope();
+	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
+	if (!self) {
+		_failMissingSelf(info);
+		return;
+	}
 	
-	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(args.This());
-	if (!self)
-		NanReturnValue(_failMissingSelf());
 	LZMA_ASYNC_LOCK(self)
 	
-	NanReturnValue(Uint64ToNumber0Null(lzma_memlimit_get(&self->_)));
+	info.GetReturnValue().Set(Uint64ToNumber0Null(lzma_memlimit_get(&self->_)));
 }
 
 NAN_METHOD(LZMAStream::MemlimitSet) {
-	NanScope();
-	
-	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(args.This());
-	if (!self)
-		NanReturnValue(_failMissingSelf());
-	LZMA_ASYNC_LOCK(self)
-	
-	Local<Number> arg = Local<Number>::Cast(args[0]);
-	if (args[0]->IsUndefined() || arg.IsEmpty()) {
-		NanThrowTypeError("memlimitSet() needs an number argument");
-		NanReturnUndefined();
+	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
+	if (!self) {
+		_failMissingSelf(info);
+		return;
 	}
 	
-	NanReturnValue(lzmaRet(lzma_memlimit_set(&self->_, NumberToUint64ClampNullMax(arg))));
+	LZMA_ASYNC_LOCK(self)
+	
+	Local<Number> arg = Local<Number>::Cast(info[0]);
+	if (info[0]->IsUndefined() || arg.IsEmpty()) {
+		Nan::ThrowTypeError("memlimitSet() needs an number argument");
+		info.GetReturnValue().SetUndefined();
+	}
+	
+	info.GetReturnValue().Set(lzmaRet(lzma_memlimit_set(&self->_, NumberToUint64ClampNullMax(arg))));
 }
 
 NAN_METHOD(LZMAStream::RawEncoder) {
-	NanScope();
+	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
+	if (!self) {
+		_failMissingSelf(info);
+		return;
+	}
 	
-	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(args.This());
-	if (!self)
-		NanReturnValue(_failMissingSelf());
 	LZMA_ASYNC_LOCK(self)
 	
-	const FilterArray filters(Local<Array>::Cast(args[0]));
+	const FilterArray filters(Local<Array>::Cast(info[0]));
 	
-	NanReturnValue(lzmaRet(lzma_raw_encoder(&self->_, filters.array())));
+	info.GetReturnValue().Set(lzmaRet(lzma_raw_encoder(&self->_, filters.array())));
 }
 
 NAN_METHOD(LZMAStream::RawDecoder) {
-	NanScope();
+	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
+	if (!self) {
+		_failMissingSelf(info);
+		return;
+	}
 	
-	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(args.This());
-	if (!self)
-		NanReturnValue(_failMissingSelf());
 	LZMA_ASYNC_LOCK(self)
 	
-	const FilterArray filters(Local<Array>::Cast(args[0]));
+	const FilterArray filters(Local<Array>::Cast(info[0]));
 	
-	NanReturnValue(lzmaRet(lzma_raw_decoder(&self->_, filters.array())));
+	info.GetReturnValue().Set(lzmaRet(lzma_raw_decoder(&self->_, filters.array())));
 }
 
 NAN_METHOD(LZMAStream::FiltersUpdate) {
-	NanScope();
+	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
+	if (!self) {
+		_failMissingSelf(info);
+		return;
+	}
 	
-	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(args.This());
-	if (!self)
-		NanReturnValue(_failMissingSelf());
 	LZMA_ASYNC_LOCK(self)
 	
-	const FilterArray filters(Local<Array>::Cast(args[0]));
+	const FilterArray filters(Local<Array>::Cast(info[0]));
 	
-	NanReturnValue(lzmaRet(lzma_filters_update(&self->_, filters.array())));
+	info.GetReturnValue().Set(lzmaRet(lzma_filters_update(&self->_, filters.array())));
 }
 
 NAN_METHOD(LZMAStream::EasyEncoder) {
-	NanScope();
+	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
+	if (!self) {
+		_failMissingSelf(info);
+		return;
+	}
 	
-	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(args.This());
-	if (!self)
-		NanReturnValue(_failMissingSelf());
 	LZMA_ASYNC_LOCK(self)
 	
-	Local<Integer> preset = Local<Integer>::Cast(args[0]);
-	Local<Integer> check = Local<Integer>::Cast(args[1]);
+	Local<Integer> preset = Local<Integer>::Cast(info[0]);
+	Local<Integer> check = Local<Integer>::Cast(info[1]);
 	
-	NanReturnValue(lzmaRet(lzma_easy_encoder(&self->_, preset->Value(), (lzma_check) check->Value())));
+	info.GetReturnValue().Set(lzmaRet(lzma_easy_encoder(&self->_, preset->Value(), (lzma_check) check->Value())));
 }
 
 NAN_METHOD(LZMAStream::StreamEncoder) {
-	NanScope();
+	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
+	if (!self) {
+		_failMissingSelf(info);
+		return;
+	}
 	
-	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(args.This());
-	if (!self)
-		NanReturnValue(_failMissingSelf());
 	LZMA_ASYNC_LOCK(self)
 	
-	const FilterArray filters(Local<Array>::Cast(args[0]));
-	Local<Integer> check = Local<Integer>::Cast(args[1]);
+	const FilterArray filters(Local<Array>::Cast(info[0]));
+	Local<Integer> check = Local<Integer>::Cast(info[1]);
 	
-	NanReturnValue(lzmaRet(lzma_stream_encoder(&self->_, filters.array(), (lzma_check) check->Value())));
+	info.GetReturnValue().Set(lzmaRet(lzma_stream_encoder(&self->_, filters.array(), (lzma_check) check->Value())));
 }
 
 NAN_METHOD(LZMAStream::AloneEncoder) {
-	NanScope();
+	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
+	if (!self) {
+		_failMissingSelf(info);
+		return;
+	}
 	
-	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(args.This());
-	if (!self)
-		NanReturnValue(_failMissingSelf());
 	LZMA_ASYNC_LOCK(self)
 	
-	Local<Object> opt = Local<Object>::Cast(args[0]);
+	Local<Object> opt = Local<Object>::Cast(info[0]);
 	lzma_options_lzma o = parseOptionsLZMA(opt);
 	
-	NanReturnValue(lzmaRet(lzma_alone_encoder(&self->_, &o)));
+	info.GetReturnValue().Set(lzmaRet(lzma_alone_encoder(&self->_, &o)));
 }
 
 NAN_METHOD(LZMAStream::StreamDecoder) {
-	NanScope();
+	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
+	if (!self) {
+		_failMissingSelf(info);
+		return;
+	}
 	
-	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(args.This());
-	if (!self)
-		NanReturnValue(_failMissingSelf());
 	LZMA_ASYNC_LOCK(self)
 	
-	uint64_t memlimit = NumberToUint64ClampNullMax(args[0]);
-	Local<Integer> flags = Local<Integer>::Cast(args[1]);
+	uint64_t memlimit = NumberToUint64ClampNullMax(info[0]);
+	Local<Integer> flags = Local<Integer>::Cast(info[1]);
 	
-	NanReturnValue(lzmaRet(lzma_stream_decoder(&self->_, memlimit, flags->Value())));
+	info.GetReturnValue().Set(lzmaRet(lzma_stream_decoder(&self->_, memlimit, flags->Value())));
 }
 
 NAN_METHOD(LZMAStream::AutoDecoder) {
-	NanScope();
+	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
+	if (!self) {
+		_failMissingSelf(info);
+		return;
+	}
 	
-	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(args.This());
-	if (!self)
-		NanReturnValue(_failMissingSelf());
 	LZMA_ASYNC_LOCK(self)
 	
-	uint64_t memlimit = NumberToUint64ClampNullMax(args[0]);
-	Local<Integer> flags = Local<Integer>::Cast(args[1]);
+	uint64_t memlimit = NumberToUint64ClampNullMax(info[0]);
+	Local<Integer> flags = Local<Integer>::Cast(info[1]);
 	
-	NanReturnValue(lzmaRet(lzma_auto_decoder(&self->_, memlimit, flags->Value())));
+	info.GetReturnValue().Set(lzmaRet(lzma_auto_decoder(&self->_, memlimit, flags->Value())));
 }
 
 NAN_METHOD(LZMAStream::AloneDecoder) {
-	NanScope();
+	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
+	if (!self) {
+		_failMissingSelf(info);
+		return;
+	}
 	
-	LZMAStream* self = ObjectWrap::Unwrap<LZMAStream>(args.This());
-	if (!self)
-		NanReturnValue(_failMissingSelf());
 	LZMA_ASYNC_LOCK(self)
 	
-	uint64_t memlimit = NumberToUint64ClampNullMax(args[0]);
+	uint64_t memlimit = NumberToUint64ClampNullMax(info[0]);
 	
-	NanReturnValue(lzmaRet(lzma_alone_decoder(&self->_, memlimit)));
+	info.GetReturnValue().Set(lzmaRet(lzma_alone_decoder(&self->_, memlimit)));
 }
 
 }
