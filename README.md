@@ -82,28 +82,28 @@ other LZMA libraries so you can use it nearly as a drop-in replacement:
 ### Reference
 
 [Encoding strings and Buffer objects](#api-encoding-buffers)
- * [`compress()`](#api-compress)
- * [`decompress()`](#api-decompress)
+ * [`compress()`](#api-compress) – Compress strings and Buffers
+ * [`decompress()`](#api-decompress) – Decompress strings and Buffers
  * [`LZMA().compress()`](#api-LZMA_compress) ([LZMA-JS][LZMA-JS] compatibility)
  * [`LZMA().decompress()`](#api-LZMA_decompress) ([LZMA-JS][LZMA-JS] compatibility)
 
 [Creating streams for encoding](#api-creating-streams)
- * [`createCompressor()`](#api-create-compressor)
- * [`createDecompressor()`](#api-create-decompressor)
- * [`createStream()`](#api-create-stream)
+ * [`createCompressor()`](#api-create-compressor) – Compress streams
+ * [`createDecompressor()`](#api-create-decompressor) – Decompress streams
+ * [`createStream()`](#api-create-stream) – (De-)Compression with advanced options
  * [`Compressor()`](#api-robey_compressor) ([node-xz][node-xz] compatibility)
  * [`Decompressor()`](#api-robey_decompressor) ([node-xz][node-xz] compatibility)
 
 [Functions](#api-functions)
- * [`isXZ()`](#api-isxz)
- * [`crc32()`](#api-crc32)
- * [`checkSize()`](#api-check-size)
- * [`easyDecoderMemusage()`](#api-easy-decoder-memusage)
- * [`easyEncoderMemusage()`](#api-easy-encoder-memusage)
- * [`rawDecoderMemusage()`](#api-raw-decoder-memusage)
- * [`rawEncoderMemusage()`](#api-raw-encoder-memusage)
- * [`versionString()`](#api-version-string)
- * [`versionNumber()`](#api-version-number)
+ * [`isXZ()`](#api-isxz) – Test Buffer for `.xz` file format
+ * [`crc32()`](#api-crc32) – Calculate CRC32 checksum
+ * [`checkSize()`](#api-check-size) – Return required size for specific checksum type
+ * [`easyDecoderMemusage()`](#api-easy-decoder-memusage) – Expected memory usage
+ * [`easyEncoderMemusage()`](#api-easy-encoder-memusage) – Expected memory usage
+ * [`rawDecoderMemusage()`](#api-raw-decoder-memusage) – Expected memory usage
+ * [`rawEncoderMemusage()`](#api-raw-encoder-memusage) – Expected memory usage
+ * [`versionString()`](#api-version-string) – Native library version string
+ * [`versionNumber()`](#api-version-number) – Native library numerical version identifier
 
 <a name="api-encoding-buffers"></a>
 ### Encoding strings and Buffer objects
