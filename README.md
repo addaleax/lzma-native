@@ -34,6 +34,7 @@ testing process. See test/readme-examples.js for details.
 -->
 
 <!-- runtest:{Round-trip using stdin/stdout} -->
+
 ```js
 var lzma = require('lzma-native');
 var compressor = lzma.createCompressor();
@@ -50,9 +51,10 @@ input in and read your (de)compressed output from.
 ### For simple strings/Buffers
 
 If you want your input/output to be Buffers (strings will be accepted as input),
-this even gets a little simple:
+this even gets a little simpler:
 
 <!-- runtest:{Compress a simple string directly} -->
+
 ```js
 lzma.compress('Banana', function(result) {
     console.log(result); // <Buffer fd 37 7a 58 5a 00 00 01 69 22 de 36 02 00 21 ...>
@@ -124,6 +126,7 @@ If [Q][Q] is available, a promise will be returned.
 
 Example code:
 <!-- runtest:{Compress and decompress directly} -->
+
 ```js
 lzma.compress('Bananas', 9, function(result) {
 	lzma.decompress(result, function(decompressedResult) {
@@ -135,6 +138,7 @@ lzma.compress('Bananas', 9, function(result) {
 <a name="api-q-compress-examle"></a>
 Example code for [Q][Q] promises:
 <!-- runtest:{Compress and decompress directly using Q promises} -->
+
 ```js
 lzma.compress('Bananas', 9).then(function(result) {
 	return lzma.decompress(result);
@@ -166,6 +170,7 @@ If [Q][Q] is available, a promise will be returned.
 
 Example code:
 <!-- runtest:{Compress and decompress directly using LZMA-JS compatibility} -->
+
 ```js
 lzma.LZMA().compress('Bananas', 9, function(result) {
 	lzma.LZMA().decompress(result, function(decompressedResult) {
@@ -194,6 +199,7 @@ Input will be read, (de)compressed and written out. You can use this to pipe
 input through this stream, i.e. to mimick the `xz` command line util, you can write:
 
 <!-- runtest:{Compress and decompress using streams} -->
+
 ```js
 var compressor = lzma.createCompressor();
 
@@ -223,6 +229,7 @@ Input will be read, (de)compressed and written out. You can use this to pipe
 input through this stream, i.e. to mimick the `xz` command line util, you can write:
 
 <!-- runtest:{Compress and decompress using streams with node-xz compatibility} -->
+
 ```js
 var compressor = lzma.Compressor();
 
@@ -320,6 +327,7 @@ Param        |  Type            |  Description
 
 Example usage:
 <!-- runtest:{.isXZ() checks some strings correctly} -->
+
 ```js
 lzma.isXZ(fs.readFileSync('test/hamlet.txt.xz')); // => true
 lzma.isXZ(fs.readFileSync('test/hamlet.txt.lzma')); // => false
@@ -342,6 +350,7 @@ Param        |  Type            |  Description
 
 Example usage:
 <!-- runtest:{Compute the CRC32 of a string} -->
+
 ```js
 lzma.crc32('Banana') // => 69690105
 ```
@@ -358,6 +367,7 @@ Param        |  Type            |  Description
 
 Example usage:
 <!-- runtest:{Calculate some check sizes} -->
+
 ```js
 lzma.checkSize(lzma.CHECK_SHA256) // => 16
 lzma.checkSize(lzma.CHECK_CRC32)  // => 4
@@ -375,6 +385,7 @@ Param        |  Type       |  Description
 
 Example usage:
 <!-- runtest:{Return memory usage for decoding} -->
+
 ```js
 lzma.easyDecoderMemusage(6) // => 8454192
 ```
@@ -391,6 +402,7 @@ Param        |  Type       |  Description
 
 Example usage:
 <!-- runtest:{Return memory usage for encoding} -->
+
 ```js
 lzma.easyEncoderMemusage(6) // => 97620499
 ```
@@ -423,6 +435,7 @@ Returns the version of the underlying C library.
 
 Example usage:
 <!-- runtest:{Return a version string} -->
+
 ```js
 lzma.versionString() // => '5.2.1'
 ```
@@ -435,6 +448,7 @@ Returns the version of the underlying C library.
 
 Example usage:
 <!-- runtest:{Return a numeric version identifier} -->
+
 ```js
 lzma.versionNumber() // => 50020012
 ```
