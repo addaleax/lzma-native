@@ -1,6 +1,6 @@
 {
 	"name": "lzma-native",
-	"version": "0.2.14",
+	"version": "0.2.15",
 	"engines": { "node": ">=0.8" },
 	"author": {
 		"name": "Hauke Henningsen",
@@ -32,7 +32,7 @@
 	},
 	"scripts": {
 		"install": "node-gyp rebuild",
-		"test": "mocha -s 200 test"
+		"test": "mocha -s 2000 test"
 	},
 	"gypfile": true,
 	"bugs": {
