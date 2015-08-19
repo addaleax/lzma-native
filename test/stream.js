@@ -257,6 +257,17 @@ describe('LZMAStream', function() {
 			
 			encodeAndDecode(enc, dec, done, x86BinaryData);
 		});
+		
+		it('should fail for an invalid combination of filter objects', function() {
+			assert.throws(function() {
+				lzma.createStream('streamEncoder', {
+					filters: [
+						{id: lzma.FILTER_LZMA2},
+						{id: lzma.FILTER_X86}
+					]
+				});
+			});
+		});
 	});
 	
 	describe('#rawEncoder', function() {
