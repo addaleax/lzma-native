@@ -137,6 +137,46 @@ describe('lzma', function() {
 		});
 	});
 	
+	describe('#lzmaFilterEncoderIsSupported', function() {
+		it('should return true for and only for encoding-related filters', function() {
+			assert.strictEqual(false, lzma.filterEncoderIsSupported());
+			assert.strictEqual(false, lzma.filterEncoderIsSupported(null));
+			assert.strictEqual(false, lzma.filterEncoderIsSupported(''));
+			assert.strictEqual(false, lzma.filterEncoderIsSupported(lzma.LZMA_VLI_UNKNOWN));
+			assert.strictEqual(true,  lzma.filterEncoderIsSupported(lzma.FILTER_LZMA1));
+			assert.strictEqual(true,  lzma.filterEncoderIsSupported(lzma.FILTER_LZMA2));
+			assert.strictEqual(true,  lzma.filterEncoderIsSupported(lzma.FILTERS_MAX));
+			assert.strictEqual(false, lzma.filterEncoderIsSupported(lzma.FILTERS_MAX+1));
+		
+			assert.strictEqual('boolean', typeof lzma.filterEncoderIsSupported(lzma.FILTER_POWERPC));
+			assert.strictEqual('boolean', typeof lzma.filterEncoderIsSupported(lzma.FILTER_IA64));
+			assert.strictEqual('boolean', typeof lzma.filterEncoderIsSupported(lzma.FILTER_ARM));
+			assert.strictEqual('boolean', typeof lzma.filterEncoderIsSupported(lzma.FILTER_ARMTHUMB));
+			assert.strictEqual('boolean', typeof lzma.filterEncoderIsSupported(lzma.FILTER_SPARC));
+			assert.strictEqual('boolean', typeof lzma.filterEncoderIsSupported(lzma.FILTER_DELTA));
+		});
+	});
+	
+	describe('#filterDecoderIsSupported', function() {
+		it('should return true for and only for encoding-related filters', function() {
+			assert.strictEqual(false, lzma.filterDecoderIsSupported());
+			assert.strictEqual(false, lzma.filterDecoderIsSupported(null));
+			assert.strictEqual(false, lzma.filterDecoderIsSupported(''));
+			assert.strictEqual(false, lzma.filterDecoderIsSupported(lzma.LZMA_VLI_UNKNOWN));
+			assert.strictEqual(true,  lzma.filterDecoderIsSupported(lzma.FILTER_LZMA1));
+			assert.strictEqual(true,  lzma.filterDecoderIsSupported(lzma.FILTER_LZMA2));
+			assert.strictEqual(true,  lzma.filterDecoderIsSupported(lzma.FILTERS_MAX));
+			assert.strictEqual(false, lzma.filterDecoderIsSupported(lzma.FILTERS_MAX+1));
+			
+			assert.strictEqual('boolean', typeof lzma.filterDecoderIsSupported(lzma.FILTER_POWERPC));
+			assert.strictEqual('boolean', typeof lzma.filterDecoderIsSupported(lzma.FILTER_IA64));
+			assert.strictEqual('boolean', typeof lzma.filterDecoderIsSupported(lzma.FILTER_ARM));
+			assert.strictEqual('boolean', typeof lzma.filterDecoderIsSupported(lzma.FILTER_ARMTHUMB));
+			assert.strictEqual('boolean', typeof lzma.filterDecoderIsSupported(lzma.FILTER_SPARC));
+			assert.strictEqual('boolean', typeof lzma.filterDecoderIsSupported(lzma.FILTER_DELTA));
+		});
+	});
+	
 	describe('#rawEncoderMemusage', function() {
 		it('should be positive for LZMA1, LZMA2', function() {
 			assert.ok(lzma.rawEncoderMemusage([{id: lzma.FILTER_LZMA1}]) > 0);

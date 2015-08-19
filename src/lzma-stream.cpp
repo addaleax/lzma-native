@@ -81,7 +81,7 @@ void LZMAStream::resetUnderlying() {
 LZMAStream::~LZMAStream() {
 #ifdef LZMA_ASYNC_AVAILABLE
 	{
-		LZMA_ASYNC_LOCK(this)
+		LZMA_ASYNC_LOCK(this);
 		
 		isNearDeath = true;
 		uv_cond_broadcast(&inputDataCond);
@@ -103,14 +103,19 @@ LZMAStream::~LZMAStream() {
 #endif
 }
 
-NAN_METHOD(LZMAStream::Code) {
-	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
-	if (!self) {
-		_failMissingSelf(info);
-		return;
+#define LZMA_FETCH_SELF() \
+	LZMAStream* self = NULL; \
+	if (!info.This().IsEmpty() && info.This()->InternalFieldCount() > 0) { \
+		self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This()); \
+	} \
+	if (!self) { \
+		_failMissingSelf(info); \
+		return; \
 	}
-	
-	LZMA_ASYNC_LOCK(self)
+
+NAN_METHOD(LZMAStream::Code) {
+	LZMA_FETCH_SELF();
+	LZMA_ASYNC_LOCK(self);
 	
 	std::vector<uint8_t> inputData;
 	
@@ -237,7 +242,7 @@ void LZMAStream::invokeBufferHandlers(bool async, bool hasLock) {
 }
 
 void LZMAStream::doLZMACodeFromAsync() {
-	LZMA_ASYNC_LOCK(this)
+	LZMA_ASYNC_LOCK(this);
 	
 	struct _ScopeGuard {
 		_ScopeGuard(LZMAStream* self_) : self(self_) {}
@@ -392,72 +397,43 @@ void LZMAStream::_failMissingSelf(const Nan::FunctionCallbackInfo<Value>& info) 
 }
 
 NAN_METHOD(LZMAStream::Memusage) {
-	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
-	if (!self) {
-		_failMissingSelf(info);
-		return;
-	}
-	LZMA_ASYNC_LOCK(self)
+	LZMA_FETCH_SELF();
+	LZMA_ASYNC_LOCK(self);
 	
 	info.GetReturnValue().Set(Uint64ToNumber0Null(lzma_memusage(&self->_)));
 }
 
 NAN_METHOD(LZMAStream::GetCheck) {
-	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
-	if (!self) {
-		_failMissingSelf(info);
-		return;
-	}
-	
-	LZMA_ASYNC_LOCK(self)
+	LZMA_FETCH_SELF();
+	LZMA_ASYNC_LOCK(self);
 	
 	info.GetReturnValue().Set(Nan::New<Number>(lzma_get_check(&self->_)));
 }
 
 NAN_METHOD(LZMAStream::TotalIn) {
-	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
-	if (!self) {
-		_failMissingSelf(info);
-		return;
-	}
-	
-	LZMA_ASYNC_LOCK(self)
+	LZMA_FETCH_SELF();
+	LZMA_ASYNC_LOCK(self);
 	
 	info.GetReturnValue().Set(Nan::New<Number>(self->_.total_in));
 }
 
 NAN_METHOD(LZMAStream::TotalOut) {
-	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
-	if (!self) {
-		_failMissingSelf(info);
-		return;
-	}
-	
-	LZMA_ASYNC_LOCK(self)
+	LZMA_FETCH_SELF();
+	LZMA_ASYNC_LOCK(self);
 	
 	info.GetReturnValue().Set(Nan::New<Number>(self->_.total_out));
 }
 
 NAN_METHOD(LZMAStream::MemlimitGet) {
-	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
-	if (!self) {
-		_failMissingSelf(info);
-		return;
-	}
-	
-	LZMA_ASYNC_LOCK(self)
+	LZMA_FETCH_SELF();
+	LZMA_ASYNC_LOCK(self);
 	
 	info.GetReturnValue().Set(Uint64ToNumber0Null(lzma_memlimit_get(&self->_)));
 }
 
 NAN_METHOD(LZMAStream::MemlimitSet) {
-	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
-	if (!self) {
-		_failMissingSelf(info);
-		return;
-	}
-	
-	LZMA_ASYNC_LOCK(self)
+	LZMA_FETCH_SELF();
+	LZMA_ASYNC_LOCK(self);
 	
 	Local<Number> arg = Local<Number>::Cast(info[0]);
 	if (info[0]->IsUndefined() || arg.IsEmpty()) {
@@ -469,13 +445,8 @@ NAN_METHOD(LZMAStream::MemlimitSet) {
 }
 
 NAN_METHOD(LZMAStream::RawEncoder) {
-	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
-	if (!self) {
-		_failMissingSelf(info);
-		return;
-	}
-	
-	LZMA_ASYNC_LOCK(self)
+	LZMA_FETCH_SELF();
+	LZMA_ASYNC_LOCK(self);
 	
 	const FilterArray filters(Local<Array>::Cast(info[0]));
 	
@@ -483,13 +454,8 @@ NAN_METHOD(LZMAStream::RawEncoder) {
 }
 
 NAN_METHOD(LZMAStream::RawDecoder) {
-	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
-	if (!self) {
-		_failMissingSelf(info);
-		return;
-	}
-	
-	LZMA_ASYNC_LOCK(self)
+	LZMA_FETCH_SELF();
+	LZMA_ASYNC_LOCK(self);
 	
 	const FilterArray filters(Local<Array>::Cast(info[0]));
 	
@@ -497,13 +463,8 @@ NAN_METHOD(LZMAStream::RawDecoder) {
 }
 
 NAN_METHOD(LZMAStream::FiltersUpdate) {
-	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
-	if (!self) {
-		_failMissingSelf(info);
-		return;
-	}
-	
-	LZMA_ASYNC_LOCK(self)
+	LZMA_FETCH_SELF();
+	LZMA_ASYNC_LOCK(self);
 	
 	const FilterArray filters(Local<Array>::Cast(info[0]));
 	
@@ -511,13 +472,8 @@ NAN_METHOD(LZMAStream::FiltersUpdate) {
 }
 
 NAN_METHOD(LZMAStream::EasyEncoder) {
-	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
-	if (!self) {
-		_failMissingSelf(info);
-		return;
-	}
-	
-	LZMA_ASYNC_LOCK(self)
+	LZMA_FETCH_SELF();
+	LZMA_ASYNC_LOCK(self);
 	
 	Local<Integer> preset = Local<Integer>::Cast(info[0]);
 	Local<Integer> check = Local<Integer>::Cast(info[1]);
@@ -526,13 +482,8 @@ NAN_METHOD(LZMAStream::EasyEncoder) {
 }
 
 NAN_METHOD(LZMAStream::StreamEncoder) {
-	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
-	if (!self) {
-		_failMissingSelf(info);
-		return;
-	}
-	
-	LZMA_ASYNC_LOCK(self)
+	LZMA_FETCH_SELF();
+	LZMA_ASYNC_LOCK(self);
 	
 	const FilterArray filters(Local<Array>::Cast(info[0]));
 	Local<Integer> check = Local<Integer>::Cast(info[1]);
@@ -541,13 +492,8 @@ NAN_METHOD(LZMAStream::StreamEncoder) {
 }
 
 NAN_METHOD(LZMAStream::AloneEncoder) {
-	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
-	if (!self) {
-		_failMissingSelf(info);
-		return;
-	}
-	
-	LZMA_ASYNC_LOCK(self)
+	LZMA_FETCH_SELF();
+	LZMA_ASYNC_LOCK(self);
 	
 	Local<Object> opt = Local<Object>::Cast(info[0]);
 	lzma_options_lzma o = parseOptionsLZMA(opt);
@@ -556,13 +502,8 @@ NAN_METHOD(LZMAStream::AloneEncoder) {
 }
 
 NAN_METHOD(LZMAStream::StreamDecoder) {
-	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
-	if (!self) {
-		_failMissingSelf(info);
-		return;
-	}
-	
-	LZMA_ASYNC_LOCK(self)
+	LZMA_FETCH_SELF();
+	LZMA_ASYNC_LOCK(self);
 	
 	uint64_t memlimit = NumberToUint64ClampNullMax(info[0]);
 	Local<Integer> flags = Local<Integer>::Cast(info[1]);
@@ -571,13 +512,8 @@ NAN_METHOD(LZMAStream::StreamDecoder) {
 }
 
 NAN_METHOD(LZMAStream::AutoDecoder) {
-	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
-	if (!self) {
-		_failMissingSelf(info);
-		return;
-	}
-	
-	LZMA_ASYNC_LOCK(self)
+	LZMA_FETCH_SELF();
+	LZMA_ASYNC_LOCK(self);
 	
 	uint64_t memlimit = NumberToUint64ClampNullMax(info[0]);
 	Local<Integer> flags = Local<Integer>::Cast(info[1]);
@@ -586,13 +522,8 @@ NAN_METHOD(LZMAStream::AutoDecoder) {
 }
 
 NAN_METHOD(LZMAStream::AloneDecoder) {
-	LZMAStream* self = Nan::ObjectWrap::Unwrap<LZMAStream>(info.This());
-	if (!self) {
-		_failMissingSelf(info);
-		return;
-	}
-	
-	LZMA_ASYNC_LOCK(self)
+	LZMA_FETCH_SELF();
+	LZMA_ASYNC_LOCK(self);
 	
 	uint64_t memlimit = NumberToUint64ClampNullMax(info[0]);
 	

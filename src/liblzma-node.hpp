@@ -249,7 +249,7 @@ namespace lzma {
 			
 			uv_async_t* outputDataAsync;
 			
-#define LZMA_ASYNC_LOCK(strm)    uv_mutex_guard lock(strm->mutex);
+#define LZMA_ASYNC_LOCK(strm)    uv_mutex_guard lock(strm->mutex)
 #else
 #define LZMA_ASYNC_LOCK(strm)
 #endif

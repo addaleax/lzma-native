@@ -329,6 +329,12 @@ describe('LZMAStream', function() {
 			fs.createReadStream('test/hamlet.txt.lzma').pipe(stream);
 			assert.ok(stream.memusage() > 0);
 		});
+		
+		it('should fail when called with null or {} as the this object', function() {
+			var stream = lzma.createStream('autoDecoder', {synchronous: true});
+			assert.throws(stream.nativeStream.memusage.bind(null));
+			assert.throws(stream.nativeStream.memusage.bind({}));
+		});
 	});
 	
 	describe('#memlimitGet/#memlimitSet', function() {
