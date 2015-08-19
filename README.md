@@ -89,6 +89,7 @@ other LZMA libraries so you can use it nearly as a drop-in replacement:
  * [`Decompressor()`](#api-robey_decompressor) ([node-xz][node-xz] compatibility)
 
 [Functions](#api-functions)
+ * [`isXZ()`](#api-isxz)
  * [`crc32()`](#api-crc32)
  * [`checkSize()`](#api-check-size)
  * [`easyDecoderMemusage()`](#api-easy-decoder-memusage)
@@ -298,6 +299,28 @@ and `.preset`. See the [xz(1) manpage][xz-manpage] for meaning of these paramete
 
 <a name="api-functions"></a>
 ### Functions
+
+<a name="api-isxz"></a>
+#### `lzma.isXZ()`
+`lzma.isXZ(input)`
+
+Tells whether an input buffer is an XZ file (`.xz`, LZMA2 format) using the
+file format’s magic number. This is not a complete test, i.e. the data
+following the file header may still be invalid in some way.
+
+Param        |  Type            |  Description
+------------ | ---------------- | --------------
+`input`      | string / Buffer  | Any string or Buffer (integer arrays accepted).
+
+Example usage:
+<!-- runtest -->
+```js
+lzma.isXZ(fs.readFileSync('test/hamlet.txt.xz')) // => true
+lzma.isXZ(fs.readFileSync('test/hamlet.txt.lzma')) // => false
+lzma.isXZ('Banana') // => false
+```
+
+(The magic number of XZ files is hex `fd 37 7a 58 5a 00` at position 0.)
 
 <a name="api-crc32"></a>
 #### `lzma.crc32()`

@@ -203,6 +203,23 @@ describe('lzma', function() {
 		});
 	});
 	
+	describe('#isXZ', function() {
+		it('should correctly identify an XZ file', function() {
+			assert.ok(lzma.isXZ(fs.readFileSync('test/hamlet.txt.xz')));
+		});
+		
+		it('should fail for an LZMA file', function() {
+			assert.ok(!lzma.isXZ(fs.readFileSync('test/hamlet.txt.lzma')));
+		});
+		
+		it('should fail for invalid buffers', function() {
+			assert.ok(!lzma.isXZ());
+			assert.ok(!lzma.isXZ([]));
+			assert.ok(!lzma.isXZ(new Buffer(1)));
+			assert.ok(!lzma.isXZ('ASDFGHJKL'));
+		});
+	});
+	
 	/* meta stuff */
 	describe('.version', function() {
 		it('should be the same as the package.json version', function() {

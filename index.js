@@ -31,7 +31,7 @@ try {
 
 extend(exports, native);
 
-exports.version = '0.3.0';
+exports.version = '0.3.1';
 
 var Stream = exports.Stream;
 
@@ -302,6 +302,16 @@ exports._setQ = function(newQ) {
 	var oldQ = Q;
 	Q = newQ;
 	return oldQ;
+};
+
+exports.isXZ = function(buf) {
+	return buf && buf.length >= 6 &&
+	       buf[0] == 0xfd &&
+	       buf[1] == 0x37 &&
+	       buf[2] == 0x7a &&
+	       buf[3] == 0x58 &&
+	       buf[4] == 0x5a &&
+	       buf[5] == 0x00;
 };
 
 })();
