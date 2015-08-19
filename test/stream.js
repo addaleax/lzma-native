@@ -46,7 +46,11 @@ describe('LZMAStream', function() {
 		/* process.execPath is e.g. /usr/bin/node
 		 * it does not matter for functionality testing whether
 		 * this is actually x86 code, only for compression ratio */
-		x86BinaryData = bl(done);
+		x86BinaryData = bl(function() {
+			x86BinaryData = bl(x86BinaryData.slice(0, 20480));
+			return done();
+		});
+		
 		fs.createReadStream(process.execPath).pipe(x86BinaryData);
 	});
 

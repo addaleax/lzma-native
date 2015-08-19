@@ -32,7 +32,7 @@
 	},
 	"scripts": {
 		"install": "node-gyp rebuild",
-		"test": "mocha -s 200 test"
+		"test": "mocha -s 400 test"
 	},
 	"gypfile": true,
 	"bugs": {
