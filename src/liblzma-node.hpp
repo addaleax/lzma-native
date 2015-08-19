@@ -31,6 +31,7 @@
 #include <lzma.h>
 
 #include <vector>
+#include <list>
 #include <set>
 #include <queue>
 #include <string>
@@ -175,7 +176,7 @@ namespace lzma {
 			
 			bool ok_;
 			std::vector<lzma_filter> filters;
-			std::vector<options> optbuf;
+			std::list<options> optbuf;
 	};
 
 	/**
