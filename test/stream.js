@@ -26,7 +26,7 @@ var helpers = require('./helpers.js');
 var lzma = require('../');
 
 describe('LZMAStream', function() {
-	var random_data;
+	var random_data, x86BinaryData;
 
 	function encodeAndDecode(enc, dec, done, data) {
 		data = data || random_data;
@@ -40,6 +40,14 @@ describe('LZMAStream', function() {
 	before('read random test data', function(done) {
 		random_data = bl(done);
 		fs.createReadStream('test/random').pipe(random_data);
+	});
+	
+	before('read an executable file', function(done) {
+		/* process.execPath is e.g. /usr/bin/node
+		 * it does not matter for functionality testing whether
+		 * this is actually x86 code, only for compression ratio */
+		x86BinaryData = bl(done);
+		fs.createReadStream(process.execPath).pipe(x86BinaryData);
 	});
 
 	describe('#autoDecoder', function() {
@@ -195,6 +203,83 @@ describe('LZMAStream', function() {
 
 	});
 	
+	describe('#streamEncoder', function() {
+		it('should be undone by autoDecoder in async mode', function(done) {
+			var enc = lzma.createStream('streamEncoder', {
+				filters: [
+					{ id: lzma.FILTER_X86 },
+					{ id: lzma.FILTER_LZMA2 }
+				],
+				check: lzma.CHECK_SHA256
+			});
+			var dec = lzma.createStream('autoDecoder');
+			
+			encodeAndDecode(enc, dec, done, x86BinaryData);
+		});
+		
+		it('should be undone by autoDecoder in sync mode', function(done) {
+			var enc = lzma.createStream('streamEncoder', {
+				filters: [
+					{ id: lzma.FILTER_X86 },
+					{ id: lzma.FILTER_LZMA2 }
+				],
+				check: lzma.CHECK_SHA256,
+				synchronous: true
+			});
+			var dec = lzma.createStream('autoDecoder', {synchronous: true});
+			
+			encodeAndDecode(enc, dec, done, x86BinaryData);
+		});
+		
+		it('should be undone by streamDecoder in async mode', function(done) {
+			var enc = lzma.createStream('streamEncoder', {
+				filters: [
+					{ id: lzma.FILTER_DELTA, options: { dist: 2 } },
+					{ id: lzma.FILTER_LZMA2 }
+				],
+				check: lzma.CHECK_SHA256
+			});
+			var dec = lzma.createStream('streamDecoder');
+			
+			encodeAndDecode(enc, dec, done, x86BinaryData);
+		});
+		
+		it('should be undone by streamDecoder in sync mode', function(done) {
+			var enc = lzma.createStream('streamEncoder', {
+				filters: [
+					{ id: lzma.FILTER_DELTA, options: { dist: 2 } },
+					{ id: lzma.FILTER_LZMA2 }
+				],
+				check: lzma.CHECK_SHA256,
+				synchronous: true
+			});
+			var dec = lzma.createStream('streamDecoder', {synchronous: true});
+			
+			encodeAndDecode(enc, dec, done, x86BinaryData);
+		});
+	});
+	
+	describe('#rawEncoder', function() {
+		var rawFilters = [
+			{ id: lzma.FILTER_X86 },
+			{ id: lzma.FILTER_LZMA2, options: { dictSize: 1 << 24 /* 16 MB */ } }
+		];
+		
+		it('should be undone by rawDecoder in async mode', function(done) {
+			var enc = lzma.createStream('rawEncoder', { filters: rawFilters });
+			var dec = lzma.createStream('rawDecoder', { filters: rawFilters });
+			
+			encodeAndDecode(enc, dec, done);
+		});
+		
+		it('should be undone by rawDecoder in sync mode', function(done) {
+			var enc = lzma.createStream('rawEncoder', { filters: rawFilters, synchronous: true });
+			var dec = lzma.createStream('rawDecoder', { filters: rawFilters, synchronous: true });
+			
+			encodeAndDecode(enc, dec, done);
+		});
+	});
+
 	describe('#createStream', function() {
 		it('should switch to synchronous streams after too many Stream creations', function(done) {
 			assert.ok(lzma.Stream.maxAsyncStreamCount);
