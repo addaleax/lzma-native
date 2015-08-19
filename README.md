@@ -28,6 +28,12 @@ $ npm install --save lzma-native
 
 If you don’t have any fancy requirements, using this library is quite simple:
 
+<!--
+Some examples in this README file are executed as part of the automatic
+testing process. See test/readme-examples.js for details.
+-->
+
+<!-- runtest:{Round-trip using stdin/stdout} -->
 ```js
 var lzma = require('lzma-native');
 var compressor = lzma.createCompressor();
@@ -46,7 +52,7 @@ input in and read your (de)compressed output from.
 If you want your input/output to be Buffers (strings will be accepted as input),
 this even gets a little simple:
 
-<!-- runtest -->
+<!-- runtest:{Compress a simple string directly} -->
 ```js
 lzma.compress('Banana', function(result) {
     console.log(result); // <Buffer fd 37 7a 58 5a 00 00 01 69 22 de 36 02 00 21 ...>
@@ -117,7 +123,7 @@ Param        |  Type            |  Description
 If [Q][Q] is available, a promise will be returned.
 
 Example code:
-<!-- runtest -->
+<!-- runtest:{Compress and decompress directly} -->
 ```js
 lzma.compress('Bananas', 9, function(result) {
 	lzma.decompress(result, function(decompressedResult) {
@@ -128,7 +134,7 @@ lzma.compress('Bananas', 9, function(result) {
 
 <a name="api-q-compress-examle"></a>
 Example code for [Q][Q] promises:
-<!-- runtest -->
+<!-- runtest:{Compress and decompress directly using Q promises} -->
 ```js
 lzma.compress('Bananas', 9).then(function(result) {
 	return lzma.decompress(result);
@@ -159,7 +165,7 @@ Param         |  Type                   |  Description
 If [Q][Q] is available, a promise will be returned.
 
 Example code:
-<!-- runtest -->
+<!-- runtest:{Compress and decompress directly using LZMA-JS compatibility} -->
 ```js
 lzma.LZMA().compress('Bananas', 9, function(result) {
 	lzma.LZMA().decompress(result, function(decompressedResult) {
@@ -187,7 +193,7 @@ Return a [duplex][duplex] stream, i.e. a both readable and writable stream.
 Input will be read, (de)compressed and written out. You can use this to pipe
 input through this stream, i.e. to mimick the `xz` command line util, you can write:
 
-<!-- runtest -->
+<!-- runtest:{Compress and decompress using streams} -->
 ```js
 var compressor = lzma.createCompressor();
 
@@ -216,7 +222,7 @@ Return a [duplex][duplex] stream, i.e. a both readable and writable stream.
 Input will be read, (de)compressed and written out. You can use this to pipe
 input through this stream, i.e. to mimick the `xz` command line util, you can write:
 
-<!-- runtest -->
+<!-- runtest:{Compress and decompress using streams with node-xz compatibility} -->
 ```js
 var compressor = lzma.Compressor();
 
@@ -313,11 +319,11 @@ Param        |  Type            |  Description
 `input`      | string / Buffer  | Any string or Buffer (integer arrays accepted).
 
 Example usage:
-<!-- runtest -->
+<!-- runtest:{.isXZ() checks some strings correctly} -->
 ```js
-lzma.isXZ(fs.readFileSync('test/hamlet.txt.xz')) // => true
-lzma.isXZ(fs.readFileSync('test/hamlet.txt.lzma')) // => false
-lzma.isXZ('Banana') // => false
+lzma.isXZ(fs.readFileSync('test/hamlet.txt.xz')); // => true
+lzma.isXZ(fs.readFileSync('test/hamlet.txt.lzma')); // => false
+lzma.isXZ('Banana'); // => false
 ```
 
 (The magic number of XZ files is hex `fd 37 7a 58 5a 00` at position 0.)
@@ -335,7 +341,7 @@ Param        |  Type            |  Description
 [`previous`] | int              | The result of a previous CRC32 calculation so that you can compute the checksum per each chunk
 
 Example usage:
-<!-- runtest -->
+<!-- runtest:{Compute the CRC32 of a string} -->
 ```js
 lzma.crc32('Banana') // => 69690105
 ```
@@ -351,7 +357,7 @@ Param        |  Type            |  Description
 `check`      | check            | Any supported check constant.
 
 Example usage:
-<!-- runtest -->
+<!-- runtest:{Calculate some check sizes} -->
 ```js
 lzma.checkSize(lzma.CHECK_SHA256) // => 16
 lzma.checkSize(lzma.CHECK_CRC32)  // => 4
@@ -368,7 +374,7 @@ Param        |  Type       |  Description
 `preset`     | preset      |  A compression level from 0 to 9
 
 Example usage:
-<!-- runtest -->
+<!-- runtest:{Return memory usage for decoding} -->
 ```js
 lzma.easyDecoderMemusage(6) // => 8454192
 ```
@@ -384,7 +390,7 @@ Param        |  Type       |  Description
 `preset`     | preset      |  A compression level from 0 to 9
 
 Example usage:
-<!-- runtest -->
+<!-- runtest:{Return memory usage for encoding} -->
 ```js
 lzma.easyEncoderMemusage(6) // => 97620499
 ```
@@ -416,7 +422,7 @@ Param        |  Type       |  Description
 Returns the version of the underlying C library.
 
 Example usage:
-<!-- runtest -->
+<!-- runtest:{Return a version string} -->
 ```js
 lzma.versionString() // => '5.2.1'
 ```
@@ -428,7 +434,7 @@ lzma.versionString() // => '5.2.1'
 Returns the version of the underlying C library.
 
 Example usage:
-<!-- runtest -->
+<!-- runtest:{Return a numeric version identifier} -->
 ```js
 lzma.versionNumber() // => 50020012
 ```
