@@ -119,7 +119,7 @@ other LZMA libraries so you can use it nearly as a drop-in replacement:
 Param        |  Type            |  Description
 ------------ | ---------------- | --------------
 `string`     | Buffer / String  | Any string or buffer to be (de)compressed (that can be passed to `stream.end(…)`)
-[`opt`]      | Options / int    | Optional. See [options][#api-options]
+[`opt`]      | Options / int    | Optional. See [options](#api-options)
 `on_finish`  | Callback         | Will be invoked with the resulting Buffer as the first parameter when encoding is finished.
 
 If [Q][Q] is available, a promise will be returned.
@@ -192,7 +192,7 @@ For an example using [Q][Q] promises, see [`compress()`](#api-q-compress-examle)
 
 Param       |  Type            |  Description
 ----------- | ---------------- | --------------
-[`options`] | Options / int    | Optional. See [options][#api-options]
+[`options`] | Options / int    | Optional. See [options](#api-options)
 
 Return a [duplex][duplex] stream, i.e. a both readable and writable stream.
 Input will be read, (de)compressed and written out. You can use this to pipe
@@ -221,8 +221,8 @@ These methods handle the `.xz` file format.
 
 Param       |  Type            |  Description
 ----------- | ---------------- | --------------
-[`preset`]  | int              | Optional. See [options.preset][#api-options-preset]
-[`options`] | Options          | Optional. See [options][#api-options]
+[`preset`]  | int              | Optional. See [options.preset](#api-options-preset)
+[`options`] | Options          | Optional. See [options](#api-options)
 
 Return a [duplex][duplex] stream, i.e. a both readable and writable stream.
 Input will be read, (de)compressed and written out. You can use this to pipe
