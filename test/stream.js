@@ -192,7 +192,13 @@ describe('LZMAStream', function() {
 			encodeAndDecode(enc, dec, done);
 		});
 		
-		it('should correctly encode the empty string', function(done) {
+		it('should correctly encode the empty string in async mode', function(done) {
+			var enc = lzma.createStream('easyEncoder');
+			var dec = lzma.createStream('autoDecoder');
+			encodeAndDecode(enc, dec, done, bl(''));
+		});
+		
+		it('should correctly encode the empty string in sync mode', function(done) {
 			var enc = lzma.createStream('easyEncoder', {synchronous: true});
 			var dec = lzma.createStream('autoDecoder', {synchronous: true});
 			encodeAndDecode(enc, dec, done, bl(''));
@@ -231,11 +237,10 @@ describe('LZMAStream', function() {
 			}
 			enc.end();
 		});
-
 	});
 	
 	describe('#streamEncoder', function() {
-		it('should be undone by autoDecoder in async mode', function(done) {
+		it('should be undone by autoDecoder in async mode using the x86 filter', function(done) {
 			var enc = lzma.createStream('streamEncoder', {
 				filters: [
 					{ id: lzma.FILTER_X86 },
@@ -248,7 +253,7 @@ describe('LZMAStream', function() {
 			encodeAndDecode(enc, dec, done, x86BinaryData);
 		});
 		
-		it('should be undone by autoDecoder in sync mode', function(done) {
+		it('should be undone by autoDecoder in sync mode using the x86 filter', function(done) {
 			var enc = lzma.createStream('streamEncoder', {
 				filters: [
 					{ id: lzma.FILTER_X86 },
@@ -262,7 +267,7 @@ describe('LZMAStream', function() {
 			encodeAndDecode(enc, dec, done, x86BinaryData);
 		});
 		
-		it('should be undone by streamDecoder in async mode', function(done) {
+		it('should be undone by streamDecoder in async mode using the delta filter', function(done) {
 			var enc = lzma.createStream('streamEncoder', {
 				filters: [
 					{ id: lzma.FILTER_DELTA, options: { dist: 2 } },
@@ -275,7 +280,7 @@ describe('LZMAStream', function() {
 			encodeAndDecode(enc, dec, done, x86BinaryData);
 		});
 		
-		it('should be undone by streamDecoder in sync mode', function(done) {
+		it('should be undone by streamDecoder in sync mode using the delta filter', function(done) {
 			var enc = lzma.createStream('streamEncoder', {
 				filters: [
 					{ id: lzma.FILTER_DELTA, options: { dist: 2 } },
@@ -333,6 +338,23 @@ describe('LZMAStream', function() {
 			lzma.createStream({synchronous: true});
 			
 			done();
+		});
+		
+		it('should return streams which emit `finish` and `end` events', function(done) {
+			var s = lzma.createStream();
+			var finished = false;
+			var ended    = false;
+			
+			var maybeDone = function() {
+				if (finished && ended)
+					done();
+			};
+			
+			s.on('finish', function() { finished = true; maybeDone(); });
+			s.on('end',    function() { ended    = true; maybeDone(); });
+			s.on('data', function() {});
+			
+			s.end();
 		});
 	});
 	
