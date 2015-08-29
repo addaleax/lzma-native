@@ -23,6 +23,7 @@ var native = require('bindings')('lzma_native.node');
 var stream = require('readable-stream');
 var util = require('util');
 var extend = require('util-extend');
+var assert = require('assert');
 
 var Q = null; // Q is an optional dependency
 try {
@@ -57,22 +58,28 @@ Stream.prototype.getStream = function(options) {
 		self.synchronous = (options.synchronous || !native.asyncCodeAvailable) ? true : false;
 		self.chunkCallbacks = [];
 		
+		var cleanup = function() {
+			self.nativeStream = null;
+		};
+		
 		if (!self.synchronous) {
 			Stream.curAsyncStreams.push(self);
-			var cleanup = function() {
+			
+			var oldCleanup = cleanup;
+			cleanup = function() {
 				var index = Stream.curAsyncStreams.indexOf(self);
 				
 				if (index != -1)
 					Stream.curAsyncStreams.splice(index, 1);
 				
-				self.nativeStream = null;
+				oldCleanup();
 			}
-			
-			self.once('finish', cleanup);
-			self.once('error',  cleanup);
 		}
 		
-		self.nativeStream.bufferHandler = function(buf, shouldInvokeChunkCallbacks, err) {
+		self.once('finish', cleanup);
+		self.once('error',  cleanup);
+		
+		self.nativeStream.bufferHandler = function(buf, processedChunks, err) {
 			process.nextTick(function() {
 				if (err) {
 					self.push(null);
@@ -80,11 +87,10 @@ Stream.prototype.getStream = function(options) {
 					_forceNextTickCb();
 				}
 				
-				if (shouldInvokeChunkCallbacks) {
-					// rotate the chunkCallbacks property, since more callbacks
-					// may be added by the current ones
-					var chunkCallbacks = self.chunkCallbacks;
-					self.chunkCallbacks = [];
+				if (typeof processedChunks == 'number') {
+					assert.ok(processedChunks <= self.chunkCallbacks.length);
+					
+					var chunkCallbacks = self.chunkCallbacks.splice(0, processedChunks);
 					
 					while (chunkCallbacks.length > 0)
 						chunkCallbacks.shift()();
