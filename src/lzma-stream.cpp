@@ -270,8 +270,8 @@ void LZMAStream::doLZMACode(bool async) {
 	bool hasConsumedChunks = false;
 	
 	// _.internal is set to NULL when lzma_end() is called via resetUnderlying()
-	while (_.internal) {
-		if (_.avail_in == 0 && _.avail_out != 0) { // more input neccessary?
+	while (_.internal && !isNearDeath) {
+		if (_.avail_in == 0) { // more input neccessary?
 			if (inbufs.empty()) { // more input available?
 				if (async) {
 #ifdef LZMA_ASYNC_AVAILABLE
@@ -289,9 +289,6 @@ void LZMAStream::doLZMACode(bool async) {
 					std::abort();
 #endif
 				}
-				
-				if (action == LZMA_FINISH || isNearDeath)
-					break;
 				
 				if (shouldFinish)
 					action = LZMA_FINISH;
@@ -345,6 +342,9 @@ void LZMAStream::doLZMACode(bool async) {
 			if (oldLCR == LZMA_STREAM_END)
 				break;
 		}
+		
+		if (_.avail_out == outbuf.size() && !async && !shouldFinish) // no progress was made
+			break;
 	}
 	
 	if (!invokedBufferHandlers)
