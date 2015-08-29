@@ -20,6 +20,7 @@
 #include <node_buffer.h>
 #include <cstring>
 #include <cstdlib>
+#include <cassert>
 
 namespace lzma {
 #ifdef LZMA_ASYNC_AVAILABLE
@@ -56,7 +57,7 @@ Persistent<Function> LZMAStream::constructor;
 LZMAStream::LZMAStream()
 	: hasRunningThread(false), hasPendingCallbacks(false), hasRunningCallbacks(false),
 	isNearDeath(false), bufsize(8192), shouldFinish(false),
-	shouldInvokeChunkCallbacks(false), lastCodeResult(LZMA_OK) 
+	processedChunks(0), lastCodeResult(LZMA_OK) 
 {
 	std::memset(&_, 0, sizeof(lzma_stream));
 
@@ -65,9 +66,7 @@ LZMAStream::LZMAStream()
 	uv_cond_init(&lifespanCond);
 	uv_cond_init(&inputDataCond);
 	
-	outputDataAsync = new uv_async_t;
-	uv_async_init(uv_default_loop(), outputDataAsync, invoke_buffer_handlers_async);
-	outputDataAsync->data = static_cast<void*>(this);
+	outputDataAsync = NULL;
 #endif
 }
 
@@ -76,6 +75,14 @@ void LZMAStream::resetUnderlying() {
 	
 	std::memset(&_, 0, sizeof(lzma_stream));
 	lastCodeResult = LZMA_OK;
+	processedChunks = 0;
+	
+#ifdef LZMA_ASYNC_AVAILABLE
+	if (outputDataAsync) {
+		uv_close(reinterpret_cast<uv_handle_t*>(outputDataAsync), async_close);
+		outputDataAsync = NULL;
+	}
+#endif
 }
 
 LZMAStream::~LZMAStream() {
@@ -99,7 +106,6 @@ LZMAStream::~LZMAStream() {
 	uv_mutex_destroy(&mutex);
 	uv_cond_destroy(&lifespanCond);
 	uv_cond_destroy(&inputDataCond);
-	uv_close(reinterpret_cast<uv_handle_t*>(outputDataAsync), async_close);
 #endif
 }
 
@@ -138,6 +144,12 @@ NAN_METHOD(LZMAStream::Code) {
 			uv_thread_create(&worker_id, worker, static_cast<void*>(self));
 		}
 		
+		if (!self->outputDataAsync) {
+			self->outputDataAsync = new uv_async_t;
+			uv_async_init(uv_default_loop(), self->outputDataAsync, invoke_buffer_handlers_async);
+			self->outputDataAsync->data = static_cast<void*>(self);
+		}
+		
 		uv_cond_broadcast(&self->inputDataCond);
 #else
 		std::abort();
@@ -170,8 +182,11 @@ void LZMAStream::invokeBufferHandlers(bool async, bool hasLock) {
 #ifdef LZMA_ASYNC_AVAILABLE
 		hasPendingCallbacks = true;
 		
-		// this calls invokeBufferHandler(false) from the main loop thread
+		assert(outputDataAsync != NULL);
+		
+		// this calls invokeBufferHandlersFromAsync() from the main loop thread
 		uv_async_send(outputDataAsync);
+		
 		return;
 #else
 		std::abort();
@@ -216,24 +231,29 @@ void LZMAStream::invokeBufferHandlers(bool async, bool hasLock) {
 		CALL_BUFFER_HANDLER_WITH_ARGV
 	}
 	
+	bool reset = false;
 	if (lastCodeResult != LZMA_OK) {
 		Handle<Value> errorArg = Handle<Value>(NanNull());
 		
 		if (lastCodeResult != LZMA_STREAM_END)
 			errorArg = lzmaRetError(lastCodeResult);
 		
-		resetUnderlying(); // resets lastCodeResult!
+		reset = true;
 		
 		Handle<Value> argv[3] = { NanNull(), NanUndefined(), errorArg };
 		CALL_BUFFER_HANDLER_WITH_ARGV
 	}
 	
-	if (shouldInvokeChunkCallbacks) {
-		shouldInvokeChunkCallbacks = false;
+	if (processedChunks) {
+		size_t pc = processedChunks;
+		processedChunks = 0;
 		
-		Handle<Value> argv[3] = { NanUndefined(), NanNew<Boolean>(true), NanUndefined() };
+		Handle<Value> argv[3] = { NanUndefined(), NanNew<Integer>(uint32_t(pc)), NanUndefined() };
 		CALL_BUFFER_HANDLER_WITH_ARGV
 	}
+	
+	if (reset)
+		resetUnderlying(); // resets lastCodeResult!
 }
 
 void LZMAStream::doLZMACodeFromAsync() {
@@ -266,8 +286,7 @@ void LZMAStream::doLZMACode(bool async) {
 
 	lzma_action action = LZMA_RUN;
 	
-	shouldInvokeChunkCallbacks = false;
-	bool hasConsumedChunks = false;
+	size_t readChunks = 0;
 	
 	// _.internal is set to NULL when lzma_end() is called via resetUnderlying()
 	while (_.internal && !isNearDeath) {
@@ -275,13 +294,14 @@ void LZMAStream::doLZMACode(bool async) {
 			if (inbufs.empty()) { // more input available?
 				if (async) {
 #ifdef LZMA_ASYNC_AVAILABLE
-					if (hasConsumedChunks) {
-						shouldInvokeChunkCallbacks = true;
-						
+					if (readChunks > 0) {
 						invokeBufferHandlers(async, true);
 						invokedBufferHandlers = true;
 					}
 					
+					processedChunks += readChunks;
+					readChunks = 0;
+
 					// wait until more data is available
 					while (inbufs.empty() && !shouldFinish && !isNearDeath)
 						uv_cond_wait(&inputDataCond, &mutex);
@@ -290,34 +310,35 @@ void LZMAStream::doLZMACode(bool async) {
 #endif
 				}
 				
-				if (shouldFinish)
-					action = LZMA_FINISH;
-				
-				if (!shouldFinish && !async) {
-					shouldInvokeChunkCallbacks = true;
+				if (!async)
 					invokedBufferHandlers = false;
-					break;
-				}
 			}
 			
 			while (_.avail_in == 0 && !inbufs.empty()) {
 				inbuf = LZMA_NATIVE_MOVE(inbufs.front());
 				inbufs.pop();
+				readChunks++;
 			
 				_.next_in = inbuf.data();
 				_.avail_in = inbuf.size();
-				hasConsumedChunks = true;
 			}
 		}
-			
+		
+		if (shouldFinish && inbufs.empty())
+			action = LZMA_FINISH;
+		
 		_.next_out = outbuf.data();
 		_.avail_out = outbuf.size();
 		
 		invokedBufferHandlers = false;
 		lastCodeResult = lzma_code(&_, action);
 		
-		if (lastCodeResult != LZMA_OK && lastCodeResult != LZMA_STREAM_END)
+		if (lastCodeResult != LZMA_OK && lastCodeResult != LZMA_STREAM_END) {
+			processedChunks += readChunks;
+			readChunks = 0;
+			
 			break;
+		}
 		
 		if (_.avail_out == 0 || _.avail_in == 0 || lastCodeResult == LZMA_STREAM_END) {
 			size_t outsz = outbuf.size() - _.avail_out;
@@ -333,21 +354,30 @@ void LZMAStream::doLZMACode(bool async) {
 			// save status, since invokeBufferHandlers() may reset
 			lzma_ret oldLCR = lastCodeResult;
 			
-			if (lastCodeResult == LZMA_STREAM_END)
-				shouldInvokeChunkCallbacks = true;
-			
 			invokeBufferHandlers(async, true);
 			invokedBufferHandlers = true;
 			
-			if (oldLCR == LZMA_STREAM_END)
+			if (oldLCR == LZMA_STREAM_END) {
+				processedChunks += readChunks;
+				readChunks = 0;
+				
 				break;
+			}
 		}
 		
-		if (_.avail_out == outbuf.size() && !async && !shouldFinish) // no progress was made
-			break;
+		if (_.avail_out == outbuf.size()) { // no progress was made
+			if (!shouldFinish) {
+				processedChunks += readChunks;
+				readChunks = 0;
+			}
+
+			
+			if (!async && !shouldFinish)
+				break;
+		}
 	}
 	
-	if (!invokedBufferHandlers)
+	if (!invokedBufferHandlers || processedChunks)
 		invokeBufferHandlers(async, true);
 }
 

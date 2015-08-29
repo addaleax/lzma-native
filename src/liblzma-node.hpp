@@ -242,7 +242,7 @@ namespace lzma {
 			std::string error;
 			
 			bool shouldFinish;
-			bool shouldInvokeChunkCallbacks;
+			size_t processedChunks;
 			lzma_ret lastCodeResult;
 			std::queue<std::vector<uint8_t> > inbufs;
 			std::queue<std::vector<uint8_t> > outbufs;

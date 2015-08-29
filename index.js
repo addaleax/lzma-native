@@ -23,6 +23,7 @@ var native = require('bindings')('lzma_native.node');
 var stream = require('readable-stream');
 var util = require('util');
 var extend = require('util-extend');
+var assert = require('assert');
 
 extend(exports, native);
 
@@ -75,7 +76,7 @@ Stream.prototype.syncStream = function(options) {
 		self.once('finish', cleanup);
 		self.once('error',  cleanup);
 		
-		self.nativeStream.bufferHandler = function(buf, shouldInvokeChunkCallbacks, err) {
+		self.nativeStream.bufferHandler = function(buf, processedChunks, err) {
 			process.nextTick(function() {
 				if (err) {
 					self.push(null);
@@ -83,11 +84,10 @@ Stream.prototype.syncStream = function(options) {
 					_forceNextTickCb();
 				}
 				
-				if (shouldInvokeChunkCallbacks) {
-					// rotate the chunkCallbacks property, since more callbacks
-					// may be added by the current ones
-					var chunkCallbacks = self.chunkCallbacks;
-					self.chunkCallbacks = [];
+				if (typeof processedChunks == 'number') {
+					assert.ok(processedChunks <= self.chunkCallbacks.length);
+					
+					var chunkCallbacks = self.chunkCallbacks.splice(0, processedChunks);
 					
 					while (chunkCallbacks.length > 0)
 						chunkCallbacks.shift()();
