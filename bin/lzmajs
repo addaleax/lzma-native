@@ -67,7 +67,7 @@ if (program.args.length > 0) {
 var encoder = lzma.createStream(program.compress ? 'easyEncoder' : 'autoDecoder', { preset: level || lzma.PRESET_DEFAULT });
 
 if (usesStdout)
-	encoder.on('finish', function() { process.nextTick(function() { process.exit(0); }); });
+	encoder.on('finish', function() { setTimeout(function() { process.exit(0); }, 10); });
 
 input.pipe(encoder).pipe(output);
 

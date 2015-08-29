@@ -212,8 +212,8 @@ will accept either format via automatic detection.
 <a name="api-robey_compressor"></a>
 <a name="api-robey_decompressor"></a>
 #### `lzma.Compressor()`, `lzma.Decompressor()`
-`lzma.createCompressor([preset], [options])`
-`lzma.createDecompressor([options])`
+`lzma.Compressor([preset], [options])`
+`lzma.Decompressor([options])`
 
 (Compatibility; See [node-xz][node-xz] for the original specs.)
 
