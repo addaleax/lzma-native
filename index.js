@@ -54,20 +54,26 @@ Stream.prototype.syncStream = function(options) {
 		self.synchronous = (options.synchronous || !native.asyncCodeAvailable) ? true : false;
 		self.chunkCallbacks = [];
 		
+		var cleanup = function() {
+			self.nativeStream = null;
+		};
+		
 		if (!self.synchronous) {
 			Stream.curAsyncStreams.push(self);
-			var cleanup = function() {
+			
+			var oldCleanup = cleanup;
+			cleanup = function() {
 				var index = Stream.curAsyncStreams.indexOf(self);
 				
 				if (index != -1)
 					Stream.curAsyncStreams.splice(index, 1);
 				
-				self.nativeStream = null;
+				oldCleanup();
 			}
-			
-			self.once('finish', cleanup);
-			self.once('error',  cleanup);
 		}
+		
+		self.once('finish', cleanup);
+		self.once('error',  cleanup);
 		
 		self.nativeStream.bufferHandler = function(buf, shouldInvokeChunkCallbacks, err) {
 			process.nextTick(function() {
