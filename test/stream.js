@@ -164,22 +164,36 @@ describe('LZMAStream', function() {
 	
 	describe('#easyEncoder', function() {
 		[
+			{value: lzma.PRESET_EXTREME, name: 'e' },
+			{value: 0, name: '' },
+		].map(function(presetFlag) {
+		[
+			1, 3, 4, 6, 7, 9
+		].map(function(preset) { // test only some presets
+		[
 			{ file: hamlet, name: 'Hamlet' },
 			{ file: random_data, name: 'random test data' },
 			{ file: largeRandom, name: 'large random test data' },
 			{ file: x86BinaryData, name: 'x86 binary data' }
 		].map(function(entry) {
-			it('should be undone by autoDecoder in async mode with ' + entry.name, function(done) {
-				var enc = lzma.createStream('easyEncoder');
+		[
+			{ synchronous: true,  name: 'sync' },
+			{ synchronous: false, name: 'async' },
+		].map(function(syncInfo) {
+			var info = 'with ' + entry.name + ', preset = ' + preset + presetFlag.name;
+			it('should be undone by autoDecoder in ' + syncInfo.name + ' mode ' + info, function(done) {
+				var enc = lzma.createStream('easyEncoder', {
+					preset: preset | presetFlag.value,
+					synchronous: syncInfo.synchronous
+				});
+				
 				var dec = lzma.createStream('autoDecoder');
+				
 				encodeAndDecode(enc, dec, done, entry.file);
 			});
-			
-			it('should be undone by autoDecoder in sync mode with ' + entry.name, function(done) {
-				var enc = lzma.createStream('easyEncoder', {synchronous: true});
-				var dec = lzma.createStream('autoDecoder', {synchronous: true});
-				encodeAndDecode(enc, dec, done, entry.file);
-			});
+		});
+		});
+		});
 		});
 		
 		it('should correctly encode the empty string in async mode', function(done) {
