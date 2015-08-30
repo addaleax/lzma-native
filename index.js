@@ -32,7 +32,7 @@ try {
 
 extend(exports, native);
 
-exports.version = '0.3.3';
+exports.version = '0.3.4';
 
 var Stream = exports.Stream;
 
