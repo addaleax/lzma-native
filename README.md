@@ -292,7 +292,7 @@ Option name   |  Type      |  Description
 ------------- | ---------- | -------------
 `check`       | check      |  Any of `lzma.CHECK_CRC32`, `lzma.CHECK_CRC64`, `lzma.CHECK_NONE`, `lzma.CHECK_SHA256`
 `memlimit`    | float      |  A memory limit for (de-)compression in bytes 
-`preset`      | int        |  A number from 0 to 9, 0 being the fastest and weakest compression, 9 the slowest and highest compression level. (Please also see the [xz(1) manpage][xz-manpage] for notes – don’t just blindly use 9!)
+`preset`      | int        |  A number from 0 to 9, 0 being the fastest and weakest compression, 9 the slowest and highest compression level. (Please also see the [xz(1) manpage][xz-manpage] for notes – don’t just blindly use 9!) You can also OR this with `lzma.PRESET_EXTREME` (the `-e` option to the `xz` command line utility).
 `flags`       | int        |  A bitwise or of `lzma.LZMA_TELL_NO_CHECK`, `lzma.LZMA_TELL_UNSUPPORTED_CHECK`, `lzma.LZMA_TELL_ANY_CHECK`, `lzma.LZMA_CONCATENATED`
 `synchronous` | bool       |  If true, forces synchronous coding (i.e. no usage of threading)
 
