@@ -27,6 +27,6 @@ describe('regression-#7', function() {
 		var input = fs.createReadStream('test/random-large');
 		var compressor = lzma.createCompressor({synchronous:true});
 		
-		input.pipe(compressor).pipe(bl());
+		input.pipe(compressor).pipe(bl(done));
 	});
 });
