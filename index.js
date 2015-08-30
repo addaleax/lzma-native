@@ -27,7 +27,7 @@ var assert = require('assert');
 
 extend(exports, native);
 
-exports.version = '0.2.15';
+exports.version = '0.2.16';
 
 var Stream = exports.Stream;
 
