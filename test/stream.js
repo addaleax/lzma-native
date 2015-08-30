@@ -26,7 +26,7 @@ var helpers = require('./helpers.js');
 var lzma = require('../');
 
 describe('LZMAStream', function() {
-	var random_data, x86BinaryData;
+	var random_data, x86BinaryData, hamlet, largeRandom;
 
 	function encodeAndDecode(enc, dec, done, data) {
 		data = data || random_data;
@@ -40,6 +40,16 @@ describe('LZMAStream', function() {
 	before('read random test data', function(done) {
 		random_data = bl(done);
 		fs.createReadStream('test/random').pipe(random_data);
+	});
+	
+	before('read large random test data', function(done) {
+		largeRandom = bl(done);
+		fs.createReadStream('test/random-large').pipe(largeRandom);
+	});
+	
+	before('read hamlet.txt test data', function(done) {
+		hamlet = bl(done);
+		fs.createReadStream('test/hamlet.txt.xz').pipe(lzma.createDecompressor()).pipe(hamlet);
 	});
 	
 	before('read an executable file', function(done) {
@@ -153,16 +163,23 @@ describe('LZMAStream', function() {
 	});
 	
 	describe('#easyEncoder', function() {
-		it('should be undone by autoDecoder in async mode', function(done) {
-			var enc = lzma.createStream('easyEncoder');
-			var dec = lzma.createStream('autoDecoder');
-			encodeAndDecode(enc, dec, done);
-		});
-		
-		it('should be undone by autoDecoder in sync mode', function(done) {
-			var enc = lzma.createStream('easyEncoder', {synchronous: true});
-			var dec = lzma.createStream('autoDecoder', {synchronous: true});
-			encodeAndDecode(enc, dec, done);
+		[
+			{ file: hamlet, name: 'Hamlet' },
+			{ file: random_data, name: 'random test data' },
+			{ file: largeRandom, name: 'large random test data' },
+			{ file: x86BinaryData, name: 'x86 binary data' }
+		].map(function(entry) {
+			it('should be undone by autoDecoder in async mode with ' + entry.name, function(done) {
+				var enc = lzma.createStream('easyEncoder');
+				var dec = lzma.createStream('autoDecoder');
+				encodeAndDecode(enc, dec, done, entry.file);
+			});
+			
+			it('should be undone by autoDecoder in sync mode with ' + entry.name, function(done) {
+				var enc = lzma.createStream('easyEncoder', {synchronous: true});
+				var dec = lzma.createStream('autoDecoder', {synchronous: true});
+				encodeAndDecode(enc, dec, done, entry.file);
+			});
 		});
 		
 		it('should correctly encode the empty string in async mode', function(done) {
