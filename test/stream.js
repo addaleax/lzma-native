@@ -310,6 +310,21 @@ describe('LZMAStream', function() {
 		});
 	});
 	
+	describe('#streamDecoder', function() {
+		it('should accept an memlimit argument', function() {
+			var memlimit = 20 << 20; /* 20 MB */
+			var s = lzma.createStream('streamDecoder', { memlimit: memlimit, synchronous: true });
+			
+			assert.strictEqual(s.memlimitGet(), memlimit);
+		});
+		
+		it('should fail when the memlimit argument is invalid', function() {
+			assert.throws(function() {
+				lzma.createStream('streamDecoder', { memlimit: 'ABC' });
+			});
+		});
+	});
+	
 	describe('#rawEncoder', function() {
 		var rawFilters = [
 			{ id: lzma.FILTER_X86 },
@@ -371,6 +386,17 @@ describe('LZMAStream', function() {
 			
 			s.end();
 		});
+		
+		it('should return errors with .code, .name and .desc properties', function(done) {
+			try {
+				lzma.createStream({check: lzma.CHECK_ID_MAX + 1});
+			} catch (e) {
+				assert.ok(e.name);
+				assert.ok(e.desc);
+				
+				done();
+			}
+		});
 	});
 	
 	describe('#memusage', function() {
@@ -381,6 +407,12 @@ describe('LZMAStream', function() {
 			
 			fs.createReadStream('test/hamlet.txt.lzma').pipe(stream);
 			assert.ok(stream.memusage() > 0);
+		});
+		
+		it('should return null when encoding', function() {
+			var stream = lzma.createCompressor({synchronous: true});
+			
+			assert.strictEqual(stream.memusage(), null);
 		});
 		
 		it('should fail when called with null or {} as the this object', function() {

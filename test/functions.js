@@ -104,6 +104,11 @@ describe('lzma', function() {
 		it('should return false for VLI_UNKNOWN', function() {
 			assert.strictEqual(false, lzma.filterEncoderIsSupported(lzma.VLI_UNKNOWN));
 		});
+		
+		it('should return false for objects which are not convertible to string', function() {
+			var badObject = { toString: function() { throw Error('badObject.toString()'); } };
+			assert.strictEqual(false, lzma.filterEncoderIsSupported(lzma.VLI_UNKNOWN));
+		});
 	});
 	
 	describe('#filterDecoderIsSupported', function() {
@@ -194,8 +199,8 @@ describe('lzma', function() {
 		});
 		
 		it('should fail if input is not an array of filter objects', function() {
-			assert.throws(function() { lzma.rawEncoderMemusage(null) });
-			assert.throws(function() { lzma.rawEncoderMemusage([null]) });
+			assert.throws(function() { lzma.rawEncoderMemusage(null); });
+			assert.throws(function() { lzma.rawEncoderMemusage([null]); });
 		});
 	});
 	

@@ -32,6 +32,13 @@ describe('Compressor/Decompressor', function() {
 		c.end('Hello!');
 	});
 	
+	it('takes preset and options arguments', function(done) {
+		var c = new lzma.Compressor(7, {synchronous: true});
+		
+		c.on('finish', done);
+		c.end('Bananas');
+	});
+	
 	it('can round-trip', function(done) {
 		var enc = new lzma.Compressor();
 		var dec = new lzma.Decompressor();
