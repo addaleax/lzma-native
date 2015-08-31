@@ -93,11 +93,6 @@ namespace lzma {
 	lzma_vli FilterByName(Local<Value> v);
 	
 	/**
-	 * Return a string describing the error indicated by rv
-	 */
-	const char* lzmaStrError(lzma_ret rv);
-	
-	/**
 	 * If rv represents an error, throw a javascript exception representing it.
 	 * Always returns rv as a v8 Integer.
 	 */

@@ -51,26 +51,40 @@ lzma_vli FilterByName(Local<Value> v) {
 			return p->value;
 }
 
-const char* lzmaStrError(lzma_ret rv) {
-	switch (rv) {
-		case LZMA_OK:                return "LZMA_OK";
-		case LZMA_STREAM_END:        return "LZMA_STREAM_END";
-		case LZMA_NO_CHECK:          return "LZMA_NO_CHECK";
-		case LZMA_UNSUPPORTED_CHECK: return "LZMA_UNSUPPORTED_CHECK";
-		case LZMA_GET_CHECK:         return "LZMA_GET_CHECK";
-		case LZMA_MEM_ERROR:         return "LZMA_MEM_ERROR";
-		case LZMA_MEMLIMIT_ERROR:    return "LZMA_MEMLIMIT_ERROR";
-		case LZMA_FORMAT_ERROR:      return "LZMA_FORMAT_ERROR";
-		case LZMA_OPTIONS_ERROR:     return "LZMA_OPTIONS_ERROR";
-		case LZMA_DATA_ERROR:        return "LZMA_DATA_ERROR";
-		case LZMA_PROG_ERROR:        return "LZMA_PROG_ERROR";
-		case LZMA_BUF_ERROR:         return "LZMA_BUF_ERROR";
-		default:                     return "LZMA_UNKNOWN_ERROR";
-	}
-}
-
 Local<Value> lzmaRetError(lzma_ret rv) {
-	return Nan::Error(lzmaStrError(rv));
+	struct errorInfo {
+		lzma_ret code;
+		const char* name;
+		const char* desc;
+	};
+	
+	/* description strings taken from liblzma/…/api/base.h */
+	static const struct errorInfo searchErrorInfo[] = {
+		{ LZMA_OK,                "LZMA_OK", "Operation completed successfully" },
+		{ LZMA_STREAM_END,        "LZMA_STREAM_END", "End of stream was reached" },
+		{ LZMA_NO_CHECK,          "LZMA_NO_CHECK", "Input stream has no integrity check" },
+		{ LZMA_UNSUPPORTED_CHECK, "LZMA_UNSUPPORTED_CHECK", "Cannot calculate the integrity check" },
+		{ LZMA_GET_CHECK,         "LZMA_GET_CHECK", "Integrity check type is now available" },
+		{ LZMA_MEM_ERROR,         "LZMA_MEM_ERROR", "Cannot allocate memory" },
+		{ LZMA_MEMLIMIT_ERROR,    "LZMA_MEMLIMIT_ERROR", "Memory usage limit was reached" },
+		{ LZMA_FORMAT_ERROR,      "LZMA_FORMAT_ERROR", "File format not recognized" },
+		{ LZMA_OPTIONS_ERROR,     "LZMA_OPTIONS_ERROR", "Invalid or unsupported options" },
+		{ LZMA_DATA_ERROR,        "LZMA_DATA_ERROR", "Data is corrupt" },
+		{ LZMA_PROG_ERROR,        "LZMA_PROG_ERROR", "Programming error" },
+		{ LZMA_BUF_ERROR,         "LZMA_BUF_ERROR", "No progress is possible" },
+		{ (lzma_ret)-1,           "LZMA_UNKNOWN_ERROR", "Unknown error code" }
+	};
+	
+	const struct errorInfo* p = searchErrorInfo;
+	while (p->code != rv && p->code != -1)
+		++p;
+	
+	Local<Object> e = Local<Object>::Cast(Nan::Error(p->desc));
+	e->Set(NewString("code"), Nan::New<Integer>(rv));
+	e->Set(NewString("name"), NewString(p->name));
+	e->Set(NewString("desc"), NewString(p->desc));
+	
+	return e;
 }
 
 Local<Value> lzmaRet(lzma_ret rv) {
