@@ -393,7 +393,6 @@ void LZMAStream::Init(Local<Object> exports) {
 	
 	tpl->PrototypeTemplate()->Set(NewString("code"),           Nan::New<FunctionTemplate>(Code)->GetFunction());
 	tpl->PrototypeTemplate()->Set(NewString("memusage"),       Nan::New<FunctionTemplate>(Memusage)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NewString("getCheck"),       Nan::New<FunctionTemplate>(GetCheck)->GetFunction());
 	tpl->PrototypeTemplate()->Set(NewString("memlimitGet"),    Nan::New<FunctionTemplate>(MemlimitGet)->GetFunction());
 	tpl->PrototypeTemplate()->Set(NewString("memlimitSet"),    Nan::New<FunctionTemplate>(MemlimitSet)->GetFunction());
 	tpl->PrototypeTemplate()->Set(NewString("totalIn"),        Nan::New<FunctionTemplate>(TotalIn)->GetFunction());
@@ -431,13 +430,6 @@ NAN_METHOD(LZMAStream::Memusage) {
 	LZMA_ASYNC_LOCK(self);
 	
 	info.GetReturnValue().Set(Uint64ToNumber0Null(lzma_memusage(&self->_)));
-}
-
-NAN_METHOD(LZMAStream::GetCheck) {
-	LZMA_FETCH_SELF();
-	LZMA_ASYNC_LOCK(self);
-	
-	info.GetReturnValue().Set(Nan::New<Number>(lzma_get_check(&self->_)));
 }
 
 NAN_METHOD(LZMAStream::TotalIn) {

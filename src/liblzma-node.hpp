@@ -255,7 +255,6 @@ namespace lzma {
 			static NAN_METHOD(TotalOut);
 			static NAN_METHOD(MemlimitGet);
 			static NAN_METHOD(MemlimitSet);
-			static NAN_METHOD(GetCheck);
 			static NAN_METHOD(RawEncoder);
 			static NAN_METHOD(RawDecoder);
 			static NAN_METHOD(FiltersUpdate);
