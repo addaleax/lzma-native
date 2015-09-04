@@ -25,9 +25,14 @@ addons:
       - libstdc++-4.8-dev
 before_install:
   - export PATH=$HOME/.local/bin:$PATH
+  # dummy 7z because npm wants to run the prepublish script
+  - mkdir -p $HOME/.local/bin/ && touch $HOME/.local/bin/7z && chmod +x $HOME/.local/bin/7z 
+  # coveralls
   - pip install --user cpp-coveralls coveralls-merge
+  # compilers
   - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
   - if [ "$CXX" = "clang++" ]; then export NPMOPT=--clang=1; fi
+  # node versions
   - rm -rf ~/.nvm
   - git clone https://github.com/creationix/nvm.git ~/.nvm
   - source ~/.nvm/nvm.sh
