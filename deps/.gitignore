@@ -2,3 +2,4 @@ bin_*/
 doc/
 include/
 *.dll
+*.a

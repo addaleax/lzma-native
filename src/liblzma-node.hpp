@@ -28,6 +28,7 @@
 #include <v8.h>
 #include <nan.h>
 
+#define LZMA_API_STATIC 1
 #include <lzma.h>
 
 #include <vector>

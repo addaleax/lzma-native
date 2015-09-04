@@ -16,14 +16,14 @@
 				[ 'OS!="win"' , {
 					"include_dirs" : [ "<(module_root_dir)/build/liblzma/build/include" ],
 					"libraries" : [ "<(module_root_dir)/build/liblzma/build/lib/liblzma.a" ],
-					"dependencies" : [ "liblzma" ],
+					"dependencies" : [ "liblzma" ]
 				}, {
 					"include_dirs" : [ "<(module_root_dir)/deps/include" ],
 					"conditions": [
 						['target_arch=="x64"', {
-							"libraries" : [ "<(module_root_dir)/deps/liblzma-x86-64.dll" ]
+							"libraries" : [ "<(module_root_dir)/deps/liblzma-x86-64.a" ]
 						}, {
-							"libraries" : [ "<(module_root_dir)/deps/liblzma-i686.dll" ]
+							"libraries" : [ "<(module_root_dir)/deps/liblzma-i686.a" ]
 						}]
 					]
 				} ],
