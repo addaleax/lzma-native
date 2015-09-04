@@ -61,11 +61,11 @@
 							"conditions": [
 								[ 'target_arch=="x64"', {
 									'action': [
-										'lib -def:<(module_root_dir)\\deps\\doc\\liblzma.def -out:<(module_root_dir)\\deps\\bin_x86-64\\lzma.lib -machine:x64 && cp <(module_root_dir)\\deps\\bin_x86-64\\liblzma.dll <(dlldir)\\liblzma.dll'
+										'lib -def:"<(module_root_dir)\\deps\\doc\\liblzma.def" -out:"<(module_root_dir)\\deps\\bin_x86-64\\lzma.lib" -machine:x64 && copy "<(module_root_dir)\\deps\\bin_x86-64\\liblzma.dll" "<(dlldir)\\liblzma.dll"'
 									]
 								}, {
 									'action': [
-										'lib -def:<(module_root_dir)\\deps\\doc\\liblzma.def -out:<(module_root_dir)\\deps\\bin_i686\\lzma.lib -machine:ix86 && cp <(module_root_dir)\\deps\\bin_i686\\liblzma.dll <(dlldir)\\liblzma.dll'
+										'lib -def:"<(module_root_dir)\\deps\\doc\\liblzma.def" -out:"<(module_root_dir)\\deps\\bin_i686\\lzma.lib" -machine:ix86 && copy "<(module_root_dir)\\deps\\bin_i686\\liblzma.dll" "<(dlldir)\\liblzma.dll"'
 									]
 								} ]
 							]
