@@ -1,0 +1,4 @@
+bin_*/
+doc/
+include/
+*.dll

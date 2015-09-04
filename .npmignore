@@ -2,3 +2,4 @@ build
 node_modules
 test
 coverage
+deps/xz-5.2.1-windows.7z
