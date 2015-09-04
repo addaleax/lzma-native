@@ -1,0 +1,22 @@
+environment:
+  matrix:
+    - nodejs_version: "0.10"
+    - nodejs_version: "0.12"
+    - nodejs_version: "2.5"
+    - nodejs_version: "3.0"
+
+install:
+  # From https://github.com/nodejs/nan/blob/master/appveyor.yml
+  - ps: Install-Product node $env:nodejs_version
+  - ps: Update-NodeJsInstallation (Get-NodeJsLatestBuild $env:nodejs_version)
+  - IF %nodejs_version% LSS 1 npm -g install npm
+  - IF %nodejs_version% LSS 1 set PATH=%APPDATA%\npm;%PATH%
+  - npm run prepublish
+  - npm install
+
+test_script:
+  - npm test
+
+build: off
+
+version: "{build}"

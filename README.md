@@ -4,6 +4,7 @@ lzma-native
 [![NPM Version](https://img.shields.io/npm/v/lzma-native.svg?style=flat)](https://npmjs.org/package/lzma-native)
 [![NPM Downloads](https://img.shields.io/npm/dm/lzma-native.svg?style=flat)](https://npmjs.org/package/lzma-native)
 [![Build Status](https://travis-ci.org/addaleax/lzma-native.svg?style=flat&branch=master)](https://travis-ci.org/addaleax/lzma-native?branch=master)
+[![Windows](https://img.shields.io/appveyor/ci/addaleax/lzma-native/master.svg?label=windows)](https://ci.appveyor.com/project/addaleax/lzma-native)
 [![Coverage Status](https://coveralls.io/repos/addaleax/lzma-native/badge.svg?branch=master)](https://coveralls.io/r/addaleax/lzma-native?branch=master)
 [![Dependency Status](https://david-dm.org/addaleax/lzma-native.svg?style=flat)](https://david-dm.org/addaleax/lzma-native)
 [![devDependency Status](https://david-dm.org/addaleax/lzma-native/dev-status.svg?style=flat)](https://david-dm.org/addaleax/lzma-native#info=devDependencies)
@@ -172,7 +173,7 @@ Example code:
 <!-- runtest:{Compress and decompress directly using LZMA-JS compatibility} -->
 
 ```js
-lzma.LZMA().compress('Bananas', 9, function(result) {
+lzma.LZMA().compress('Bananas', 4, function(result) {
 	lzma.LZMA().decompress(result, function(decompressedResult) {
 		assert.equal(decompressedResult.toString(), 'Bananas');
 	});

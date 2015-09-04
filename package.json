@@ -32,7 +32,8 @@
 	},
 	"scripts": {
 		"install": "node-gyp rebuild",
-		"test": "mocha -s 400 test"
+		"test": "mocha -s 400 test",
+		"prepublish": "cd deps && 7z x -y xz-5.2.1-windows.7z bin_i686/liblzma.dll bin_x86-64/liblzma.dll include doc/liblzma.def"
 	},
 	"gypfile": true,
 	"bugs": {

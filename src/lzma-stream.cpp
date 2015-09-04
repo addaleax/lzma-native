@@ -415,8 +415,7 @@ NAN_METHOD(LZMAStream::New) {
 		(new LZMAStream())->Wrap(info.This());
 		info.GetReturnValue().Set(info.This());
 	} else {
-		Local<Value> argv[0] = {};
-		info.GetReturnValue().Set(Nan::New<Function>(constructor)->NewInstance(0, argv));
+		info.GetReturnValue().Set(Nan::New<Function>(constructor)->NewInstance(0, NULL));
 	}
 }
 
