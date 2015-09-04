@@ -173,7 +173,7 @@ Example code:
 <!-- runtest:{Compress and decompress directly using LZMA-JS compatibility} -->
 
 ```js
-lzma.LZMA().compress('Bananas', 9, function(result) {
+lzma.LZMA().compress('Bananas', 4, function(result) {
 	lzma.LZMA().decompress(result, function(decompressedResult) {
 		assert.equal(decompressedResult.toString(), 'Bananas');
 	});

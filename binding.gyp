@@ -20,6 +20,7 @@
 				[ 'OS!="win"' , {
 					"include_dirs" : [ "<(module_root_dir)/build/liblzma/build/include" ],
 					"libraries" : [ "<(module_root_dir)/build/liblzma/build/lib/liblzma.a" ],
+					"cflags": ['<!@(sh ./cflags.sh)']
 				}, {
 					"include_dirs" : [ "<(module_root_dir)\\deps\\include" ],
 					"link_settings": {
@@ -33,10 +34,6 @@
 						]
 					}
 				} ],
-				[ 'gcc_version<=47', {
-				}, {
-					"cflags": ["-std=c++11"]
-				} ]
 			],
 		},
 		{
