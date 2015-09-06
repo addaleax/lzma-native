@@ -35,13 +35,16 @@ Some examples in this README file are executed as part of the automatic
 testing process. See test/readme-examples.js for details.
 -->
 
-<!-- runtest:{Round-trip using stdin/stdout} -->
+<!-- runtest:{Compress the README.md file} -->
 
 ```js
 var lzma = require('lzma-native');
-var compressor = lzma.createCompressor();
 
-process.stdin.pipe(compressor).pipe(process.stdout);
+var compressor = lzma.createCompressor();
+var input = fs.createReadStream('README.md');
+var output = fs.createWriteStream('README.md.xz');
+
+input.pipe(compressor).pipe(output);
 ```
 
 For decompression, you can simply use `lzma.createDecompressor()`.
