@@ -23,7 +23,12 @@ namespace lzma {
 FilterArray::FilterArray(Local<Array> arr) : ok_(false) {
 	Nan::HandleScope();
 	
-	size_t len = arr.IsEmpty() ? 0 : arr->Length();
+	if (!arr->IsArray() || arr.IsEmpty()) {
+		Nan::ThrowTypeError("Filter array expected");
+		return;
+	}
+	
+	size_t len = arr->Length();
 	
 	Local<String> id_ = NewString("id");
 	Local<String> options_ = NewString("options");
@@ -41,6 +46,7 @@ FilterArray::FilterArray(Local<Array> arr) : ok_(false) {
 		lzma_filter f;
 		f.id = FilterByName(id);
 		f.options = NULL;
+		
 		if ((opt.IsEmpty() || opt->IsUndefined() || opt->IsNull()) &&
 			(f.id != LZMA_FILTER_LZMA1 && f.id != LZMA_FILTER_LZMA2)) {
 			filters.push_back(f);
