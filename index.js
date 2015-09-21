@@ -74,7 +74,7 @@ Stream.prototype.syncStream = function(options) {
 		}
 		
 		self.once('finish', cleanup);
-		self.once('error',  cleanup);
+		self.once('error-cleanup', cleanup);
 		
 		self.nativeStream.bufferHandler = function(buf, processedChunks, err) {
 			process.nextTick(function() {
@@ -115,6 +115,7 @@ Stream.prototype.syncStream = function(options) {
 		try {
 			this.nativeStream.code(chunk, !this.synchronous);
 		} catch (e) {
+			this.emit('error-cleanup', e);
 			this.emit('error', e);
 		}
 	};
