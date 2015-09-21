@@ -96,6 +96,7 @@ Stream.prototype.getStream = function(options) {
 			process.nextTick(function() {
 				if (err) {
 					self.push(null);
+					self.emit('error-cleanup', err);
 					self.emit('error', err);
 					_forceNextTickCb();
 				}
