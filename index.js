@@ -27,7 +27,7 @@ var assert = require('assert');
 
 extend(exports, native);
 
-exports.version = '0.2.16';
+exports.version = '0.2.17';
 
 var Stream = exports.Stream;
 
@@ -73,7 +73,20 @@ Stream.prototype.syncStream = function(options) {
 			}
 		}
 		
-		self.once('finish', cleanup);
+		var finishedReading = false, finishedWriting = false;
+		
+		var maybeCleanup = function() {
+			if (finishedReading && finishedWriting)
+				cleanup();
+		};
+		
+		/* 'finish' event ~ no more data will be written to this stream */
+		self.once('finish', function() {
+			finishedReading = true;
+			maybeCleanup();
+		});
+		
+		// always clean up in case of error
 		self.once('error-cleanup', cleanup);
 		
 		self.nativeStream.bufferHandler = function(buf, processedChunks, err) {
@@ -94,6 +107,11 @@ Stream.prototype.syncStream = function(options) {
 					
 					_forceNextTickCb();
 				} else {
+					if (buf === null) {
+						finishedWriting = true;
+						maybeCleanup();
+					}
+					
 					self.push(buf);
 				}
 			});
