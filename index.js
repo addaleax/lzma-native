@@ -32,7 +32,7 @@ try {
 
 extend(exports, native);
 
-exports.version = '0.3.8';
+exports.version = '0.3.9';
 
 var Stream = exports.Stream;
 
@@ -76,8 +76,21 @@ Stream.prototype.getStream = function(options) {
 			}
 		}
 		
-		self.once('finish', cleanup);
-		self.once('error',  cleanup);
+		var finishedReading = false, finishedWriting = false;
+		
+		var maybeCleanup = function() {
+			if (finishedReading && finishedWriting)
+				cleanup();
+		};
+		
+		/* 'finish' event ~ no more data will be written to this stream */
+		self.once('finish', function() {
+			finishedReading = true;
+			maybeCleanup();
+		});
+		
+		// always clean up in case of error
+		self.once('error-cleanup', cleanup);
 		
 		self.nativeStream.bufferHandler = function(buf, processedChunks, err) {
 			process.nextTick(function() {
@@ -97,6 +110,11 @@ Stream.prototype.getStream = function(options) {
 					
 					_forceNextTickCb();
 				} else {
+					if (buf === null) {
+						finishedWriting = true;
+						maybeCleanup();
+					}
+					
 					self.push(buf);
 				}
 			});
@@ -118,6 +136,7 @@ Stream.prototype.getStream = function(options) {
 		try {
 			this.nativeStream.code(chunk, !this.synchronous);
 		} catch (e) {
+			this.emit('error-cleanup', e);
 			this.emit('error', e);
 		}
 	};
