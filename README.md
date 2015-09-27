@@ -125,7 +125,7 @@ Param        |  Type            |  Description
 ------------ | ---------------- | --------------
 `string`     | Buffer / String  | Any string or buffer to be (de)compressed (that can be passed to `stream.end(…)`)
 [`opt`]      | Options / int    | Optional. See [options](#api-options)
-`on_finish`  | Callback         | Will be invoked with the resulting Buffer as the first parameter when encoding is finished.
+`on_finish`  | Callback         | Will be invoked with the resulting Buffer as the first parameter when encoding is finished, and as `on_finish(null, err)` in case of an error.
 
 If [Q][Q] is available, a promise will be returned.
 
@@ -168,10 +168,16 @@ Param         |  Type                   |  Description
 ------------- | ----------------------- | --------------
 `string`      | Buffer / String / Array | Any string, buffer, or array of integers or typed integers (e.g. `Uint8Array`)
 `mode`        | int                     | [A number between 0 and 9](#api-options-preset), indicating compression level
-`on_finish`   | Callback                | Will be invoked with the resulting Buffer as the first parameter when encoding is finished.
+`on_finish`   | Callback                | Will be invoked with the resulting Buffer as the first parameter when encoding is finished, and as `on_finish(null, err)` in case of an error.
 `on_progress` | Callback                | Indicates progress by passing a number in [0.0, 1.0]. Currently, this package only invokes the callback with 0.0 and 1.0.
 
 If [Q][Q] is available, a promise will be returned.
+
+This does not work exactly as described in the original [LZMA-JS][LZMA-JS] specification:
+ * `on_finish` receives a second `error` argument in order to avoid uncaught exceptions.
+ * The results are `Buffer` objects, not integer arrays. This just makes a lot
+   more sense in a Node.js environment.
+ * `on_progress` is currently only called with `0.0` and `1.0`.
 
 Example code:
 <!-- runtest:{Compress and decompress directly using LZMA-JS compatibility} -->

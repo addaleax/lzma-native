@@ -144,6 +144,14 @@ describe('lzma.compress()/decompress()', function() {
 			assert.equal(result.toString(), 'Bananas');
 		});
 	});
+	
+	it('fails for invalid input', function() {
+		return lzma.decompress('ABC').then(function(result) {
+			assert.ok(false); // never get here due to error
+		}).catch(function(err) {
+			assert.ok(err);
+		});
+	});
 });
 
 describe('lzma.compress()/decompress() without promises', function() {
@@ -160,6 +168,14 @@ describe('lzma.compress()/decompress() without promises', function() {
 				
 				done();
 			});
+		});
+	});
+	
+	it('fails for invalid input', function(done) {
+		lzma.decompress('ABC', function(result, err) {
+			assert.strictEqual(result, null);
+			assert.ok(err);
+			done();
 		});
 	});
 });

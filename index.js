@@ -247,12 +247,17 @@ function singleStringCoding(stream, string, on_finish, on_progress) {
 	on_progress = on_progress || function() {};
 	on_finish = on_finish || function() {};
 	
-	var deferred = null;
+	var deferred = null, failed = false;
+	
+	stream.once('error', function(err) {
+		failed = true;
+		on_finish(null, err);
+	});
 	
 	if (Q) {
 		deferred = Q.defer();
 		
-		stream.on('error', function(e) {
+		stream.once('error', function(e) {
 			deferred.reject(e);
 		});
 	}
@@ -263,8 +268,10 @@ function singleStringCoding(stream, string, on_finish, on_progress) {
 	stream.once('end', function() {
 		var result = Buffer.concat(buffers);
 		
-		on_progress(1.0);
-		on_finish(result);
+		if (!failed) {
+			on_progress(1.0);
+			on_finish(result);
+		}
 		
 		if (deferred)
 			deferred.resolve(result);
