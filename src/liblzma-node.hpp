@@ -219,6 +219,8 @@ namespace lzma {
 		/* regard as private: */
 			void doLZMACodeFromAsync();
 			void invokeBufferHandlersFromAsync();
+			void* alloc(size_t nmemb, size_t size);
+			void free(void* ptr);
 		private:
 			void resetUnderlying();
 			void doLZMACode(bool async);
@@ -236,8 +238,13 @@ namespace lzma {
 			bool hasPendingCallbacks;
 			bool hasRunningCallbacks;
 			bool isNearDeath;
-
+			
+			void adjustExternalMemory(int64_t bytesChange);
+			void reportAdjustedExternalMemoryToV8();
+			
 #ifdef LZMA_ASYNC_AVAILABLE
+			int64_t nonAdjustedExternalMemory;
+			
 			uv_cond_t lifespanCond;
 			uv_mutex_t mutex;
 			uv_cond_t inputDataCond;
@@ -265,6 +272,7 @@ namespace lzma {
 			static NAN_METHOD(AutoDecoder);
 			static NAN_METHOD(AloneDecoder);
 			
+			lzma_allocator allocator;
 			lzma_stream _;
 			size_t bufsize;
 			std::string error;

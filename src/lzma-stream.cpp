@@ -50,22 +50,44 @@ namespace {
 		delete reinterpret_cast<uv_async_t*>(handle);
 #endif
 	}
+	
+	extern "C" void* alloc_for_lzma(void *opaque, size_t nmemb, size_t size) {
+		LZMAStream* strm = static_cast<LZMAStream*>(opaque);
+		
+		return strm->alloc(nmemb, size);
+	}
+	
+	extern "C" void free_for_lzma(void *opaque, void *ptr) {
+		LZMAStream* strm = static_cast<LZMAStream*>(opaque);
+		
+		return strm->free(ptr);
+	}
 }
 
 Nan::Persistent<Function> LZMAStream::constructor;
 
-LZMAStream::LZMAStream()
-	: hasRunningThread(false), hasPendingCallbacks(false), hasRunningCallbacks(false),
-	isNearDeath(false), bufsize(8192), shouldFinish(false),
-	processedChunks(0), lastCodeResult(LZMA_OK) 
+LZMAStream::LZMAStream() :
+	hasRunningThread(false),
+	hasPendingCallbacks(false),
+	hasRunningCallbacks(false),
+	isNearDeath(false),
+	bufsize(8192),
+	shouldFinish(false),
+	processedChunks(0),
+	lastCodeResult(LZMA_OK) 
 {
 	std::memset(&_, 0, sizeof(lzma_stream));
-
+	
+	allocator.alloc = alloc_for_lzma;
+	allocator.free = free_for_lzma;
+	allocator.opaque = static_cast<void*>(this);
+	_.allocator = &allocator;
 #ifdef LZMA_ASYNC_AVAILABLE
 	uv_mutex_init(&mutex);
 	uv_cond_init(&lifespanCond);
 	uv_cond_init(&inputDataCond);
 	
+	nonAdjustedExternalMemory = 0;
 	outputDataAsync = NULL;
 #endif
 }
@@ -73,7 +95,9 @@ LZMAStream::LZMAStream()
 void LZMAStream::resetUnderlying() {
 	lzma_end(&_);
 	
+	reportAdjustedExternalMemoryToV8();
 	std::memset(&_, 0, sizeof(lzma_stream));
+	_.allocator = &allocator;
 	lastCodeResult = LZMA_OK;
 	processedChunks = 0;
 	
@@ -107,6 +131,48 @@ LZMAStream::~LZMAStream() {
 	uv_cond_destroy(&lifespanCond);
 	uv_cond_destroy(&inputDataCond);
 #endif
+
+	Nan::AdjustExternalMemory(-int64_t(sizeof(LZMAStream)));
+}
+
+void* LZMAStream::alloc(size_t nmemb, size_t size) {
+	size_t nBytes = nmemb * size;
+	
+	size_t* result = static_cast<size_t*>(::malloc(nBytes + sizeof(size_t)));
+	if (!result)
+		return result;
+	
+	*result = nBytes;
+	adjustExternalMemory(nBytes);
+	return static_cast<void*>(result + 1);
+}
+
+void LZMAStream::free(void* ptr) {
+	if (!ptr)
+		return;
+	
+	size_t* orig = static_cast<size_t*>(ptr) - 1;
+	
+	adjustExternalMemory(-*orig);
+	return ::free(static_cast<void*>(orig));
+}
+
+void LZMAStream::reportAdjustedExternalMemoryToV8() {
+#ifdef LZMA_ASYNC_AVAILABLE
+	if (nonAdjustedExternalMemory == 0)
+		return;
+	
+	Nan::AdjustExternalMemory(nonAdjustedExternalMemory);
+	nonAdjustedExternalMemory = 0;
+#endif
+}
+
+void LZMAStream::adjustExternalMemory(int64_t bytesChange) {
+#ifdef LZMA_ASYNC_AVAILABLE
+	nonAdjustedExternalMemory += bytesChange;
+#else
+	Nan::AdjustExternalMemory(bytesChange);
+#endif
 }
 
 #define LZMA_FETCH_SELF() \
@@ -117,12 +183,22 @@ LZMAStream::~LZMAStream() {
 	if (!self) { \
 		_failMissingSelf(info); \
 		return; \
-	}
+	} \
+	struct _MemScopeGuard { \
+		_MemScopeGuard(LZMAStream* self_) : self(self_) {} \
+		~_MemScopeGuard() { \
+			self->reportAdjustedExternalMemoryToV8(); \
+		} \
+		\
+		LZMAStream* self; \
+	}; \
+	_MemScopeGuard guard(self);
 
 NAN_METHOD(LZMAStream::Code) {
 	LZMA_FETCH_SELF();
 	LZMA_ASYNC_LOCK(self);
 	
+	self->reportAdjustedExternalMemoryToV8();
 	std::vector<uint8_t> inputData;
 	
 	Local<Object> bufarg = Local<Object>::Cast(info[0]);
@@ -146,15 +222,18 @@ NAN_METHOD(LZMAStream::Code) {
 	
 	if (async) {
 #ifdef LZMA_ASYNC_AVAILABLE
+		if (!self->outputDataAsync) {
+			self->outputDataAsync = new uv_async_t;
+			if (!self->outputDataAsync)
+				return;
+			
+			uv_async_init(uv_default_loop(), self->outputDataAsync, invoke_buffer_handlers_async);
+			self->outputDataAsync->data = static_cast<void*>(self);
+		}
+		
 		if (!hadRunningThread) {
 			uv_thread_t worker_id;
 			uv_thread_create(&worker_id, worker, static_cast<void*>(self));
-		}
-		
-		if (!self->outputDataAsync) {
-			self->outputDataAsync = new uv_async_t;
-			uv_async_init(uv_default_loop(), self->outputDataAsync, invoke_buffer_handlers_async);
-			self->outputDataAsync->data = static_cast<void*>(self);
 		}
 		
 		uv_cond_broadcast(&self->inputDataCond);
@@ -191,7 +270,7 @@ void LZMAStream::invokeBufferHandlers(bool async, bool hasLock) {
 		
 		assert(outputDataAsync != NULL);
 		
-		// this calls invokeBufferHandlersFromAsync() from the main loop thread
+		// this calls invokeBufferHandlersFromAsync(false, …) from the main loop thread
 		uv_async_send(outputDataAsync);
 		
 		return;
@@ -219,6 +298,7 @@ void LZMAStream::invokeBufferHandlers(bool async, bool hasLock) {
 	
 	Nan::HandleScope scope;
 	
+	reportAdjustedExternalMemoryToV8();
 	Local<Function> bufferHandler = Local<Function>::Cast(EmptyToUndefined(Nan::Get(handle(), NewString("bufferHandler"))));
 	std::vector<uint8_t> outbuf;
 	
@@ -414,7 +494,16 @@ void LZMAStream::Init(Local<Object> exports) {
 
 NAN_METHOD(LZMAStream::New) {
 	if (info.IsConstructCall()) {
-		(new LZMAStream())->Wrap(info.This());
+		LZMAStream* self = new LZMAStream();
+		if (!self) {
+			Nan::ThrowRangeError("Out of memory, cannot create LZMAStream");
+			info.GetReturnValue().SetUndefined();
+			return;
+		}
+		
+		self->Wrap(info.This());
+		Nan::AdjustExternalMemory(sizeof(LZMAStream));
+		
 		info.GetReturnValue().Set(info.This());
 	} else {
 		info.GetReturnValue().Set(Nan::New<Function>(constructor)->NewInstance(0, NULL));
