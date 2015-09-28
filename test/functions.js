@@ -85,7 +85,7 @@ describe('lzma', function() {
 			};
 			
 			assert.strictEqual(lzma.crc32(exampleSentence),
-				exampleSentenceWords.reduce(crc32Rev, 0));
+			exampleSentenceWords.reduce(crc32Rev, 0));
 		});
 		
 		it('should fail if the input type is not obvious', function() {
@@ -221,8 +221,8 @@ describe('lzma', function() {
 		});
 		
 		it('should fail if input is not an array of filter objects', function() {
-			assert.throws(function() { lzma.rawEncoderMemusage(null) });
-			assert.throws(function() { lzma.rawEncoderMemusage([null]) });
+			assert.throws(function() { lzma.rawDecoderMemusage(null) });
+			assert.throws(function() { lzma.rawDecoderMemusage([null]) });
 		});
 	});
 	

@@ -308,6 +308,17 @@ describe('LZMAStream', function() {
 				});
 			});
 		});
+		
+		it('should fail for filters which do not expect options', function() {
+			assert.throws(function() {
+				lzma.createStream('streamEncoder', {
+					filters: [
+						{ id: lzma.FILTER_X86, options: { Banana: 'Banana' } },
+						{ id: lzma.FILTER_LZMA2 }
+					]
+				});
+			});
+		});
 	});
 	
 	describe('#streamDecoder', function() {
@@ -432,6 +443,13 @@ describe('LZMAStream', function() {
 			stream.memlimitSet(1 << 30);
 			assert.equal(stream.memlimitGet(), 1 << 30);
 			fs.createReadStream('test/hamlet.txt.lzma').pipe(stream);
+		});
+		
+		it('should fail for invalid memory limit specifications', function() {
+			var stream = lzma.createStream('autoDecoder', {synchronous: true});
+			
+			// use undefined because that’s never converted to Number
+			assert.throws(function() { stream.memlimitSet(undefined); });
 		});
 	});
 	

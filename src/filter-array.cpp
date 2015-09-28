@@ -68,7 +68,7 @@ FilterArray::FilterArray(Local<Array> arr) : ok_(false) {
 				f.options = &bopt.lzma;
 				break;
 			default:
-				Nan::ThrowTypeError("LZMA Wrapper library understands .options only for DELTA and LZMA1, LZMA2 filters");
+				Nan::ThrowTypeError("LZMA wrapper library understands .options only for DELTA and LZMA1, LZMA2 filters");
 				return;
 		}
 		

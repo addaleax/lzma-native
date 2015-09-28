@@ -129,8 +129,10 @@ NAN_METHOD(LZMAStream::Code) {
 	if (bufarg.IsEmpty() || bufarg->IsUndefined() || bufarg->IsNull()) {
 		self->shouldFinish = true;
 	} else {
-		if (!readBufferFromObj(bufarg, inputData)) 
+		if (!readBufferFromObj(bufarg, inputData)) {
 			info.GetReturnValue().SetUndefined();
+			return;
+		}
 		
 		if (inputData.empty())
 			self->shouldFinish = true;
@@ -458,8 +460,9 @@ NAN_METHOD(LZMAStream::MemlimitSet) {
 	
 	Local<Number> arg = Local<Number>::Cast(info[0]);
 	if (info[0]->IsUndefined() || arg.IsEmpty()) {
-		Nan::ThrowTypeError("memlimitSet() needs an number argument");
+		Nan::ThrowTypeError("memlimitSet() needs a numerical argument");
 		info.GetReturnValue().SetUndefined();
+		return;
 	}
 	
 	info.GetReturnValue().Set(lzmaRet(lzma_memlimit_set(&self->_, NumberToUint64ClampNullMax(arg))));
