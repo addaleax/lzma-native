@@ -437,14 +437,20 @@ NAN_METHOD(LZMAStream::TotalIn) {
 	LZMA_FETCH_SELF();
 	LZMA_ASYNC_LOCK(self);
 	
-	info.GetReturnValue().Set(Nan::New<Number>(self->_.total_in));
+	uint64_t in, out;
+	
+	lzma_get_progress(&self->_, &in, &out);
+	info.GetReturnValue().Set(Nan::New<Number>(in));
 }
 
 NAN_METHOD(LZMAStream::TotalOut) {
 	LZMA_FETCH_SELF();
 	LZMA_ASYNC_LOCK(self);
 	
-	info.GetReturnValue().Set(Nan::New<Number>(self->_.total_out));
+	uint64_t in, out;
+	
+	lzma_get_progress(&self->_, &in, &out);
+	info.GetReturnValue().Set(Nan::New<Number>(out));
 }
 
 NAN_METHOD(LZMAStream::MemlimitGet) {
