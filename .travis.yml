@@ -42,7 +42,7 @@ before_install:
 install:
   - env LDFLAGS=--coverage CFLAGS="$CFLAGS --coverage" CXXFLAGS="$CXXFLAGS --coverage" npm install $NPMOPT
 script:
-  - ./node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec -s 1000 -t 5000
+  - node --expose-gc ./node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec -s 1000 -t 5000
 after_success:
   - cpp-coveralls --gcov-options '\-lp' --build-root build --exclude build/liblzma --exclude node_modules --dump coverage/cppfiles.json
   - ./node_modules/coveralls/bin/coveralls.js --stdout < coverage/lcov.info > coverage/jsfiles.json

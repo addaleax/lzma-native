@@ -471,7 +471,13 @@ describe('LZMAStream', function() {
 		});
 	});
 	
-	after('should not have any open asynchronous streams', function() {
-		assert.equal(lzma.Stream.curAsyncStreams.length, 0);
+	after('should not have any open asynchronous streams', function(done) {
+		if (typeof gc === 'function')
+			gc();
+			
+		setTimeout(function() {
+			assert.equal(lzma.Stream.curAsyncStreams.length, 0);
+			done();
+		}, 500);
 	});
 });
