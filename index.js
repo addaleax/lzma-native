@@ -58,6 +58,12 @@ Stream.prototype.getStream = function(options) {
 		self.synchronous = (options.synchronous || !native.asyncCodeAvailable) ? true : false;
 		self.chunkCallbacks = [];
 		
+		self.totalIn_ = 0;
+		self.totalOut_ = 0;
+		
+		self.totalIn  = function() { return self.totalIn_; };
+		self.totalOut = function() { return self.totalOut_; };
+		
 		var cleanup = function() {
 			self.nativeStream = null;
 		};
@@ -92,13 +98,25 @@ Stream.prototype.getStream = function(options) {
 		// always clean up in case of error
 		self.once('error-cleanup', cleanup);
 		
-		self.nativeStream.bufferHandler = function(buf, processedChunks, err) {
+		self.nativeStream.bufferHandler = function(buf, processedChunks, err, totalIn, totalOut) {
+			if (totalIn !== null) {
+				self.totalIn_  = totalIn;
+				self.totalOut_ = totalOut;
+			}
+			
 			process.nextTick(function() {
 				if (err) {
 					self.push(null);
 					self.emit('error-cleanup', err);
 					self.emit('error', err);
 					_forceNextTickCb();
+				}
+				
+				if (totalIn !== null) {
+					self.emit('progress', {
+						totalIn: self.totalIn_,
+						totalOut: self.totalOut_
+					});
 				}
 				
 				if (typeof processedChunks == 'number') {
@@ -247,6 +265,11 @@ function singleStringCoding(stream, string, on_finish, on_progress) {
 	on_progress = on_progress || function() {};
 	on_finish = on_finish || function() {};
 	
+	// possibly our input is an array of byte integers
+	// or a typed array
+	if (!Buffer.isBuffer(string))
+		string = new Buffer(string);
+	
 	var deferred = null, failed = false;
 	
 	stream.once('error', function(err) {
@@ -264,7 +287,10 @@ function singleStringCoding(stream, string, on_finish, on_progress) {
 	
 	var buffers = [];
 
-	stream.on('data', function(b) { buffers.push(b); });
+	stream.on('data', function(b) {
+		buffers.push(b);
+	});
+	
 	stream.once('end', function() {
 		var result = Buffer.concat(buffers);
 		
@@ -278,11 +304,6 @@ function singleStringCoding(stream, string, on_finish, on_progress) {
 	});
 
 	on_progress(0.0);
-	
-	// possibly our input is an array of byte integers
-	// or a typed array
-	if (!Buffer.isBuffer(string))
-		string = new Buffer(string);
 	
 	stream.end(string);
 	

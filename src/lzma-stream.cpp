@@ -304,16 +304,22 @@ void LZMAStream::invokeBufferHandlers(bool async, bool hasLock) {
 	
 #define CALL_BUFFER_HANDLER_WITH_ARGV \
 	POSSIBLY_UNLOCK_MX; \
-	bufferHandler->Call(handle(), 3, argv); \
+	bufferHandler->Call(handle(), 5, argv); \
 	POSSIBLY_LOCK_MX;
+	
+	uint64_t in = UINT64_MAX, out = UINT64_MAX;
+	if (_.internal)
+		lzma_get_progress(&_, &in, &out);
+	Local<Value> in_   = Uint64ToNumberMaxNull(in);
+	Local<Value> out_  = Uint64ToNumberMaxNull(out);
 	
 	while (outbufs.size() > 0) {
 		outbuf = LZMA_NATIVE_MOVE(outbufs.front());
 		outbufs.pop();
 		
-		Local<Value> argv[3] = {
+		Local<Value> argv[5] = {
 			Nan::CopyBuffer(reinterpret_cast<const char*>(outbuf.data()), outbuf.size()).ToLocalChecked(),
-			Nan::Undefined(), Nan::Undefined()
+			Nan::Undefined(), Nan::Undefined(), in_, out_
 		};
 		CALL_BUFFER_HANDLER_WITH_ARGV
 	}
@@ -327,7 +333,7 @@ void LZMAStream::invokeBufferHandlers(bool async, bool hasLock) {
 		
 		reset = true;
 		
-		Local<Value> argv[3] = { Nan::Null(), Nan::Undefined(), errorArg };
+		Local<Value> argv[5] = { Nan::Null(), Nan::Undefined(), errorArg, in_, out_ };
 		CALL_BUFFER_HANDLER_WITH_ARGV
 	}
 	
@@ -335,7 +341,7 @@ void LZMAStream::invokeBufferHandlers(bool async, bool hasLock) {
 		size_t pc = processedChunks;
 		processedChunks = 0;
 		
-		Local<Value> argv[3] = { Nan::Undefined(), Nan::New<Integer>(uint32_t(pc)), Nan::Undefined() };
+		Local<Value> argv[5] = { Nan::Undefined(), Nan::New<Integer>(uint32_t(pc)), Nan::Undefined(), in_, out_ };
 		CALL_BUFFER_HANDLER_WITH_ARGV
 	}
 	
@@ -477,8 +483,6 @@ void LZMAStream::Init(Local<Object> exports) {
 	tpl->PrototypeTemplate()->Set(NewString("memusage"),       Nan::New<FunctionTemplate>(Memusage)->GetFunction());
 	tpl->PrototypeTemplate()->Set(NewString("memlimitGet"),    Nan::New<FunctionTemplate>(MemlimitGet)->GetFunction());
 	tpl->PrototypeTemplate()->Set(NewString("memlimitSet"),    Nan::New<FunctionTemplate>(MemlimitSet)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NewString("totalIn"),        Nan::New<FunctionTemplate>(TotalIn)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NewString("totalOut"),       Nan::New<FunctionTemplate>(TotalOut)->GetFunction());
 	tpl->PrototypeTemplate()->Set(NewString("rawEncoder_"),    Nan::New<FunctionTemplate>(RawEncoder)->GetFunction());
 	tpl->PrototypeTemplate()->Set(NewString("rawDecoder_"),    Nan::New<FunctionTemplate>(RawDecoder)->GetFunction());
 	tpl->PrototypeTemplate()->Set(NewString("filtersUpdate"),  Nan::New<FunctionTemplate>(FiltersUpdate)->GetFunction());
@@ -520,26 +524,6 @@ NAN_METHOD(LZMAStream::Memusage) {
 	LZMA_ASYNC_LOCK(self);
 	
 	info.GetReturnValue().Set(Uint64ToNumber0Null(lzma_memusage(&self->_)));
-}
-
-NAN_METHOD(LZMAStream::TotalIn) {
-	LZMA_FETCH_SELF();
-	LZMA_ASYNC_LOCK(self);
-	
-	uint64_t in, out;
-	
-	lzma_get_progress(&self->_, &in, &out);
-	info.GetReturnValue().Set(Nan::New<Number>(in));
-}
-
-NAN_METHOD(LZMAStream::TotalOut) {
-	LZMA_FETCH_SELF();
-	LZMA_ASYNC_LOCK(self);
-	
-	uint64_t in, out;
-	
-	lzma_get_progress(&self->_, &in, &out);
-	info.GetReturnValue().Set(Nan::New<Number>(out));
 }
 
 NAN_METHOD(LZMAStream::MemlimitGet) {

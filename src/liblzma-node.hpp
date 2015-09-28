@@ -258,8 +258,6 @@ namespace lzma {
 
 			static NAN_METHOD(Code);
 			static NAN_METHOD(Memusage);
-			static NAN_METHOD(TotalIn);
-			static NAN_METHOD(TotalOut);
 			static NAN_METHOD(MemlimitGet);
 			static NAN_METHOD(MemlimitSet);
 			static NAN_METHOD(RawEncoder);
