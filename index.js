@@ -330,7 +330,9 @@ exports.LZMA = function() {
 			var stream = createStream('autoDecoder');
 			
 			return singleStringCoding(stream, byte_array, on_finish, on_progress);
-		}
+		},
+		// dummy, we don’t use web workers
+		worker: function() { return null; }
 	};
 };
 

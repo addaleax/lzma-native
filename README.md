@@ -174,7 +174,6 @@ Param         |  Type                   |  Description
 If [Q][Q] is available, a promise will be returned.
 
 This does not work exactly as described in the original [LZMA-JS][LZMA-JS] specification:
- * `on_finish` receives a second `error` argument in order to avoid uncaught exceptions.
  * The results are `Buffer` objects, not integer arrays. This just makes a lot
    more sense in a Node.js environment.
  * `on_progress` is currently only called with `0.0` and `1.0`.
