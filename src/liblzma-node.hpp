@@ -256,6 +256,7 @@ namespace lzma {
 #define LZMA_ASYNC_LOCK(strm)
 #endif
 
+			static NAN_METHOD(ResetUnderlying);
 			static NAN_METHOD(Code);
 			static NAN_METHOD(Memusage);
 			static NAN_METHOD(MemlimitGet);

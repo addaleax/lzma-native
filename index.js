@@ -32,7 +32,7 @@ try {
 
 extend(exports, native);
 
-exports.version = '0.3.9';
+exports.version = '0.3.10';
 
 var Stream = exports.Stream;
 
@@ -65,6 +65,9 @@ Stream.prototype.getStream = function(options) {
 		self.totalOut = function() { return self.totalOut_; };
 		
 		var cleanup = function() {
+			if (self.nativeStream)
+				self.nativeStream.resetUnderlying();
+			
 			self.nativeStream = null;
 		};
 		
