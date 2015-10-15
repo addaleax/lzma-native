@@ -71,7 +71,8 @@ LZMAStream::LZMAStream()
 }
 
 void LZMAStream::resetUnderlying() {
-	lzma_end(&_);
+	if (_.internal)
+		lzma_end(&_);
 	
 	std::memset(&_, 0, sizeof(lzma_stream));
 	lastCodeResult = LZMA_OK;
@@ -118,6 +119,15 @@ LZMAStream::~LZMAStream() {
 		_failMissingSelf(info); \
 		return; \
 	}
+
+NAN_METHOD(LZMAStream::ResetUnderlying) {
+	LZMA_FETCH_SELF();
+	LZMA_ASYNC_LOCK(self);
+	
+	self->resetUnderlying();
+	
+	info.GetReturnValue().SetUndefined();
+}
 
 NAN_METHOD(LZMAStream::Code) {
 	LZMA_FETCH_SELF();
@@ -187,10 +197,10 @@ void LZMAStream::invokeBufferHandlers(bool async, bool hasLock) {
 #ifdef LZMA_ASYNC_AVAILABLE
 		hasPendingCallbacks = true;
 		
-		assert(outputDataAsync != NULL);
-		
-		// this calls invokeBufferHandlersFromAsync() from the main loop thread
-		uv_async_send(outputDataAsync);
+		if (outputDataAsync) {
+			// this calls invokeBufferHandlersFromAsync(false, …) from the main loop thread
+			uv_async_send(outputDataAsync);
+		}
 		
 		return;
 #else
@@ -391,21 +401,23 @@ void LZMAStream::Init(Local<Object> exports) {
 	tpl->SetClassName(NewString("LZMAStream"));
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 	
-	tpl->PrototypeTemplate()->Set(NewString("code"),           Nan::New<FunctionTemplate>(Code)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NewString("memusage"),       Nan::New<FunctionTemplate>(Memusage)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NewString("memlimitGet"),    Nan::New<FunctionTemplate>(MemlimitGet)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NewString("memlimitSet"),    Nan::New<FunctionTemplate>(MemlimitSet)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NewString("totalIn"),        Nan::New<FunctionTemplate>(TotalIn)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NewString("totalOut"),       Nan::New<FunctionTemplate>(TotalOut)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NewString("rawEncoder_"),    Nan::New<FunctionTemplate>(RawEncoder)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NewString("rawDecoder_"),    Nan::New<FunctionTemplate>(RawDecoder)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NewString("filtersUpdate"),  Nan::New<FunctionTemplate>(FiltersUpdate)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NewString("easyEncoder_"),   Nan::New<FunctionTemplate>(EasyEncoder)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NewString("streamEncoder_"), Nan::New<FunctionTemplate>(StreamEncoder)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NewString("aloneEncoder"),   Nan::New<FunctionTemplate>(AloneEncoder)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NewString("streamDecoder_"), Nan::New<FunctionTemplate>(StreamDecoder)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NewString("autoDecoder_"),   Nan::New<FunctionTemplate>(AutoDecoder)->GetFunction());
-	tpl->PrototypeTemplate()->Set(NewString("aloneDecoder_"),  Nan::New<FunctionTemplate>(AloneDecoder)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NewString("resetUnderlying"), Nan::New<FunctionTemplate>(ResetUnderlying)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NewString("code"),            Nan::New<FunctionTemplate>(Code)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NewString("memusage"),        Nan::New<FunctionTemplate>(Memusage)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NewString("memlimitGet"),     Nan::New<FunctionTemplate>(MemlimitGet)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NewString("memlimitSet"),     Nan::New<FunctionTemplate>(MemlimitSet)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NewString("totalIn"),         Nan::New<FunctionTemplate>(TotalIn)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NewString("totalOut"),        Nan::New<FunctionTemplate>(TotalOut)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NewString("rawEncoder_"),     Nan::New<FunctionTemplate>(RawEncoder)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NewString("rawDecoder_"),     Nan::New<FunctionTemplate>(RawDecoder)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NewString("filtersUpdate"),   Nan::New<FunctionTemplate>(FiltersUpdate)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NewString("easyEncoder_"),    Nan::New<FunctionTemplate>(EasyEncoder)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NewString("streamEncoder_"),  Nan::New<FunctionTemplate>(StreamEncoder)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NewString("aloneEncoder"),    Nan::New<FunctionTemplate>(AloneEncoder)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NewString("streamDecoder_"),  Nan::New<FunctionTemplate>(StreamDecoder)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NewString("autoDecoder_"),    Nan::New<FunctionTemplate>(AutoDecoder)->GetFunction());
+	tpl->PrototypeTemplate()->Set(NewString("aloneDecoder_"),   Nan::New<FunctionTemplate>(AloneDecoder)->GetFunction());
+	
 	constructor.Reset(tpl->GetFunction());
 	exports->Set(NewString("Stream"), Nan::New<Function>(constructor));
 }

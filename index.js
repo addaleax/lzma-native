@@ -59,6 +59,9 @@ Stream.prototype.getStream = function(options) {
 		self.chunkCallbacks = [];
 		
 		var cleanup = function() {
+			if (self.nativeStream)
+				self.nativeStream.resetUnderlying();
+			
 			self.nativeStream = null;
 		};
 		
