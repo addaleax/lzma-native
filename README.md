@@ -69,7 +69,8 @@ lzma.compress('Banana', function(result) {
 Again, replace `lzma.compress` with `lzma.decompress` and you’ll get the inverse transformation.
 
 If you have [Q][Q] available, `lzma.compress` and `lzma.decompress`
-will return Q promises and you don’t need any kind of callback.
+will return Q promises and you don’t need any kind of callback
+([Example code](#api-q-compress-examle)).
 
 <a name="api"></a>
 ## API
