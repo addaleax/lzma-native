@@ -3,7 +3,7 @@
 	"version": "0.4.0",
 	"engines": { "node": ">=0.10" },
 	"author": {
-		"name": "Hauke Henningsen",
+		"name": "Anna Henningsen",
 		"email": "sqrt@entless.org"
 	},
 	"description": "Provides bindings to the native liblzma library (.xz file format, among others)",
