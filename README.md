@@ -67,8 +67,8 @@ lzma.compress('Banana', function(result) {
 
 Again, replace `lzma.compress` with `lzma.decompress` and you’ll get the inverse transformation.
 
-If you have [Q][Q] available, `lzma.compress` and `lzma.decompress`
-will return Q promises and you don’t need any kind of callback
+For `node >= 0.12` (with `Promise` available), `lzma.compress` and `lzma.decompress`
+will return promises and you don’t need to provide any kind of callback
 ([Example code](#api-q-compress-examle)).
 
 <a name="api"></a>
@@ -112,6 +112,9 @@ other LZMA libraries so you can use it nearly as a drop-in replacement:
  * [`versionString()`](#api-version-string) – Native library version string
  * [`versionNumber()`](#api-version-number) – Native library numerical version identifier
 
+[Internals](#api-internals)
+ * [`setPromiseAPI`](#api-set-promise-api) – Set (or unset) the `Promise` API
+
 <a name="api-encoding-buffers"></a>
 ### Encoding strings and Buffer objects
 
@@ -127,7 +130,7 @@ Param        |  Type            |  Description
 [`opt`]      | Options / int    | Optional. See [options](#api-options)
 `on_finish`  | Callback         | Will be invoked with the resulting Buffer as the first parameter when encoding is finished, and as `on_finish(null, err)` in case of an error.
 
-If [Q][Q] is available, a promise will be returned.
+If promises are available, a promise will be returned.
 
 Example code:
 <!-- runtest:{Compress and decompress directly} -->
@@ -141,15 +144,17 @@ lzma.compress('Bananas', 9, function(result) {
 ```
 
 <a name="api-q-compress-examle"></a>
-Example code for [Q][Q] promises:
-<!-- runtest:{Compress and decompress directly using Q promises} -->
+Example code for promises:
+<!-- runtest:{Compress and decompress directly using promises} -->
 
 ```js
 lzma.compress('Bananas', 9).then(function(result) {
 	return lzma.decompress(result);
 }).then(function(decompressedResult) {
 	assert.equal(decompressedResult.toString(), 'Bananas');
-}).done();
+}).catch(function(err) {
+	// ...
+});
 ```
 
 <a name="api-LZMA_compress"></a>
@@ -171,7 +176,7 @@ Param         |  Type                   |  Description
 `on_finish`   | Callback                | Will be invoked with the resulting Buffer as the first parameter when encoding is finished, and as `on_finish(null, err)` in case of an error.
 `on_progress` | Callback                | Indicates progress by passing a number in [0.0, 1.0]. Currently, this package only invokes the callback with 0.0 and 1.0.
 
-If [Q][Q] is available, a promise will be returned.
+If promises are available, a promise will be returned.
 
 This does not work exactly as described in the original [LZMA-JS][LZMA-JS] specification:
  * The results are `Buffer` objects, not integer arrays. This just makes a lot
@@ -189,7 +194,7 @@ lzma.LZMA().compress('Bananas', 4, function(result) {
 });
 ```
 
-For an example using [Q][Q] promises, see [`compress()`](#api-q-compress-examle).
+For an example using promises, see [`compress()`](#api-q-compress-examle).
 
 <a name="api-creating-streams"></a>
 ### Creating streams for encoding
@@ -462,6 +467,40 @@ Example usage:
 ```js
 lzma.versionNumber() // => 50020012
 ```
+
+<a name="api-internals"></a>
+### Internals
+
+<a name="api-set-promise-api"></a>
+#### `lzma.setPromiseAPI()`
+`lzma.setPromiseAPI([api])`
+
+Set the used `Promise` API for the methods that encode/decode single strings
+of buffers in one run. Supported are [Q][Q], the ES6 `Promise` and
+(currently) any other object that provides a matching `.defer()` method.
+You can pass in `null` to remove promise support and `'default'` to reset
+everything to auto-detection.
+
+The previous value will be returned; Passing no parameters will result in
+no change, i.e. can be used to test for availability of promises.
+
+Example usage:
+<!-- runtest:{Set the promise API} -->
+
+```js
+lzma.setPromiseAPI() // => [Function: Promise] or similar
+
+var Q = require('q');
+lzma.setPromiseAPI(Q); // => old value, e.g. [Function: Promise]
+lzma.setPromiseAPI(); // => Q
+lzma.setPromiseAPI(null); // disable promises, return Q again
+lzma.setPromiseAPI('default'); // back to square 1
+```
+
+Note: This module uses the ES6 Promise API by default, which can be found
+in all Node.js versions `>= 0.12`. If no global `Promise` object is detected,
+but [Q][Q] is somewhere in your `node_modules`, it will be used; Otherwise,
+promises are not available by default.
 
 ## Installation
 

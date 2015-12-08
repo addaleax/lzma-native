@@ -25,14 +25,40 @@ var util = require('util');
 var extend = require('util-extend');
 var assert = require('assert');
 
-var Q = null; // Q is an optional dependency
-try {
-	Q = require('q');
-} catch(e) {}
-
 extend(exports, native);
 
-exports.version = '0.4.0';
+// Q is an optional dependency which will be used when the ES6 API is not
+// available, unless overridden by setPromise
+var Promise_ = null;
+
+// helper to enable/disable promises
+exports.setPromiseAPI = function(newPromiseAPI) {
+	var oldPromiseAPI = Promise_;
+	
+	if (newPromiseAPI === 'default') {
+		newPromiseAPI = null;
+		// try ES6 Promise first
+		if (typeof Promise === 'function')
+			newPromiseAPI = Promise;
+		
+		// try Q
+		if (newPromiseAPI === null) {
+			try {
+				newPromiseAPI = require('q');
+			} catch(e) {}
+		}
+	}
+	
+	// allow passing in undefined to only *get* the currently used API
+	if (typeof newPromiseAPI !== 'undefined')
+		Promise_ = newPromiseAPI;
+	
+	return oldPromiseAPI;
+};
+
+exports.setPromiseAPI('default');
+
+exports.version = '0.5.0';
 
 var Stream = exports.Stream;
 
@@ -280,8 +306,10 @@ function singleStringCoding(stream, string, on_finish, on_progress) {
 		on_finish(null, err);
 	});
 	
-	if (Q) {
-		deferred = Q.defer();
+	if (Promise_) {
+		// possibly Promise_ === Promise or Promise_ === Q
+		// -> both APIs should be supported (they are the same for .defer)
+		deferred = Promise_.defer();
 		
 		stream.once('error', function(e) {
 			deferred.reject(e);
@@ -354,13 +382,6 @@ exports.decompress = function(string, opt, on_finish) {
 	
 	var stream = createStream('autoDecoder', opt);
 	return singleStringCoding(stream, string, on_finish);
-};
-
-// helper for tests to enable/disable Q promises
-exports._setQ = function(newQ) {
-	var oldQ = Q;
-	Q = newQ;
-	return oldQ;
 };
 
 exports.isXZ = function(buf) {

@@ -134,8 +134,41 @@ describe('lzma.compress()/decompress()', function() {
 			});
 		});
 	});
+});
+
+describe('lzma.compress()/decompress() with Q promises', function() {
+	var oldPromiseAPI;
+	before('set Promise API to Q',  function() { oldPromiseAPI = lzma.setPromiseAPI(require('q')); });
+	after('re-enable old Promise API', function() { lzma.setPromiseAPI(oldPromiseAPI); });
 	
-	it('can round-trip with Q promises enabled', function() {
+	it('can round-trip', function() {
+		return lzma.compress('Bananas', 9).then(function(result) {
+			assert.equal(result.toString('base64'), BananasCompressed);
+			return lzma.decompress(result);
+		}).then(function(result) {
+			assert.ok(Buffer.isBuffer(result));
+			assert.equal(result.toString(), 'Bananas');
+		});
+	});
+	
+	it('fails for invalid input', function() {
+		return lzma.decompress('ABC').then(function(result) {
+			assert.ok(false); // never get here due to error
+		}).catch(function(err) {
+			assert.ok(err);
+		});
+	});
+});
+
+describe('lzma.compress()/decompress() with ES6 Promises', function() {
+	if (typeof Promise !== 'function')
+		return; // sorry, nothing to test here
+	
+	var oldPromiseAPI;
+	before('set Promise API to Q',  function() { oldPromiseAPI = lzma.setPromiseAPI(Promise); });
+	after('re-enable old Promise API', function() { lzma.setPromiseAPI(oldPromiseAPI); });
+	
+	it('can round-trip', function() {
 		return lzma.compress('Bananas', 9).then(function(result) {
 			assert.equal(result.toString('base64'), BananasCompressed);
 			return lzma.decompress(result);
@@ -155,9 +188,9 @@ describe('lzma.compress()/decompress()', function() {
 });
 
 describe('lzma.compress()/decompress() without promises', function() {
-	var oldQ;
-	before('disable Q',  function() { oldQ = lzma._setQ(null); });
-	after('re-enable Q', function() { lzma._setQ(oldQ); });
+	var oldPromiseAPI;
+	before('set Promise API to Q',  function() { oldPromiseAPI = lzma.setPromiseAPI(null); });
+	after('re-enable old Promise API', function() { lzma.setPromiseAPI(oldPromiseAPI); });
 	
 	it('can round-trip', function(done) {
 		lzma.compress('Bananas', 9, function(result) {
@@ -177,5 +210,22 @@ describe('lzma.compress()/decompress() without promises', function() {
 			assert.ok(err);
 			done();
 		});
+	});
+});
+
+describe('lzma.setPromiseAPI', function() {
+	it('Should set or return the currently used API', function() {
+		var fakeAPI = {v: 1};
+		var old = lzma.setPromiseAPI(fakeAPI);
+		
+		assert.strictEqual(fakeAPI, lzma.setPromiseAPI());
+		assert.strictEqual(fakeAPI, lzma.setPromiseAPI());
+		
+		var reset = lzma.setPromiseAPI(old);
+		assert.notStrictEqual(fakeAPI, lzma.setPromiseAPI());
+		assert.strictEqual(fakeAPI, reset);
+		
+		lzma.setPromiseAPI('default');
+		assert.strictEqual(old, lzma.setPromiseAPI());
 	});
 });
