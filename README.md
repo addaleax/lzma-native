@@ -113,7 +113,7 @@ other LZMA libraries so you can use it nearly as a drop-in replacement:
  * [`versionNumber()`](#api-version-number) – Native library numerical version identifier
 
 [Internals](#api-internals)
- * [`setPromiseAPI`](#api-set-promise-api) – Set (or unset) the `Promise` API
+ * [`setPromiseAPI()`](#api-set-promise-api) – Set (or unset) the `Promise` API
 
 <a name="api-encoding-buffers"></a>
 ### Encoding strings and Buffer objects
