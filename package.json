@@ -1,6 +1,6 @@
 {
 	"name": "lzma-native",
-	"version": "0.3.10",
+	"version": "0.3.11",
 	"engines": { "node": ">=0.10" },
 	"author": {
 		"name": "Hauke Henningsen",
@@ -43,7 +43,7 @@
 		"mocha": "*",
 		"istanbul": "*",
 		"bl": "*",
-		"coveralls": "git+https://github.com/addaleax/node-coveralls.git#write-to-stdout",
+		"coveralls": ">=2.11.6",
 		"q": "^1.4.1"
 	}
 }
