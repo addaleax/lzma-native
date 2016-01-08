@@ -18,29 +18,29 @@ var lzma = require('../');
  */
 
 describe('Example code in README', function() {
-	var snippets = [];
-	var testSnippedRE = /<!--[^-]*runtest:\{((?!--)[^\}]+)\}[^-]*-->[^`]*```(?:js)?\n((?:[^`]|\n)+)```/mgi;
-	
-	var README = fs.readFileSync(path.join(__dirname, '../README.md'), 'utf-8');
-	
-	var match;
-	while (match = testSnippedRE.exec(README))
-		snippets.push({ name: match[1], code: match[2] });
-	
-	var identity = function(v) { return v; };
-	
-	describe('Should correctly run all test scripts', function() {
-		for (var i = 0; i < snippets.length; i++) { (function() {
-			var code = snippets[i].code;
-			
-			code = code.replace(/var lzma = [^;]+;/mg, '');
-			code = code.replace(/console\.(log|error|warn|trace)/g, 'identity');
-			code = code.replace(/process\.stdin/g, 'fs.createReadStream("test/random")');
-			code = code.replace(/process\.stdout/g, '(new helpers.NullStream())');
-			
-			it('Should run README test script: ' + snippets[i].name, function() {
-				return eval(code);
-			});
-		})(); }
-	});
+  var snippets = [];
+  var testSnippedRE = /<!--[^-]*runtest:\{((?!--)[^\}]+)\}[^-]*-->[^`]*```(?:js)?\n((?:[^`]|\n)+)```/mgi;
+  
+  var README = fs.readFileSync(path.join(__dirname, '../README.md'), 'utf-8');
+  
+  var match;
+  while (match = testSnippedRE.exec(README))
+    snippets.push({ name: match[1], code: match[2] });
+  
+  var identity = function(v) { return v; };
+  
+  describe('Should correctly run all test scripts', function() {
+    for (var i = 0; i < snippets.length; i++) { (function() {
+      var code = snippets[i].code;
+      
+      code = code.replace(/var lzma = [^;]+;/mg, '');
+      code = code.replace(/console\.(log|error|warn|trace)/g, 'identity');
+      code = code.replace(/process\.stdin/g, 'fs.createReadStream("test/random")');
+      code = code.replace(/process\.stdout/g, '(new helpers.NullStream())');
+      
+      it('Should run README test script: ' + snippets[i].name, function() {
+        return eval(code);
+      });
+    })(); }
+  });
 });
