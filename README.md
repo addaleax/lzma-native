@@ -310,6 +310,7 @@ Option name   |  Type      |  Description
 `preset`      | int        |  A number from 0 to 9, 0 being the fastest and weakest compression, 9 the slowest and highest compression level. (Please also see the [xz(1) manpage][xz-manpage] for notes – don’t just blindly use 9!) You can also OR this with `lzma.PRESET_EXTREME` (the `-e` option to the `xz` command line utility).
 `flags`       | int        |  A bitwise or of `lzma.LZMA_TELL_NO_CHECK`, `lzma.LZMA_TELL_UNSUPPORTED_CHECK`, `lzma.LZMA_TELL_ANY_CHECK`, `lzma.LZMA_CONCATENATED`
 `synchronous` | bool       |  If true, forces synchronous coding (i.e. no usage of threading)
+`bufsize`     | int        |  The default size for allocated buffers
 
 <a name="api-options-filters"></a>
 `options.filters` can, if the coder supports it, be an array of filter objects, each with the following properties:
@@ -528,7 +529,7 @@ higher compression ratios than other algorithms, though.
 
 ## Acknowledgements
 
-This project is financially supported by the [Tradity project](https://tradity.de/).
+Initial development of this project was financially supported by [Tradity](https://tradity.de/).
 
 [node-xz]: https://github.com/robey/node-xz
 [LZMA-JS]: https://github.com/nmrugg/LZMA-JS

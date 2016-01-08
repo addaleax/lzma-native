@@ -1,6 +1,6 @@
 /**
  * lzma-native - Node.js bindings for liblzma
- * Copyright (C) 2014-2015 Anna Henningsen <sqrt@entless.org>
+ * Copyright (C) 2014-2016 Anna Henningsen <sqrt@entless.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -174,6 +174,23 @@ Stream.prototype.getStream = function(options) {
 		Object.keys(native.Stream.prototype).forEach(function(key) {
 			self[key] = function() { return self.nativeStream[key].apply(self.nativeStream, arguments); };
 		});
+		
+		Object.defineProperty(self, 'bufsize', {
+			get: function() {
+				return self.setBufsize(null);
+			},
+			set: function(n) {
+				if (typeof n !== 'number' || !(n > 0)) {
+					throw new TypeError('bufsize must be a positive number');
+				}
+				
+				return self.setBufsize(parseInt(n));
+			}
+		});
+		
+		if (typeof options.bufsize !== 'undefined') {
+			return self.bufsize = options.bufsize;
+		}
 	};
 	
 	util.inherits(ret, stream.Transform);

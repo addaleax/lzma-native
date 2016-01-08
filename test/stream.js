@@ -1,6 +1,6 @@
 /**
  * lzma-native - Node.js bindings for liblzma
- * Copyright (C) 2014-2015 Anna Henningsen <sqrt@entless.org>
+ * Copyright (C) 2014-2016 Anna Henningsen <sqrt@entless.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -468,6 +468,43 @@ describe('LZMAStream', function() {
 			});
 			
 			fs.createReadStream('test/hamlet.txt.lzma').pipe(stream);
+		});
+	});
+	
+	describe('bufsize', function() {
+		it('Should only accept positive integers', function() {
+			var stream = new lzma.createStream({synchronous: true});
+			
+			assert.throws(function() {
+				stream.bufsize = 'Not numeric';
+			}, /bufsize must be a positive number/);
+			
+			assert.throws(function() {
+				stream.bufsize = 0;
+			}, /bufsize must be a positive number/);
+			
+			assert.throws(function() {
+				stream.bufsize = -65536;
+			}, /bufsize must be a positive number/);
+		});
+		
+		it('Should default to 64k', function() {
+			var stream = new lzma.createStream({synchronous: true});
+			
+			assert.strictEqual(stream.bufsize, 65536);
+		});
+		
+		it('Should accept values from options', function() {
+			var stream = new lzma.createStream({synchronous: true, bufsize: 16384});
+			
+			assert.strictEqual(stream.bufsize, 16384);
+		});
+		
+		it('Should be overridable', function() {
+			var stream = new lzma.createStream({synchronous: true});
+			
+			stream.bufsize = 8192;
+			assert.strictEqual(stream.bufsize, 8192);
 		});
 	});
 	

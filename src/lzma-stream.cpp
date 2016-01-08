@@ -1,6 +1,6 @@
 /**
  * lzma-native - Node.js bindings for liblzma
- * Copyright (C) 2014-2015 Anna Henningsen <sqrt@entless.org>
+ * Copyright (C) 2014-2016 Anna Henningsen <sqrt@entless.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -71,7 +71,7 @@ LZMAStream::LZMAStream() :
 	hasPendingCallbacks(false),
 	hasRunningCallbacks(false),
 	isNearDeath(false),
-	bufsize(8192),
+	bufsize(65536),
 	shouldFinish(false),
 	processedChunks(0),
 	lastCodeResult(LZMA_OK) 
@@ -202,6 +202,22 @@ NAN_METHOD(LZMAStream::ResetUnderlying) {
 	self->resetUnderlying();
 	
 	info.GetReturnValue().SetUndefined();
+}
+
+NAN_METHOD(LZMAStream::SetBufsize) {
+	size_t oldBufsize, newBufsize = NumberToUint64ClampNullMax(info[0]);
+	
+	{
+		LZMA_FETCH_SELF();
+		LZMA_ASYNC_LOCK(self);
+		
+		oldBufsize = self->bufsize;
+		
+		if (newBufsize && newBufsize != UINT_MAX)
+			self->bufsize = newBufsize;
+	}
+	
+	info.GetReturnValue().Set(double(oldBufsize));
 }
 
 NAN_METHOD(LZMAStream::Code) {
@@ -489,6 +505,7 @@ void LZMAStream::Init(Local<Object> exports) {
 	tpl->SetClassName(NewString("LZMAStream"));
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 	
+	tpl->PrototypeTemplate()->Set(NewString("setBufsize"),      Nan::New<FunctionTemplate>(SetBufsize)->GetFunction());
 	tpl->PrototypeTemplate()->Set(NewString("resetUnderlying"), Nan::New<FunctionTemplate>(ResetUnderlying)->GetFunction());
 	tpl->PrototypeTemplate()->Set(NewString("code"),            Nan::New<FunctionTemplate>(Code)->GetFunction());
 	tpl->PrototypeTemplate()->Set(NewString("memusage"),        Nan::New<FunctionTemplate>(Memusage)->GetFunction());

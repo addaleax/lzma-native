@@ -1,6 +1,6 @@
 /**
  * lzma-native - Node.js bindings for liblzma
- * Copyright (C) 2014-2015 Anna Henningsen <sqrt@entless.org>
+ * Copyright (C) 2014-2016 Anna Henningsen <sqrt@entless.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -257,6 +257,7 @@ namespace lzma {
 #endif
 
 			static NAN_METHOD(ResetUnderlying);
+			static NAN_METHOD(SetBufsize);
 			static NAN_METHOD(Code);
 			static NAN_METHOD(Memusage);
 			static NAN_METHOD(MemlimitGet);
