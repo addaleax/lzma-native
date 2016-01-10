@@ -1,6 +1,7 @@
-build
-node_modules
+build/
+binding/
+node_modules/
+coverage/
 npm-debug.log
-coverage
 core
 README.md.xz

@@ -19,11 +19,16 @@
 (function() {
 'use strict';
 
-var native = require('bindings')('lzma_native.node');
 var stream = require('readable-stream');
 var util = require('util');
 var extend = require('util-extend');
 var assert = require('assert');
+
+// node-pre-gyp magic
+var nodePreGyp = require('node-pre-gyp');
+var path = require('path');
+var binding_path = nodePreGyp.find(path.resolve(path.join(__dirname,'./package.json')));
+var native = require(binding_path);
 
 extend(exports, native);
 

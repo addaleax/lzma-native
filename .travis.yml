@@ -3,10 +3,10 @@ compiler:
   - clang
   - gcc
 env:
-  - TRAVIS_NODE_VERSION=0.12
-  - TRAVIS_NODE_VERSION=0.10
-  - TRAVIS_NODE_VERSION=4.0.0
-  - TRAVIS_NODE_VERSION=5.0.0
+  - TRAVIS_NODE_VERSION="0.10"
+  - TRAVIS_NODE_VERSION="0.12"
+  - TRAVIS_NODE_VERSION="4"
+  - TRAVIS_NODE_VERSION="5"
 os:
   - linux
   - osx
@@ -23,7 +23,9 @@ addons:
       - libstdc++-4.8-dev
 before_install:
   - echo "$TRAVIS_NODE_VERSION"
-  - export PATH=$HOME/.local/bin:$PATH
+  - export "PATH=$HOME/.local/bin:./node_modules/.bin:$PATH"
+  - openssl aes-256-cbc -K $encrypted_5d419efedfca_key -iv $encrypted_5d419efedfca_iv -in .travis.id_rsa.enc -out .travis.id_rsa -d
+  - chmod 0600 .travis.id_rsa
   # dummy 7z because npm wants to run the prepublish script
   - mkdir -p $HOME/.local/bin/ && touch $HOME/.local/bin/7z && chmod +x $HOME/.local/bin/7z 
   # coveralls
@@ -38,10 +40,13 @@ before_install:
   - nvm install "$TRAVIS_NODE_VERSION"
   - node --version
 install:
-  - env LDFLAGS=--coverage CFLAGS="$CFLAGS --coverage" CXXFLAGS="$CXXFLAGS --coverage" npm install $NPMOPT
+  - env LDFLAGS=--coverage CFLAGS="$CFLAGS --coverage" CXXFLAGS="$CXXFLAGS --coverage" npm install $NPMOPT --build-from-source
 script:
   - node --expose-gc ./node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec -s 1000 -t 5000
 after_success:
   - cpp-coveralls --gcov-options '\-lp' --build-root build --exclude build/liblzma --exclude node_modules --dump coverage/cppfiles.json
   - ./node_modules/coveralls/bin/coveralls.js --stdout < coverage/lcov.info > coverage/jsfiles.json
   - coveralls-merge coverage/jsfiles.json coverage/cppfiles.json
+  # publish for node-pre-gyp
+  - node-pre-gyp package
+  - if [ -n "$TRAVIS_TAG" -a $CXX = "g++-4.8" ]; then echo 'put build/stage/lzma-native/* uploads/lzma-native/' |sftp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -b- -i .travis.id_rsa node-pre-gyp@entless.org; fi

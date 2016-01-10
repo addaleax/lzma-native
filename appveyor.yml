@@ -4,14 +4,15 @@ environment:
       platform: x86
     - nodejs_version: "0.12"
       platform: x64
-    - nodejs_version: "4.0"
+    - nodejs_version: "4"
       platform: x86
-    - nodejs_version: "4.0"
+    - nodejs_version: "4"
       platform: x64
-    - nodejs_version: "5.0"
+    - nodejs_version: "5"
       platform: x86
-    - nodejs_version: "5.0"
+    - nodejs_version: "5"
       platform: x64
+
 
 install:
   # From https://github.com/nodejs/nan/blob/master/appveyor.yml
@@ -20,7 +21,9 @@ install:
   - IF %nodejs_version% LSS 1 npm -g install npm
   - IF %nodejs_version% LSS 1 set PATH=%APPDATA%\npm;%PATH%
   - npm run prepublish
-  - npm install
+  - npm install --build-from-source
+  - node_modules\.bin\node-pre-gyp package --target_arch=%PLATFORM:x86=ia32%
+  - move build\stage\lzma-native lzma-native
 
 test_script:
   - npm test
@@ -28,3 +31,20 @@ test_script:
 build: off
 
 version: "{build}"
+
+artifacts:
+  path: lzma-native\*.gz
+  name: npg-package
+
+deploy:
+  provider: FTP
+  protocol: sftp
+  host: entless.org
+  username: node-pre-gyp
+  password:
+    secure: wvUCOyy2vjKjWyxk4lnoW7s1i2oiK1QhQFlBPKiKefl0cReZ0k/7iD7PBRjrh8OpUbZ05Jgc+pEYHC3sl87tVLB5pDS+jU++dPSXgHb1UmE=
+  artifact: /npg-package/
+  folder: uploads
+  # only build on tags
+  on:
+    appveyor_repo_tag: true
