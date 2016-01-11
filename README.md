@@ -477,10 +477,9 @@ lzma.versionNumber() // => 50020012
 `lzma.setPromiseAPI([api])`
 
 Set the used `Promise` API for the methods that encode/decode single strings
-of buffers in one run. Supported are [Q][Q], the ES6 `Promise` and
-(currently) any other object that provides a matching `.defer()` method.
-You can pass in `null` to remove promise support and `'default'` to reset
-everything to auto-detection.
+of buffers in one run. You can pass in `null` to remove promise support
+and `'default'` to reset everything to auto-detection using 
+[any-promise](https://www.npmjs.com/package/any-promise).
 
 The previous value will be returned; Passing no parameters will result in
 no change, i.e. can be used to test for availability of promises.

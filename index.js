@@ -32,8 +32,7 @@ var native = require(binding_path);
 
 extend(exports, native);
 
-// Q is an optional dependency which will be used when the ES6 API is not
-// available, unless overridden by setPromise
+// We allow usage of any promise library using any-promise
 var Promise_ = null;
 
 // helper to enable/disable promises
@@ -41,17 +40,9 @@ exports.setPromiseAPI = function(newPromiseAPI) {
   var oldPromiseAPI = Promise_;
   
   if (newPromiseAPI === 'default') {
-    newPromiseAPI = null;
-    // try ES6 Promise first
-    if (typeof Promise === 'function')
-      newPromiseAPI = Promise;
-    
-    // try Q
-    if (newPromiseAPI === null) {
-      try {
-        newPromiseAPI = require('q');
-      } catch(e) {}
-    }
+    try {
+      newPromiseAPI = require('any-promise');
+    } catch(e) {}
   }
   
   // allow passing in undefined to only *get* the currently used API
@@ -329,9 +320,19 @@ function singleStringCoding(stream, string, on_finish, on_progress) {
   });
   
   if (Promise_) {
-    // possibly Promise_ === Promise or Promise_ === Q
-    // -> both APIs should be supported (they are the same for .defer)
-    deferred = Promise_.defer();
+    if (Promise_.defer) {
+      deferred = Promise_.defer();
+    } else {
+      // emulate Promise.defer() if not supported
+      deferred = {};
+      deferred.promise = new Promise_(function(resolve, reject) {
+        deferred.resolve = resolve;
+        deferred.reject = reject;
+      });
+    }
+    
+    assert.equal(typeof deferred.resolve, 'function');
+    assert.equal(typeof deferred.reject, 'function');
     
     stream.once('error', function(e) {
       deferred.reject(e);

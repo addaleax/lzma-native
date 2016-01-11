@@ -14,6 +14,7 @@
     "lzmajs": "./bin/lzmajs"
   },
   "dependencies": {
+    "any-promise": "~0.1.0",
     "commander": "~2.9.0",
     "nan": "~2.2.0",
     "node-pre-gyp": "~0.6.19",
