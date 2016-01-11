@@ -1,6 +1,6 @@
 {
   "name": "lzma-native",
-  "version": "0.5.3",
+  "version": "1.0.0",
   "engines": {
     "node": ">=0.10"
   },
@@ -36,17 +36,19 @@
   "scripts": {
     "install": "node-pre-gyp install --fallback-to-build",
     "test": "mocha --expose-gc -s 1000 -t 5000",
-    "prepublish": "cd deps && 7z x -y xz-5.2.1-windows.7z bin_i686/liblzma.dll bin_x86-64/liblzma.dll include doc/liblzma.def"
+    "prepublish": "cd deps && 7z x -y xz-5.2.1-windows.7z bin_i686/liblzma.dll bin_x86-64/liblzma.dll include doc/liblzma.def",
+    "jshint": "jshint ."
   },
   "gypfile": true,
   "bugs": {
     "url": "https://github.com/addaleax/lzma-native/issues"
   },
   "devDependencies": {
-    "mocha": "*",
-    "istanbul": "*",
     "bl": "*",
     "coveralls": ">=2.11.6",
+    "istanbul": "*",
+    "jshint": "^2.8.0",
+    "mocha": "*",
     "q": "^1.4.1"
   },
   "binary": {

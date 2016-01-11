@@ -54,7 +54,7 @@ exports.setPromiseAPI = function(newPromiseAPI) {
 
 exports.setPromiseAPI('default');
 
-exports.version = '0.5.3';
+exports.version = '1.0.0';
 
 var Stream = exports.Stream;
 
@@ -72,8 +72,8 @@ Stream.prototype.getStream = function(options) {
     setTimeout(function() {}, 1);
   };
   
-  var ret = function(nativeStream) {
-    ret.super_.call(this, options);
+  var Ret = function(nativeStream) {
+    Ret.super_.call(this, options);
     var self = this;
     
     self.nativeStream = nativeStream;
@@ -100,11 +100,11 @@ Stream.prototype.getStream = function(options) {
       cleanup = function() {
         var index = Stream.curAsyncStreams.indexOf(self);
         
-        if (index != -1)
+        if (index !== -1)
           Stream.curAsyncStreams.splice(index, 1);
         
         oldCleanup();
-      }
+      };
     }
     
     var finishedReading = false, finishedWriting = false;
@@ -144,7 +144,7 @@ Stream.prototype.getStream = function(options) {
           });
         }
         
-        if (typeof processedChunks == 'number') {
+        if (typeof processedChunks === 'number') {
           assert.ok(processedChunks <= self.chunkCallbacks.length);
           
           var chunkCallbacks = self.chunkCallbacks.splice(0, processedChunks);
@@ -176,7 +176,7 @@ Stream.prototype.getStream = function(options) {
         return self.setBufsize(null);
       },
       set: function(n) {
-        if (typeof n !== 'number' || !(n > 0)) {
+        if (typeof n !== 'number' || n <= 0) {
           throw new TypeError('bufsize must be a positive number');
         }
         
@@ -189,9 +189,9 @@ Stream.prototype.getStream = function(options) {
     }
   };
   
-  util.inherits(ret, stream.Transform);
+  util.inherits(Ret, stream.Transform);
   
-  ret.prototype._transform = function(chunk, encoding, callback) {
+  Ret.prototype._transform = function(chunk, encoding, callback) {
     this.chunkCallbacks.push(callback);
     
     try {
@@ -202,16 +202,16 @@ Stream.prototype.getStream = function(options) {
     }
   };
   
-  ret.prototype._writev = function(chunks, callback) {
+  Ret.prototype._writev = function(chunks, callback) {
     chunks = chunks.map(function (chunk) { return chunk.chunk; });
     this._write(Buffer.concat(chunks), null, callback);
   };
 
-  ret.prototype._flush = function(callback) {
+  Ret.prototype._flush = function(callback) {
     this._transform(null, null, callback);
   };
   
-  return new ret(this);
+  return new Ret(this);
 };
 
 Stream.prototype.rawEncoder = function(options) {
@@ -245,12 +245,12 @@ Stream.prototype.aloneDecoder = function(options) {
 /* helper functions for easy creation of streams */
 var createStream =
 exports.createStream = function(coder, options) {
-  if (['number', 'object'].indexOf(typeof coder) != -1 && !options) {
+  if (['number', 'object'].indexOf(typeof coder) !== -1 && !options) {
     options = coder;
     coder = null;
   }
   
-  if (parseInt(options) == options)
+  if (parseInt(options) === parseInt(options))
     options = {preset: parseInt(options)};
   
   coder = coder || 'easyEncoder';
@@ -277,12 +277,12 @@ exports.createDecompressor = function(options) {
 };
 
 exports.crc32 = function(input, encoding, presetCRC32) {
-  if (typeof encoding == 'number') {
+  if (typeof encoding === 'number') {
     presetCRC32 = encoding;
     encoding = null;
   }
   
-  if (typeof input == 'string') 
+  if (typeof input === 'string') 
     input = new Buffer(input, encoding);
   
   return exports.crc32_(input, presetCRC32 || 0);
@@ -370,7 +370,7 @@ exports.LZMA = function() {
     compress: function(string, mode, on_finish, on_progress) {
       var opt = {};
 
-      if (parseInt(mode) == mode && mode >= 1 && mode <= 9)
+      if (parseInt(mode) === parseInt(mode) && mode >= 1 && mode <= 9)
         opt.preset = parseInt(mode);
 
       var stream = createStream('aloneEncoder', opt);
@@ -388,7 +388,7 @@ exports.LZMA = function() {
 };
 
 exports.compress = function(string, opt, on_finish) {
-  if (typeof opt == 'function') {
+  if (typeof opt === 'function') {
     on_finish = opt;
     opt = {};
   }
@@ -398,7 +398,7 @@ exports.compress = function(string, opt, on_finish) {
 };
 
 exports.decompress = function(string, opt, on_finish) {
-  if (typeof opt == 'function') {
+  if (typeof opt === 'function') {
     on_finish = opt;
     opt = {};
   }
@@ -409,12 +409,12 @@ exports.decompress = function(string, opt, on_finish) {
 
 exports.isXZ = function(buf) {
   return buf && buf.length >= 6 &&
-         buf[0] == 0xfd &&
-         buf[1] == 0x37 &&
-         buf[2] == 0x7a &&
-         buf[3] == 0x58 &&
-         buf[4] == 0x5a &&
-         buf[5] == 0x00;
+         buf[0] === 0xfd &&
+         buf[1] === 0x37 &&
+         buf[2] === 0x7a &&
+         buf[3] === 0x58 &&
+         buf[4] === 0x5a &&
+         buf[5] === 0x00;
 };
 
 })();

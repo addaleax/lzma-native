@@ -105,9 +105,9 @@ describe('lzma', function() {
       assert.strictEqual(false, lzma.filterEncoderIsSupported(lzma.VLI_UNKNOWN));
     });
     
-    it('should return false for objects which are not convertible to string', function() {
+    it('should throw for objects which are not convertible to string', function() {
       var badObject = { toString: function() { throw Error('badObject.toString()'); } };
-      assert.strictEqual(false, lzma.filterEncoderIsSupported(lzma.VLI_UNKNOWN));
+      assert.throws(function() { lzma.filterEncoderIsSupported(badObject); });
     });
   });
   
@@ -194,8 +194,8 @@ describe('lzma', function() {
     
     it('should be monotonous in the preset parameter', function() {
       for (var i = 1; i < 9; ++i)
-        assert.ok(lzma.rawEncoderMemusage([{id: lzma.FILTER_LZMA2, preset: i+1}])
-          >= lzma.rawEncoderMemusage([{id: lzma.FILTER_LZMA2, preset: i}]));
+        assert.ok(lzma.rawEncoderMemusage([{id: lzma.FILTER_LZMA2, preset: i+1}]) >=
+          lzma.rawEncoderMemusage([{id: lzma.FILTER_LZMA2, preset: i}]));
     });
     
     it('should fail if input is not an array of filter objects', function() {
@@ -216,13 +216,13 @@ describe('lzma', function() {
     
     it('should be monotonous in the preset parameter', function() {
       for (var i = 1; i < 9; ++i)
-        assert.ok(lzma.rawDecoderMemusage([{id: lzma.FILTER_LZMA2, preset: i+1}])
-          >= lzma.rawDecoderMemusage([{id: lzma.FILTER_LZMA2, preset: i}]));
+        assert.ok(lzma.rawDecoderMemusage([{id: lzma.FILTER_LZMA2, preset: i+1}]) >=
+          lzma.rawDecoderMemusage([{id: lzma.FILTER_LZMA2, preset: i}]));
     });
     
     it('should fail if input is not an array of filter objects', function() {
-      assert.throws(function() { lzma.rawDecoderMemusage(null) });
-      assert.throws(function() { lzma.rawDecoderMemusage([null]) });
+      assert.throws(function() { lzma.rawDecoderMemusage(null); });
+      assert.throws(function() { lzma.rawDecoderMemusage([null]); });
     });
   });
   

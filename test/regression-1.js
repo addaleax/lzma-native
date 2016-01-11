@@ -19,7 +19,6 @@
 'use strict';
 
 var lzma = require('../');
-var assert = require('assert');
 
 // this test relies on mocha’s 2000 ms test timeout (only in case it fails, of course)
 describe('regression-#1', function() {
@@ -29,9 +28,9 @@ describe('regression-#1', function() {
     
     for (var i = 0; i < N; ++i) {
       lzma.compress("", function() {
-        if (++complete == N)
+        if (++complete === N)
           done();
-      });
+      }); // jshint ignore:line
     }
   });
 });

@@ -362,14 +362,15 @@ describe('LZMAStream', function() {
       assert.ok(lzma.Stream.maxAsyncStreamCount);
       lzma.Stream.maxAsyncStreamCount = 3;
       
-      var streams = [];
-      for (var i = 0; i < lzma.Stream.maxAsyncStreamCount * 2; ++i) 
+      var streams = [], i;
+      
+      for (i = 0; i < lzma.Stream.maxAsyncStreamCount * 2; ++i) 
         streams.push(lzma.createStream({synchronous: false}));
       
-      for (var i = lzma.Stream.maxAsyncStreamCount + 1; i < lzma.Stream.maxAsyncStreamCount * 2; ++i)
+      for (i = lzma.Stream.maxAsyncStreamCount + 1; i < lzma.Stream.maxAsyncStreamCount * 2; ++i)
         assert.ok(streams[i].synchronous);
         
-      for (var i = 0; i < lzma.Stream.maxAsyncStreamCount * 2; ++i) 
+      for (i = 0; i < lzma.Stream.maxAsyncStreamCount * 2; ++i) 
         streams[i].end();
       
       done();
@@ -460,7 +461,7 @@ describe('LZMAStream', function() {
       
       stream.on('end', function() {
         assert(valuesWereSet);
-        done()
+        done();
       });
       
       stream.on('data', function() {

@@ -1,0 +1,13 @@
+node_modules
+output.log
+templates-compiled.js
+errors.log
+errors-*.log
+errors.*.log
+out
+doc
+buildstamp.js
+core
+coverage
+npm-debug.log
+output.*.log

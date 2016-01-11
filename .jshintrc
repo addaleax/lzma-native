@@ -1,0 +1,28 @@
+{
+  "expr": true,
+  "eqeqeq": true,
+  "immed": true,
+  "newcap": true,
+  "noarg": true,
+  "sub": true,
+  "undef": true,
+  "unused": "vars",
+  "boss": true,
+  "eqnull": true,
+  "node": true,
+  "esnext": true,
+  "globals": {
+    "require": true,
+    "exports": true,
+    "console": true,
+    "module": true,
+    "gc": true,
+    
+    "it": true,
+    "describe": true,
+    "before": true,
+    "beforeEach": true,
+    "after": true,
+    "afterEach": true
+  }
+}
