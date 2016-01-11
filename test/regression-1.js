@@ -27,7 +27,7 @@ describe('regression-#1', function() {
     var N = 4;
     
     for (var i = 0; i < N; ++i) {
-      lzma.compress("", function() {
+      lzma.compress("", function() { // jshint ignore:line
         if (++complete === N)
           done();
       }); // jshint ignore:line

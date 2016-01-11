@@ -52,7 +52,7 @@ describe('Example code in README', function() {
   var identity = function(v) { return v; };
   
   describe('Should correctly run all test scripts', function() {
-    for (var i = 0; i < snippets.length; i++) { (function() {
+    for (var i = 0; i < snippets.length; i++) { (function() { // jshint ignore:line
       var code = snippets[i].code;
       
       code = code.replace(/var lzma = [^;]+;/mg, '');
