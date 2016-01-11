@@ -40,6 +40,8 @@ exports.setPromiseAPI = function(newPromiseAPI) {
   var oldPromiseAPI = Promise_;
   
   if (newPromiseAPI === 'default') {
+    newPromiseAPI = null;
+    
     try {
       newPromiseAPI = require('any-promise');
     } catch(e) {}
@@ -54,7 +56,7 @@ exports.setPromiseAPI = function(newPromiseAPI) {
 
 exports.setPromiseAPI('default');
 
-exports.version = '1.0.1';
+exports.version = '1.0.2';
 
 var Stream = exports.Stream;
 
