@@ -9,6 +9,7 @@ cd "$TARGET_DIR"
 
 tar xvjf "$SRC_TARBALL" >node_liblzma_config.log 2>&1 
 
-export CPPFLAGS="-fPIC $CPPFLAGS"
+export CFLAGS="-fPIC $CFLAGS"
 sh xz-*/configure --enable-static --disable-shared --disable-scripts --disable-lzmainfo \
-	--disable-lzma-links --disable-lzmadec --disable-xzdec --disable-xz --disable-rpath --prefix="$TARGET_DIR/build" >>node_liblzma_config.log 2>&1 
+	--disable-lzma-links --disable-lzmadec --disable-xzdec --disable-xz --disable-rpath \
+	--prefix="$TARGET_DIR/build" CFLAGS="$CFLAGS" >>node_liblzma_config.log 2>&1 
