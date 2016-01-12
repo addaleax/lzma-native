@@ -31,8 +31,8 @@ before_install:
   # coveralls
   - pip install --user cpp-coveralls coveralls-merge
   # compilers
-  - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; AR="gcc-ar-4.8"; RANLIB="gcc-ranlib-4.8"; NM="gcc-nm-4.8"; fi
-  - if [ "$CXX" = "clang++" ]; then export NPMOPT=--clang=1; fi
+  - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; AR="gcc-ar-4.8"; RANLIB="gcc-ranlib-4.8"; NM="gcc-nm-4.8" LTO_FLAG="-flto"; fi
+  - if [ "$CXX" = "clang++" ]; then export NPMOPT=--clang=1 LTO_FLAG=""; fi
   # node versions
   - rm -rf ~/.nvm
   - git clone --branch v0.23.3 https://github.com/creationix/nvm.git ~/.nvm
@@ -41,7 +41,7 @@ before_install:
   - node --version
   # no coverage for tags (they are release builds!)
   - if [ -z "$TRAVIS_TAG" ]; then export DO_COVERAGE=1; fi
-  - if [ -n "$TRAVIS_TAG" ]; then export CFLAGS="$CFLAGS -O3 -flto"; LDFLAGS="$LDFLAGS -flto"; fi
+  - if [ -n "$TRAVIS_TAG" ]; then export CFLAGS="$CFLAGS -O3 $LTO_FLAG" LDFLAGS="$LDFLAGS $LTO_FLAG"; fi
   - if [ $DO_COVERAGE = 1 ]; then export LDFLAGS="$LDFLAGS --coverage" CFLAGS="$CFLAGS --coverage"; fi
   - echo "CFLAGS=\"$CFLAGS\" LDFLAGS=\"$LDFLAGS\""
 install:
