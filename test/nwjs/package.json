@@ -1,0 +1,11 @@
+{
+  "name": "lzma-native-nwjstest",
+  "version": "0.0.1",
+  "author": {
+    "name": "Anna Henningsen",
+    "email": "sqrt@entless.org"
+  },
+  "description": "nw.js test for lzma-native",
+  "main": "index.html",
+  "license": "LGPL-3.0+"
+}

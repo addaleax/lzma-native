@@ -7,6 +7,7 @@ env:
   - TRAVIS_NODE_VERSION="0.12"
   - TRAVIS_NODE_VERSION="4"
   - TRAVIS_NODE_VERSION="5"
+  - TRAVIS_NODE_VERSION="5" NWJS_VERSION="0.12.3"
 os:
   - linux
   - osx
@@ -23,7 +24,7 @@ addons:
       - libstdc++-4.8-dev
 before_install:
   - echo "$TRAVIS_NODE_VERSION"
-  - export "PATH=$HOME/.local/bin:./node_modules/.bin:$PATH"
+  - export "PATH=$HOME/.local/bin:./node_modules/.bin:$PWD/node_modules/.bin:$PATH"
   - openssl aes-256-cbc -K $encrypted_5d419efedfca_key -iv $encrypted_5d419efedfca_iv -in .travis.id_rsa.enc -out .travis.id_rsa -d
   - chmod 0600 .travis.id_rsa
   # dummy 7z because npm wants to run the prepublish script
@@ -38,21 +39,23 @@ before_install:
   - git clone --branch v0.23.3 https://github.com/creationix/nvm.git ~/.nvm
   - source ~/.nvm/nvm.sh
   - nvm install "$TRAVIS_NODE_VERSION"
+  - if [ -n "$NWJS_VERSION" ]; then npm install "nw@$NWJS_VERSION" "nw-gyp@$NWJS_VERSION"; export NPG_ARGS="--runtime=node-webkit --target=$NWJS_VERSION"; fi
   - node --version
   # no coverage for tags (they are release builds!)
   - if [ -z "$TRAVIS_TAG" ]; then export DO_COVERAGE=1; fi
   - if [ -n "$TRAVIS_TAG" ]; then export CFLAGS="$CFLAGS -O3 $LTO_FLAG" LDFLAGS="$LDFLAGS $LTO_FLAG"; fi
-  - if [ $DO_COVERAGE = 1 ]; then export LDFLAGS="$LDFLAGS --coverage" CFLAGS="$CFLAGS --coverage"; fi
+  - if [ -n "$DO_COVERAGE" ]; then export LDFLAGS="$LDFLAGS --coverage" CFLAGS="$CFLAGS --coverage"; fi
   - echo "CFLAGS=\"$CFLAGS\" LDFLAGS=\"$LDFLAGS\""
 install:
-  - npm install $NPMOPT --build-from-source
+  - npm install $NPMOPT --build-from-source $NPG_ARGS
 script:
-  - node --expose-gc ./node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec -s 1000 -t 5000
+  - if [ -z "$NWJS_VERSION" ]; then node --expose-gc ./node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec -s 1000 -t 5000; fi
+  - if [ -n "$NWJS_VERSION" ]; then (cd test/nwjs && ../../node_modules/.bin/nw && node exitcode.js); fi
   - npm run jshint
 after_success:
-  - if [ $DO_COVERAGE = 1 ]; then cpp-coveralls --gcov-options '\-lp' --build-root build --exclude build/liblzma --exclude node_modules --dump coverage/cppfiles.json; fi
-  - if [ $DO_COVERAGE = 1 ]; then ./node_modules/coveralls/bin/coveralls.js --stdout < coverage/lcov.info > coverage/jsfiles.json; fi
-  - if [ $DO_COVERAGE = 1 ]; then coveralls-merge coverage/jsfiles.json coverage/cppfiles.json; fi
+  - if [ -n "$DO_COVERAGE" ]; then cpp-coveralls --gcov-options '\-lp' --build-root build --exclude build/liblzma --exclude node_modules --dump coverage/cppfiles.json; fi
+  - if [ -n "$DO_COVERAGE" ]; then ./node_modules/coveralls/bin/coveralls.js --stdout < coverage/lcov.info > coverage/jsfiles.json; fi
+  - if [ -n "$DO_COVERAGE" ]; then coveralls-merge coverage/jsfiles.json coverage/cppfiles.json; fi
   # publish for node-pre-gyp
-  - node-pre-gyp package
+  - node-pre-gyp package $NPG_ARGS
   - if [ -n "$TRAVIS_TAG" -a $CXX = "g++-4.8" ]; then echo 'put build/stage/lzma-native/* uploads/lzma-native/' |sftp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -b- -i .travis.id_rsa node-pre-gyp@entless.org; fi

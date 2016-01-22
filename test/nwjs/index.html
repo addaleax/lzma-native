@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>lzma-native nw.js test</title>
+</head>
+<body>
+<script>
+// nw.js does not use the exit code directly
+// -> hack around it
+process.on('exit', function(code) {
+  var fs = require('fs');
+  fs.writeFileSync('test/nwjs/exitcode.js', 'process.exit(' + JSON.stringify(code) + ');\n');
+});
+
+process.chdir('../../');
+process.argv = ['nw', '_mocha', '-R', 'tap', '-s', '1000', '-t', '5000'];
+require('../../node_modules/mocha/bin/_mocha');
+</script>
+</body>
+</html>
