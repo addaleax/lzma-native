@@ -39,6 +39,7 @@ before_install:
   - git clone --branch v0.23.3 https://github.com/creationix/nvm.git ~/.nvm
   - source ~/.nvm/nvm.sh
   - nvm install "$TRAVIS_NODE_VERSION"
+  - if [ -n "$NWJS_VERSION" ]; then export DISPLAY=:99.0 ; sh -e /etc/init.d/xvfb start || true ; sleep 3 ; fi
   - if [ -n "$NWJS_VERSION" ]; then npm install "nw@$NWJS_VERSION" "nw-gyp@$NWJS_VERSION"; export NPG_ARGS="--runtime=node-webkit --target=$NWJS_VERSION"; fi
   - node --version
   # no coverage for tags (they are release builds!)
