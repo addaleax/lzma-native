@@ -24,6 +24,12 @@ Simply install `lzma-native` via npm:
 $ npm install --save lzma-native
 ```
 
+*Note*: As of version 1.0.0, this module provides pre-built binaries for multiple Node.js
+versions and all major OS using [node-pre-gyp](https://github.com/mapbox/node-pre-gyp),
+so for 99 % of users no compiler toolchain is necessary.
+Please [create an issue here](https://github.com/addaleax/lzma-native/issues/new)
+if you have any trouble installing this module.
+
 <a name="streams-usage"></a>
 ### For streams
 
@@ -137,9 +143,9 @@ Example code:
 
 ```js
 lzma.compress('Bananas', 9, function(result) {
-	lzma.decompress(result, function(decompressedResult) {
-		assert.equal(decompressedResult.toString(), 'Bananas');
-	});
+    lzma.decompress(result, function(decompressedResult) {
+        assert.equal(decompressedResult.toString(), 'Bananas');
+    });
 });
 ```
 
@@ -149,11 +155,11 @@ Example code for promises:
 
 ```js
 lzma.compress('Bananas', 9).then(function(result) {
-	return lzma.decompress(result);
+    return lzma.decompress(result);
 }).then(function(decompressedResult) {
-	assert.equal(decompressedResult.toString(), 'Bananas');
+    assert.equal(decompressedResult.toString(), 'Bananas');
 }).catch(function(err) {
-	// ...
+    // ...
 });
 ```
 
@@ -188,9 +194,9 @@ Example code:
 
 ```js
 lzma.LZMA().compress('Bananas', 4, function(result) {
-	lzma.LZMA().decompress(result, function(decompressedResult) {
-		assert.equal(decompressedResult.toString(), 'Bananas');
-	});
+    lzma.LZMA().decompress(result, function(decompressedResult) {
+        assert.equal(decompressedResult.toString(), 'Bananas');
+    });
 });
 ```
 
