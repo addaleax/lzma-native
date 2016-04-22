@@ -516,7 +516,7 @@ This package includes the native C library, so there is no need to install it se
 
 The original C library package contains code under various licenses,
 with its core (liblzma) being public domain. See its contents for details.
-This wrapper is licensed under the LGPL 3 or any later version of the LGPL.
+This wrapper is licensed under the MIT License.
 
 ## Related projects
 
