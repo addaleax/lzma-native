@@ -6,3 +6,6 @@ deps/xz-5.2.1-windows.7z
 npm-debug.log
 core
 README.md.xz
+.jshint*
+.travis*
+appveyor.yml
