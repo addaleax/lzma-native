@@ -182,6 +182,11 @@ describe('LZMAStream', function() {
     ].map(function(syncInfo) {
       var info = 'with ' + entry.name + ', preset = ' + preset + presetFlag.name;
       it('should be undone by autoDecoder in ' + syncInfo.name + ' mode ' + info, function(done) {
+        if (preset >= 7 && process.env.APPVEYOR) {
+          // Sometimes there’s not enough memory on AppVeyor machines. :-(
+          this.skip();
+        }
+        
         var enc = lzma.createStream('easyEncoder', {
           preset: preset | presetFlag.value,
           synchronous: syncInfo.synchronous

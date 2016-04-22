@@ -1,23 +1,23 @@
 environment:
   matrix:
-    - nodejs_version: "0.12"
-      platform: x86
-    - nodejs_version: "0.12"
-      platform: x64
-    - nodejs_version: "4.3.0"
-      platform: x86
-    - nodejs_version: "4.3.0"
+    - nodejs_version: "5"
       platform: x64
     - nodejs_version: "5"
       platform: x86
-    - nodejs_version: "5"
-      platform: x64
     - nodejs_version: "5"
       platform: x86
       nwjs_version: "0.12.3"
     - nodejs_version: "5"
       platform: x64
       nwjs_version: "0.12.3"
+    - nodejs_version: "4.3.0"
+      platform: x86
+    - nodejs_version: "4.3.0"
+      platform: x64
+    - nodejs_version: "0.12"
+      platform: x86
+    - nodejs_version: "0.12"
+      platform: x64
 
 
 install:
@@ -57,3 +57,6 @@ deploy:
   # only build on tags
   on:
     appveyor_repo_tag: true
+
+matrix:
+  fast_finish: true
