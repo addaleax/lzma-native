@@ -85,10 +85,13 @@ Stream.prototype.getStream = function(options) {
     self.totalIn_ = 0;
     self.totalOut_ = 0;
     
+    self._writingLastChunk = false;
+    self._isFinished = false;
+    
     self.totalIn  = function() { return self.totalIn_; };
     self.totalOut = function() { return self.totalOut_; };
     
-    var cleanup = function() {
+    self.cleanup = function() {
       if (self.nativeStream)
         self.nativeStream.resetUnderlying();
       
@@ -98,8 +101,8 @@ Stream.prototype.getStream = function(options) {
     if (!self.synchronous) {
       Stream.curAsyncStreams.push(self);
       
-      var oldCleanup = cleanup;
-      cleanup = function() {
+      var oldCleanup = self.cleanup;
+      self.cleanup = function() {
         var index = Stream.curAsyncStreams.indexOf(self);
         
         if (index !== -1)
@@ -109,21 +112,8 @@ Stream.prototype.getStream = function(options) {
       };
     }
     
-    var finishedReading = false, finishedWriting = false;
-    
-    var maybeCleanup = function() {
-      if (finishedReading && finishedWriting)
-        cleanup();
-    };
-    
-    /* 'finish' event ~ no more data will be written to this stream */
-    self.once('finish', function() {
-      finishedReading = true;
-      maybeCleanup();
-    });
-    
     // always clean up in case of error
-    self.once('error-cleanup', cleanup);
+    self.once('error-cleanup', self.cleanup);
     
     self.nativeStream.bufferHandler = function(buf, processedChunks, err, totalIn, totalOut) {
       if (totalIn !== null) {
@@ -155,12 +145,22 @@ Stream.prototype.getStream = function(options) {
             chunkCallbacks.shift()();
           
           _forceNextTickCb();
-        } else {
-          if (buf === null) {
-            finishedWriting = true;
-            maybeCleanup();
+        } else if (buf === null) {
+          if (self._writingLastChunk) {
+            self.push(null);
+          } else {
+            // There may be additional members in the file.
+            // Reset and set _isFinished to tell `_flush()` that nothing
+            // needs to be done.
+            self._isFinished = true;
+            
+            if (self.nativeStream && self.nativeStream._restart) {
+              self.nativeStream._restart();
+            } else {
+              self.push(null);
+            }
           }
-          
+        } else {
           self.push(buf);
         }
       });
@@ -197,6 +197,7 @@ Stream.prototype.getStream = function(options) {
     this.chunkCallbacks.push(callback);
     
     try {
+      this._isFinished = false;
       this.nativeStream.code(chunk, !this.synchronous);
     } catch (e) {
       this.emit('error-cleanup', e);
@@ -210,7 +211,19 @@ Stream.prototype.getStream = function(options) {
   };
 
   Ret.prototype._flush = function(callback) {
-    this._transform(null, null, callback);
+    this._writingLastChunk = true;
+    var cleanup = this.cleanup;
+    
+    if (this._isFinished) {
+      cleanup();
+      callback(null);
+      return;
+    }
+
+    this._transform(null, null, function() {
+      cleanup();
+      callback.apply(this, arguments);
+    });
   };
   
   return new Ret(this);
@@ -233,10 +246,22 @@ Stream.prototype.streamEncoder = function(options) {
 };
 
 Stream.prototype.streamDecoder = function(options) {
+  this._initOptions = options;
+  this._restart = function() {
+    this.resetUnderlying();
+    this.streamDecoder(this._initOptions);
+  };
+
   return this.streamDecoder_(options.memlimit || null, options.flags || 0);
 };
 
 Stream.prototype.autoDecoder = function(options) {
+  this._initOptions = options;
+  this._restart = function() {
+    this.resetUnderlying();
+    this.autoDecoder(this._initOptions);
+  };
+
   return this.autoDecoder_(options.memlimit || null, options.flags || 0);
 };
 

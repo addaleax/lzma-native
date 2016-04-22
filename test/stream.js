@@ -509,6 +509,26 @@ describe('LZMAStream', function() {
     });
   });
   
+  describe('multi-stream files', function() {
+    it('Can be decoded by #autoDecoder', function(done) {
+      var enc1 = lzma.createStream('easyEncoder', {synchronous: true});
+      var enc2 = lzma.createStream('easyEncoder', {synchronous: true});
+      var dec = lzma.createStream('autoDecoder', {synchronous: true});
+      
+      dec.pipe(bl(function(err, buf) {
+        assert.ifError(err);
+        assert.strictEqual(buf.toString(), 'abcdef');
+        done();
+      }));
+      
+      enc1.pipe(dec, { end: false });
+      enc1.end('abc', function() {
+        enc2.pipe(dec, { end: true });
+        enc2.end('def');
+      });
+    });
+  });
+  
   after('should not have any open asynchronous streams', function(done) {
     if (typeof gc === 'function')
       gc();
