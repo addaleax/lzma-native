@@ -13,8 +13,9 @@ os:
   - osx
 sudo: false
 cache:
-  - pip
-  - apt
+  directories:
+    - node_modules
+    - $HOME/.npm
 addons:
   apt:
     sources:

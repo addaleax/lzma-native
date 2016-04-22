@@ -60,3 +60,7 @@ deploy:
 
 matrix:
   fast_finish: true
+
+cache:
+  - node_modules
+  - '%APPDATA%\npm-cache'
