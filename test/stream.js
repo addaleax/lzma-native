@@ -515,6 +515,9 @@ describe('LZMAStream', function() {
   });
   
   describe('multi-stream files', function() {
+    var zeroes = new Buffer(16);
+    zeroes.fill(0);
+    
     it('can be decoded by #autoDecoder', function(done) {
       var enc1 = lzma.createStream('easyEncoder', {synchronous: true});
       var enc2 = lzma.createStream('easyEncoder', {synchronous: true});
@@ -538,7 +541,7 @@ describe('LZMAStream', function() {
         assert.ifError(err);
         lzma.compress('def', { synchronous: true }, function(def, err) {
           assert.ifError(err);
-          lzma.decompress(Buffer.concat([abc, new Buffer(16).fill(0), def]), {
+          lzma.decompress(Buffer.concat([abc, zeroes, def]), {
             synchronous: true
           }, function(result, err) {
             assert.ifError(err);
@@ -552,7 +555,7 @@ describe('LZMAStream', function() {
     it('supports padding without multi-stream files', function(done) {
       lzma.compress('abc', { synchronous: true }, function(abc, err) {
         assert.ifError(err);
-        lzma.decompress(Buffer.concat([abc, new Buffer(16).fill(0)]), {
+        lzma.decompress(Buffer.concat([abc, zeroes]), {
           synchronous: true
         }, function(result, err) {
           assert.ifError(err);
