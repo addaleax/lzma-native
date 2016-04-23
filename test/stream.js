@@ -515,7 +515,7 @@ describe('LZMAStream', function() {
   });
   
   describe('multi-stream files', function() {
-    it('Can be decoded by #autoDecoder', function(done) {
+    it('can be decoded by #autoDecoder', function(done) {
       var enc1 = lzma.createStream('easyEncoder', {synchronous: true});
       var enc2 = lzma.createStream('easyEncoder', {synchronous: true});
       var dec = lzma.createStream('autoDecoder', {synchronous: true});
@@ -530,6 +530,42 @@ describe('LZMAStream', function() {
       enc1.end('abc', function() {
         enc2.pipe(dec, { end: true });
         enc2.end('def');
+      });
+    });
+    
+    it('can be decoded by #autoDecoder with padding', function(done) {
+      var enc1 = lzma.createStream('easyEncoder', {synchronous: true});
+      var enc2 = lzma.createStream('easyEncoder', {synchronous: true});
+      var dec = lzma.createStream('autoDecoder', {synchronous: true});
+      
+      lzma.compress('abc', { synchronous: true }, function(abc, err) {
+        assert.ifError(err);
+        lzma.compress('def', { synchronous: true }, function(def, err) {
+          assert.ifError(err);
+          lzma.decompress(Buffer.concat([abc, new Buffer(16).fill(0), def]), {
+            synchronous: true
+          }, function(result, err) {
+            assert.ifError(err);
+            assert.strictEqual(result.toString(), 'abcdef');
+            done();
+          });
+        });
+      });
+    });
+    
+    it('supports padding without multi-stream files', function(done) {
+      var enc1 = lzma.createStream('easyEncoder', {synchronous: true});
+      var dec = lzma.createStream('autoDecoder', {synchronous: true});
+      
+      lzma.compress('abc', { synchronous: true }, function(abc, err) {
+        assert.ifError(err);
+        lzma.decompress(Buffer.concat([abc, new Buffer(16).fill(0)]), {
+          synchronous: true
+        }, function(result, err) {
+          assert.ifError(err);
+          assert.strictEqual(result.toString(), 'abc');
+          done();
+        });
       });
     });
   });

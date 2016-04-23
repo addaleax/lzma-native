@@ -142,7 +142,7 @@ Stream.prototype.getStream = function(options) {
           var chunkCallbacks = self.chunkCallbacks.splice(0, processedChunks);
           
           while (chunkCallbacks.length > 0)
-            chunkCallbacks.shift()();
+            chunkCallbacks.shift().apply(self);
           
           _forceNextTickCb();
         } else if (buf === null) {
@@ -194,10 +194,36 @@ Stream.prototype.getStream = function(options) {
   util.inherits(Ret, stream.Transform);
   
   Ret.prototype._transform = function(chunk, encoding, callback) {
-    this.chunkCallbacks.push(callback);
+    // Split the chunk at 'YZ'. This is used to have a clean boundary at the
+    // end of each `.xz` file stream.
+    var possibleEndIndex = chunk ? chunk.indexOf('YZ') : -1;
+    if (possibleEndIndex !== -1) {
+      possibleEndIndex += 2;
+      if (possibleEndIndex !== chunk.length) {
+        this._transform(chunk.slice(0, possibleEndIndex), encoding, function() {
+          this._transform(chunk.slice(possibleEndIndex), encoding, callback);
+        });
+        
+        return;
+      }
+    }
     
+    if (this._isFinished && chunk) {
+      chunk = skipLeadingZeroes(chunk);
+      
+      if (chunk.length > 0) {
+        // Real data from a second stream member in the file!
+        this._isFinished = false;
+      }
+    }
+    
+    if (chunk && chunk.length === 0) {
+      return callback();
+    }
+    
+    this.chunkCallbacks.push(callback);
+      
     try {
-      this._isFinished = false;
       this.nativeStream.code(chunk, !this.synchronous);
     } catch (e) {
       this.emit('error-cleanup', e);
@@ -443,5 +469,15 @@ exports.isXZ = function(buf) {
          buf[4] === 0x5a &&
          buf[5] === 0x00;
 };
+
+function skipLeadingZeroes(buffer) {
+  var i;
+  for (i = 0; i < buffer.length; i++) {
+    if (buffer[i] !== 0x00)
+      break;
+  }
+  
+  return buffer.slice(i);
+}
 
 })();
