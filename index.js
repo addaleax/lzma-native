@@ -196,7 +196,7 @@ Stream.prototype.getStream = function(options) {
   Ret.prototype._transform = function(chunk, encoding, callback) {
     // Split the chunk at 'YZ'. This is used to have a clean boundary at the
     // end of each `.xz` file stream.
-    var possibleEndIndex = chunk ? chunk.indexOf('YZ') : -1;
+    var possibleEndIndex = bufferIndexOfYZ(chunk);
     if (possibleEndIndex !== -1) {
       possibleEndIndex += 2;
       if (possibleEndIndex !== chunk.length) {
@@ -478,6 +478,25 @@ function skipLeadingZeroes(buffer) {
   }
   
   return buffer.slice(i);
+}
+
+function bufferIndexOfYZ(chunk) {
+  if (!chunk) {
+    return -1;
+  }
+  
+  if (chunk.indexOf) {
+    return chunk.indexOf('YZ');
+  }
+  
+  var i;
+  for (i = 0; i < chunk.length - 1; i++) {
+    if (chunk[i] === 0x59 && chunk[i+1] === 0x5a) {
+      return i;
+    }
+  }
+  
+  return -1;
 }
 
 })();
