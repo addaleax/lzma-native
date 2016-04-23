@@ -534,10 +534,6 @@ describe('LZMAStream', function() {
     });
     
     it('can be decoded by #autoDecoder with padding', function(done) {
-      var enc1 = lzma.createStream('easyEncoder', {synchronous: true});
-      var enc2 = lzma.createStream('easyEncoder', {synchronous: true});
-      var dec = lzma.createStream('autoDecoder', {synchronous: true});
-      
       lzma.compress('abc', { synchronous: true }, function(abc, err) {
         assert.ifError(err);
         lzma.compress('def', { synchronous: true }, function(def, err) {
@@ -554,9 +550,6 @@ describe('LZMAStream', function() {
     });
     
     it('supports padding without multi-stream files', function(done) {
-      var enc1 = lzma.createStream('easyEncoder', {synchronous: true});
-      var dec = lzma.createStream('autoDecoder', {synchronous: true});
-      
       lzma.compress('abc', { synchronous: true }, function(abc, err) {
         assert.ifError(err);
         lzma.decompress(Buffer.concat([abc, new Buffer(16).fill(0)]), {
