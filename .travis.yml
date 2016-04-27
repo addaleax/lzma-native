@@ -12,6 +12,8 @@ env:
 os:
   - linux
   - osx
+matrix:
+  fast_finish: true
 sudo: false
 cache:
   directories:

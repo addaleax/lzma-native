@@ -67,4 +67,3 @@ matrix:
 
 cache:
   - node_modules
-  - '%APPDATA%\npm-cache'
