@@ -33,13 +33,15 @@ namespace {
 #endif
   }
   
-  extern "C" void* alloc_for_lzma(void *opaque, size_t nmemb, size_t size) {
+  extern "C" void* LZMA_API_CALL
+  alloc_for_lzma(void *opaque, size_t nmemb, size_t size) {
     LZMAStream* strm = static_cast<LZMAStream*>(opaque);
     
     return strm->alloc(nmemb, size);
   }
   
-  extern "C" void free_for_lzma(void *opaque, void *ptr) {
+  extern "C" void LZMA_API_CALL 
+  free_for_lzma(void *opaque, void *ptr) {
     LZMAStream* strm = static_cast<LZMAStream*>(opaque);
     
     return strm->free(ptr);
@@ -119,14 +121,14 @@ LZMAStream::~LZMAStream() {
 }
 
 void* LZMAStream::alloc(size_t nmemb, size_t size) {
-  size_t nBytes = nmemb * size;
+  size_t nBytes = nmemb * size + sizeof(size_t);
   
-  size_t* result = static_cast<size_t*>(::malloc(nBytes + sizeof(size_t)));
+  size_t* result = static_cast<size_t*>(::malloc(nBytes));
   if (!result)
     return result;
   
   *result = nBytes;
-  adjustExternalMemory(nBytes);
+  adjustExternalMemory(static_cast<int64_t>(nBytes));
   return static_cast<void*>(result + 1);
 }
 
@@ -136,7 +138,7 @@ void LZMAStream::free(void* ptr) {
   
   size_t* orig = static_cast<size_t*>(ptr) - 1;
   
-  adjustExternalMemory(-*orig);
+  adjustExternalMemory(-static_cast<int64_t>(*orig));
   return ::free(static_cast<void*>(orig));
 }
 
@@ -487,23 +489,23 @@ void LZMAStream::Init(Local<Object> exports) {
   tpl->SetClassName(NewString("LZMAStream"));
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
   
-  tpl->PrototypeTemplate()->Set(NewString("setBufsize"),      Nan::New<FunctionTemplate>(SetBufsize)->GetFunction());
-  tpl->PrototypeTemplate()->Set(NewString("resetUnderlying"), Nan::New<FunctionTemplate>(ResetUnderlying)->GetFunction());
-  tpl->PrototypeTemplate()->Set(NewString("code"),            Nan::New<FunctionTemplate>(Code)->GetFunction());
-  tpl->PrototypeTemplate()->Set(NewString("memusage"),        Nan::New<FunctionTemplate>(Memusage)->GetFunction());
-  tpl->PrototypeTemplate()->Set(NewString("memlimitGet"),     Nan::New<FunctionTemplate>(MemlimitGet)->GetFunction());
-  tpl->PrototypeTemplate()->Set(NewString("memlimitSet"),     Nan::New<FunctionTemplate>(MemlimitSet)->GetFunction());
-  tpl->PrototypeTemplate()->Set(NewString("rawEncoder_"),     Nan::New<FunctionTemplate>(RawEncoder)->GetFunction());
-  tpl->PrototypeTemplate()->Set(NewString("rawDecoder_"),     Nan::New<FunctionTemplate>(RawDecoder)->GetFunction());
-  tpl->PrototypeTemplate()->Set(NewString("filtersUpdate"),   Nan::New<FunctionTemplate>(FiltersUpdate)->GetFunction());
-  tpl->PrototypeTemplate()->Set(NewString("easyEncoder_"),    Nan::New<FunctionTemplate>(EasyEncoder)->GetFunction());
-  tpl->PrototypeTemplate()->Set(NewString("streamEncoder_"),  Nan::New<FunctionTemplate>(StreamEncoder)->GetFunction());
-  tpl->PrototypeTemplate()->Set(NewString("aloneEncoder"),    Nan::New<FunctionTemplate>(AloneEncoder)->GetFunction());
-  tpl->PrototypeTemplate()->Set(NewString("streamDecoder_"),  Nan::New<FunctionTemplate>(StreamDecoder)->GetFunction());
-  tpl->PrototypeTemplate()->Set(NewString("autoDecoder_"),    Nan::New<FunctionTemplate>(AutoDecoder)->GetFunction());
-  tpl->PrototypeTemplate()->Set(NewString("aloneDecoder_"),   Nan::New<FunctionTemplate>(AloneDecoder)->GetFunction());
+  Nan::SetPrototypeMethod(tpl, "setBufsize", SetBufsize);
+  Nan::SetPrototypeMethod(tpl, "resetUnderlying", ResetUnderlying);
+  Nan::SetPrototypeMethod(tpl, "code", Code);
+  Nan::SetPrototypeMethod(tpl, "memusage", Memusage);
+  Nan::SetPrototypeMethod(tpl, "memlimitGet", MemlimitGet);
+  Nan::SetPrototypeMethod(tpl, "memlimitSet", MemlimitSet);
+  Nan::SetPrototypeMethod(tpl, "rawEncoder_", RawEncoder);
+  Nan::SetPrototypeMethod(tpl, "rawDecoder_", RawDecoder);
+  Nan::SetPrototypeMethod(tpl, "filtersUpdate", FiltersUpdate);
+  Nan::SetPrototypeMethod(tpl, "easyEncoder_", EasyEncoder);
+  Nan::SetPrototypeMethod(tpl, "streamEncoder_", StreamEncoder);
+  Nan::SetPrototypeMethod(tpl, "aloneEncoder", AloneEncoder);
+  Nan::SetPrototypeMethod(tpl, "streamDecoder_", StreamDecoder);
+  Nan::SetPrototypeMethod(tpl, "autoDecoder_", AutoDecoder);
+  Nan::SetPrototypeMethod(tpl, "aloneDecoder_", AloneDecoder);
   
-  constructor.Reset(tpl->GetFunction());
+  constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
   exports->Set(NewString("Stream"), Nan::New<Function>(constructor));
 }
 

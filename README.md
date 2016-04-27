@@ -118,6 +118,10 @@ other LZMA libraries so you can use it nearly as a drop-in replacement:
  * [`versionString()`](#api-version-string) – Native library version string
  * [`versionNumber()`](#api-version-number) – Native library numerical version identifier
 
+[.xz file metadata](#parse-indexes)
+ * [`parseFileIndex()](#api-parse-file-index) – Read .xz file metadata
+ * [`parseFileIndexFD()](#api-parse-file-index-fd) – Read .xz metadata from a file descriptor
+
 [Internals](#api-internals)
  * [`setPromiseAPI()`](#api-set-promise-api) – Set (or unset) the `Promise` API
 
@@ -474,6 +478,75 @@ Example usage:
 ```js
 lzma.versionNumber() // => 50020012
 ```
+
+<a name="api-parse-file-index"></a>
+#### `lzma.parseFileIndex()`
+`lzma.parseFileIndex(options, [callback])`
+
+Read .xz file metadata.
+
+`options.fileSize` needs to be an integer indicating the size of the file
+being inspected, e.g. obtained by `fs.stat()`.
+
+`options.read(count, offset, cb)` must be a function that reads `count` bytes
+from the underlying file, starting at position `offset`. If that is not
+possible, e.g. because the file does not have enough bytes, the file should
+be considered corrupt. On success, `cb` should be called with a `Buffer`
+containing the read data.
+
+`callback` will be called with `err` and `info` as its arguments.
+
+If no `callback` is provided, `options.read()` must work synchronously and
+the file info will be returned from `lzma.parseFileIndex()`.
+
+Example usage:
+<!-- runtest:{Read .xz file metadata} -->
+
+```js
+fs.readFile('test/hamlet.txt.xz', function(err, content) {
+  // handle error
+
+  lzma.parseFileIndex({
+    fileSize: content.length,
+    read: function(count, offset, cb) {
+      cb(content.slice(offset, offset + count));
+    }
+  }, function(err, info) {
+    // handle error
+    
+    // do something with e.g. info.uncompressedSize
+  });
+});
+```
+
+<a name="api-parse-file-index-fd"></a>
+#### `lzma.parseFileIndexFD()`
+`lzma.parseFileIndexFD(fd, callback)`
+
+Read .xz metadata from a file descriptor.
+
+This is like [`parseFileIndex()](#api-parse-file-index), but lets you 
+pass an file descriptor in `fd`. The file will be inspected using
+`fs.stat()` and `fs.read()`. The file descriptor will not be opened or closed
+by this call.
+
+Example usage:
+<!-- runtest:{Read .xz file metadata from a file descriptor} -->
+
+```js
+fs.open('test/hamlet.txt.xz', 'r', function(err, fd) {
+  // handle error
+
+  lzma.parseFileIndexFD(fd, function(err, info) {
+    // handle error
+    
+    // do something with e.g. info.uncompressedSize
+    
+    fs.close(fd, function(err) { /* handle error */ });
+  });
+});
+```
+
 
 <a name="api-internals"></a>
 ### Internals

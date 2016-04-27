@@ -4,6 +4,7 @@ namespace lzma {
 
 void moduleInit(Local<Object> exports) {
   LZMAStream::Init(exports);
+  IndexParser::Init(exports);
   
   exports->Set(NewString("versionNumber"),            Nan::New<FunctionTemplate>(lzmaVersionNumber)->GetFunction());
   exports->Set(NewString("versionString"),            Nan::New<FunctionTemplate>(lzmaVersionString)->GetFunction());

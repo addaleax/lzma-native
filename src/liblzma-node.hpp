@@ -11,6 +11,7 @@
 #include <nan.h>
 
 #include <lzma.h>
+#include "index-parser.h"
 
 #include <vector>
 #include <list>
@@ -83,7 +84,7 @@ namespace lzma {
   /**
    * Return a javascript exception representing rv.
    */
-  Local<Value> lzmaRetError(lzma_ret rv);
+  Local<Object> lzmaRetError(lzma_ret rv);
   
   /**
    * Takes a Node.js SlowBuffer or Buffer as input and populates data accordingly.
@@ -264,6 +265,32 @@ namespace lzma {
       lzma_ret lastCodeResult;
       std::queue<std::vector<uint8_t> > inbufs;
       std::queue<std::vector<uint8_t> > outbufs;
+  };
+  
+  class IndexParser : public Nan::ObjectWrap {
+    public:
+      static void Init(Local<Object> exports);
+    
+    /* regard as private: */
+      int64_t readCallback(void* opaque, uint8_t* buf, size_t count, int64_t offset);
+    private:
+      explicit IndexParser();
+      ~IndexParser();
+      
+      lzma_index_parser_data info;
+      lzma_allocator allocator;
+      
+      uint8_t* currentReadBuffer;
+      size_t currentReadSize;
+      bool isCurrentlyInParseCall;
+      
+      Local<Object> getObject() const;
+      
+      static Nan::Persistent<Function> constructor;
+      static NAN_METHOD(New);
+      static NAN_METHOD(Init);
+      static NAN_METHOD(Feed);
+      static NAN_METHOD(Parse);
   };
   
   /**

@@ -5,6 +5,7 @@ var stream = require('readable-stream');
 var util = require('util');
 var extend = require('util-extend');
 var assert = require('assert');
+var fs = require('fs');
 
 // node-pre-gyp magic
 var nodePreGyp = require('node-pre-gyp');
@@ -451,6 +452,116 @@ exports.isXZ = function(buf) {
          buf[4] === 0x5a &&
          buf[5] === 0x00;
 };
+
+exports.parseFileIndex = function(options, callback) {
+  if (typeof options !== 'object') {
+    throw new TypeError('parseFileIndex needs an options object');
+  }
+  
+  var p = new native.IndexParser();
+  
+  if (typeof options.fileSize !== 'number') {
+    throw new TypeError('parseFileeIndex needs options.fileSize');
+  }
+  
+  if (typeof options.read !== 'function') {
+    throw new TypeError('parseFileIndex needs a read callback');
+  }
+  
+  p.init(options.fileSize, options.memlimit || 0);
+  p.read_cb = function(count, offset) {
+    var inSameTick = true;
+    var bytesRead = count;
+    
+    options.read(count, offset, function(buffer) {
+      p.feed(buffer);
+      bytesRead = buffer.length;
+      
+      if (inSameTick) {
+        // The call to parse() is still on the call stack and will continue
+        // seamlessly.
+        return;
+      }
+      
+      // Kick off parsing again.
+      var info;
+      
+      try {
+        info = p.parse();
+      } catch (e) {
+        return callback(e, null);
+      }
+      
+      if (info !== true) {
+        return callback(null, cleanupIndexInfo(info));
+      }
+    });
+    
+    inSameTick = false;
+    
+    return bytesRead;
+  };
+  
+  var info;
+  try {
+    info = p.parse();
+  } catch (e) {
+    if (typeof callback !== 'undefined') {
+      callback(e, null);
+      return;
+    }
+    
+    throw e;
+  }
+  
+  if (info !== true) {
+    info = cleanupIndexInfo(info);
+    if (typeof callback !== 'undefined' && info !== true) {
+      callback(null, info);
+    }
+    
+    return info;
+  }
+};
+
+exports.parseFileIndexFD = function(fd, callback) {
+  return fs.fstat(fd, function(err, stats) {
+    if (err) {
+      return callback(err, null);
+    }
+    
+    exports.parseFileIndex({
+      fileSize: stats.size,
+      read: function(count, offset, cb) {
+        var buffer = new Buffer(count);
+        
+        fs.read(fd, buffer, 0, count, offset, function(err, bytesRead, buffer) {
+          if (err) {
+            return callback(err, null);
+          }
+          
+          if (bytesRead !== count) {
+            return callback(new Error('Truncated file!'), null);
+          }
+          
+          cb(buffer);
+        });
+      }
+    }, callback);
+  });
+};
+
+function cleanupIndexInfo(info) {
+  var checkFlags = info.checks;
+  
+  info.checks = [];
+  for (var i = 0; i < exports.CHECK_ID_MAX; i++) {
+    if (checkFlags & (1 << i))
+      info.checks.push(i);
+  }
+  
+  return info;
+}
 
 function skipLeadingZeroes(buffer) {
   var i;

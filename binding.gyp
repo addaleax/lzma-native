@@ -10,7 +10,8 @@
         "src/liblzma-functions.cpp",
         "src/filter-array.cpp",
         "src/lzma-stream.cpp",
-        "src/module.cpp"
+        "src/module.cpp",
+        "src/index-parser.cpp"
       ],
       "include_dirs" : [
         "<!(node -e \"require('nan')\")"

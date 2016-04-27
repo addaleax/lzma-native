@@ -33,7 +33,7 @@ lzma_vli FilterByName(Local<Value> v) {
       return p->value;
 }
 
-Local<Value> lzmaRetError(lzma_ret rv) {
+Local<Object> lzmaRetError(lzma_ret rv) {
   struct errorInfo {
     lzma_ret code;
     const char* name;
@@ -58,7 +58,7 @@ Local<Value> lzmaRetError(lzma_ret rv) {
   };
   
   const struct errorInfo* p = searchErrorInfo;
-  while (p->code != rv && p->code != -1)
+  while (p->code != rv && p->code != (lzma_ret)-1)
     ++p;
   
   Local<Object> e = Local<Object>::Cast(Nan::Error(p->desc));
@@ -71,14 +71,14 @@ Local<Value> lzmaRetError(lzma_ret rv) {
 
 Local<Value> lzmaRet(lzma_ret rv) {
   if (rv != LZMA_OK && rv != LZMA_STREAM_END)
-    Nan::ThrowError(lzmaRetError(rv));
+    Nan::ThrowError(Local<Value>(lzmaRetError(rv)));
   
   return Nan::New<Integer>(rv);
 }
 
 bool readBufferFromObj(Local<Value> buf_, std::vector<uint8_t>& data) {
   if (buf_.IsEmpty() || !node::Buffer::HasInstance(buf_)) {
-    Nan::ThrowTypeError("Exptected Buffer as input");
+    Nan::ThrowTypeError("Expected Buffer as input");
     return false;
   }
   
