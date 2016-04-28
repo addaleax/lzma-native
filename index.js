@@ -39,7 +39,7 @@ exports.setPromiseAPI = function(newPromiseAPI) {
 
 exports.setPromiseAPI('default');
 
-exports.version = '1.3.0';
+exports.version = '1.3.1';
 
 var Stream = exports.Stream;
 
