@@ -119,8 +119,8 @@ other LZMA libraries so you can use it nearly as a drop-in replacement:
  * [`versionNumber()`](#api-version-number) – Native library numerical version identifier
 
 [.xz file metadata](#parse-indexes)
- * [`parseFileIndex()](#api-parse-file-index) – Read .xz file metadata
- * [`parseFileIndexFD()](#api-parse-file-index-fd) – Read .xz metadata from a file descriptor
+ * [`parseFileIndex()`](#api-parse-file-index) – Read .xz file metadata
+ * [`parseFileIndexFD()`](#api-parse-file-index-fd) – Read .xz metadata from a file descriptor
 
 [Internals](#api-internals)
  * [`setPromiseAPI()`](#api-set-promise-api) – Set (or unset) the `Promise` API
@@ -481,7 +481,7 @@ lzma.versionNumber() // => 50020012
 
 <a name="api-parse-file-index"></a>
 #### `lzma.parseFileIndex()`
-`lzma.parseFileIndex(options, [callback])`
+`lzma.parseFileIndex(options[, callback])`
 
 Read .xz file metadata.
 
@@ -525,7 +525,7 @@ fs.readFile('test/hamlet.txt.xz', function(err, content) {
 
 Read .xz metadata from a file descriptor.
 
-This is like [`parseFileIndex()](#api-parse-file-index), but lets you 
+This is like [`parseFileIndex()`](#api-parse-file-index), but lets you 
 pass an file descriptor in `fd`. The file will be inspected using
 `fs.stat()` and `fs.read()`. The file descriptor will not be opened or closed
 by this call.
