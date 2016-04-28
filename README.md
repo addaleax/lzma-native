@@ -492,7 +492,8 @@ being inspected, e.g. obtained by `fs.stat()`.
 from the underlying file, starting at position `offset`. If that is not
 possible, e.g. because the file does not have enough bytes, the file should
 be considered corrupt. On success, `cb` should be called with a `Buffer`
-containing the read data.
+containing the read data. `cb` can be invoked as `cb(err, buffer)`, in which
+case `err` will be passed along to the original `callback` argument when set.
 
 `callback` will be called with `err` and `info` as its arguments.
 

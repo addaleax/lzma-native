@@ -70,6 +70,31 @@ describe('lzma', function() {
       });
     });
     
+    it('should fail when I/O errors are passed along', function(done) {
+      lzma.parseFileIndex({
+        fileSize: hamletXZ.length,
+        read: function(count, offset, cb) {
+          cb(new Error('I/O failed'));
+        }
+      }, function(err, info) {
+        assert.ok(err);
+        assert.strictEqual(err.message, 'I/O failed');
+        
+        done();
+      });
+    });
+    
+    it('should fail when I/O errors are passed along, sync version', function() {
+      assert.throws(function() {
+        lzma.parseFileIndex({
+          fileSize: hamletXZ.length,
+          read: function(count, offset, cb) {
+            cb(new Error('I/O failed'));
+          }
+        });
+      }, /I\/O failed/);
+    });
+    
     it('should fail for invalid files', function(done) {
       lzma.parseFileIndex({
         fileSize: hamletXZ.length,
@@ -117,6 +142,23 @@ describe('lzma', function() {
         fileSize: hamletXZ.length,
         read: function(count, offset, cb) {
           process.nextTick(function() {
+            cb(null, hamletXZ.slice(offset, offset + count));
+          });
+        }
+      }, function(err, info) {
+        if (err) return done(err);
+        
+        checkInfo(info);
+        
+        done();
+      });
+    });
+    
+    it('should be able to parse a file asynchronously, alternative callback style', function(done) {
+      lzma.parseFileIndex({
+        fileSize: hamletXZ.length,
+        read: function(count, offset, cb) {
+          process.nextTick(function() {
             cb(hamletXZ.slice(offset, offset + count));
           });
         }
@@ -139,13 +181,24 @@ describe('lzma', function() {
       });
     });
     
+    after('Close the file', function(done) {
+      fs.close(fd, done);
+    });
+    
     it('should be able to parse a file from a file descriptor', function(done) {
       lzma.parseFileIndexFD(fd, function(err, info) {
         if (err) return done(err);
         
         checkInfo(info);
-        
-        fs.close(fd, done);
+        done();
+      });
+    });
+    
+    it('should fail for invalid file descriptors', function(done) {
+      lzma.parseFileIndexFD(-1, function(err, info) {
+        assert.ok(err);
+        assert.ok(!info);
+        done();
       });
     });
   });

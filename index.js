@@ -473,7 +473,20 @@ exports.parseFileIndex = function(options, callback) {
     var inSameTick = true;
     var bytesRead = count;
     
-    options.read(count, offset, function(buffer) {
+    options.read(count, offset, function(err, buffer) {
+      if (Buffer.isBuffer(err)) {
+        buffer = err;
+        err = null;
+      }
+      
+      if (err) {
+        if (typeof callback === 'undefined') {
+          throw err;
+        }
+        
+        return callback(err, null);
+      }
+      
       p.feed(buffer);
       bytesRead = buffer.length;
       
@@ -537,14 +550,14 @@ exports.parseFileIndexFD = function(fd, callback) {
         
         fs.read(fd, buffer, 0, count, offset, function(err, bytesRead, buffer) {
           if (err) {
-            return callback(err, null);
+            return cb(err, null);
           }
           
           if (bytesRead !== count) {
-            return callback(new Error('Truncated file!'), null);
+            return cb(new Error('Truncated file!'), null);
           }
           
-          cb(buffer);
+          cb(null, buffer);
         });
       }
     }, callback);
