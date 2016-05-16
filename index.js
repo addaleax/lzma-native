@@ -43,8 +43,7 @@ exports.version = '1.3.1';
 
 var Stream = exports.Stream;
 
-Stream.curAsyncStreams = [];
-Stream.maxAsyncStreamCount = 32;
+Stream.curAsyncStreamsCount = 0;
 
 Stream.prototype.getStream = function(options) {
   options = options || {};
@@ -82,15 +81,15 @@ Stream.prototype.getStream = function(options) {
     };
     
     if (!self.synchronous) {
-      Stream.curAsyncStreams.push(self);
+      Stream.curAsyncStreamsCount++;
       
       var oldCleanup = self.cleanup;
+      var countedCleanup = false;
       self.cleanup = function() {
-        var index = Stream.curAsyncStreams.indexOf(self);
-        
-        if (index !== -1)
-          Stream.curAsyncStreams.splice(index, 1);
-        
+        if (countedCleanup === false) {
+          Stream.curAsyncStreamsCount--;
+          countedCleanup = true;
+        }
         oldCleanup();
       };
     }
@@ -297,9 +296,6 @@ exports.createStream = function(coder, options) {
   
   if (options.memlimit)
     stream.memlimitSet(options.memlimit);
-  
-  if (!options.synchronous)
-    options.synchronous = ((Stream.curAsyncStreams.length >= Stream.maxAsyncStreamCount) && !options.forceAsynchronous);
   
   return stream.getStream(options);
 };

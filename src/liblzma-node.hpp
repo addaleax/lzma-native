@@ -201,13 +201,12 @@ namespace lzma {
       
     /* regard as private: */
       void doLZMACodeFromAsync();
-      void invokeBufferHandlersFromAsync();
+      void invokeBufferHandlers(bool hasLock);
       void* alloc(size_t nmemb, size_t size);
       void free(void* ptr);
     private:
       void resetUnderlying();
-      void doLZMACode(bool async);
-      void invokeBufferHandlers(bool async, bool hasLock);
+      void doLZMACode();
       
       explicit LZMAStream();
       ~LZMAStream();
@@ -216,11 +215,6 @@ namespace lzma {
       static NAN_METHOD(New);
       
       static void _failMissingSelf(const Nan::FunctionCallbackInfo<Value>& info);
-
-      bool hasRunningThread;
-      bool hasPendingCallbacks;
-      bool hasRunningCallbacks;
-      bool isNearDeath;
       
       void adjustExternalMemory(int64_t bytesChange);
       void reportAdjustedExternalMemoryToV8();
@@ -228,11 +222,7 @@ namespace lzma {
 #ifdef LZMA_ASYNC_AVAILABLE
       int64_t nonAdjustedExternalMemory;
       
-      uv_cond_t lifespanCond;
       uv_mutex_t mutex;
-      uv_cond_t inputDataCond;
-      
-      uv_async_t* outputDataAsync;
       
 #define LZMA_ASYNC_LOCK(strm)    uv_mutex_guard lock(strm->mutex)
 #else
@@ -265,6 +255,33 @@ namespace lzma {
       lzma_ret lastCodeResult;
       std::queue<std::vector<uint8_t> > inbufs;
       std::queue<std::vector<uint8_t> > outbufs;
+  };
+
+  /**
+   * Async worker for a single coding step.
+   */
+  class LZMAStreamCodingWorker : public Nan::AsyncWorker {
+    public:
+      LZMAStreamCodingWorker(/*Nan::Callback* callback_, */LZMAStream* stream_)
+        : Nan::AsyncWorker(NULL/*callback_*/), stream(stream_) {
+        SaveToPersistent(static_cast<uint32_t>(0), stream->handle());
+      }
+
+      ~LZMAStreamCodingWorker() {}
+
+      void Execute() {
+        stream->doLZMACodeFromAsync();
+      }
+    private:
+      void HandleOKCallback() {
+        stream->invokeBufferHandlers(false);
+      }
+
+      void HandleErrorCallback() {
+        stream->invokeBufferHandlers(false);
+      }
+
+      LZMAStream* stream;
   };
   
   class IndexParser : public Nan::ObjectWrap {

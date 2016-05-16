@@ -12,27 +12,6 @@ const bool LZMAStream::asyncCodeAvailable = false;
 #endif
 
 namespace {
-  extern "C" void worker(void* opaque) {
-    LZMAStream* self = static_cast<LZMAStream*>(opaque);
-    
-    self->doLZMACodeFromAsync();
-  }
-  
-  extern "C" void invoke_buffer_handlers_async(uv_async_t* async
-#if UV_VERSION_MAJOR < 1
-  , int status
-#endif
-  ) {
-    LZMAStream* strm = static_cast<LZMAStream*>(async->data);
-    strm->invokeBufferHandlersFromAsync();
-  }
-
-  extern "C" void async_close(uv_handle_t* handle) {
-#ifdef LZMA_ASYNC_AVAILABLE
-    delete reinterpret_cast<uv_async_t*>(handle);
-#endif
-  }
-  
   extern "C" void* LZMA_API_CALL
   alloc_for_lzma(void *opaque, size_t nmemb, size_t size) {
     LZMAStream* strm = static_cast<LZMAStream*>(opaque);
@@ -51,10 +30,6 @@ namespace {
 Nan::Persistent<Function> LZMAStream::constructor;
 
 LZMAStream::LZMAStream() :
-  hasRunningThread(false),
-  hasPendingCallbacks(false),
-  hasRunningCallbacks(false),
-  isNearDeath(false),
   bufsize(65536),
   shouldFinish(false),
   processedChunks(0),
@@ -68,11 +43,8 @@ LZMAStream::LZMAStream() :
   _.allocator = &allocator;
 #ifdef LZMA_ASYNC_AVAILABLE
   uv_mutex_init(&mutex);
-  uv_cond_init(&lifespanCond);
-  uv_cond_init(&inputDataCond);
   
   nonAdjustedExternalMemory = 0;
-  outputDataAsync = NULL;
 #endif
 }
 
@@ -85,36 +57,13 @@ void LZMAStream::resetUnderlying() {
   _.allocator = &allocator;
   lastCodeResult = LZMA_OK;
   processedChunks = 0;
-  
-#ifdef LZMA_ASYNC_AVAILABLE
-  if (outputDataAsync) {
-    uv_close(reinterpret_cast<uv_handle_t*>(outputDataAsync), async_close);
-    outputDataAsync = NULL;
-  }
-#endif
 }
 
 LZMAStream::~LZMAStream() {
-#ifdef LZMA_ASYNC_AVAILABLE
-  {
-    LZMA_ASYNC_LOCK(this);
-    
-    isNearDeath = true;
-    uv_cond_broadcast(&inputDataCond);
-    
-    while (hasRunningThread || hasRunningCallbacks)
-      uv_cond_wait(&lifespanCond, &mutex);
-  }
-#endif
-  
-  // no locking necessary from now on, we are the only active thread
-  
   resetUnderlying();
   
 #ifdef LZMA_ASYNC_AVAILABLE
   uv_mutex_destroy(&mutex);
-  uv_cond_destroy(&lifespanCond);
-  uv_cond_destroy(&inputDataCond);
 #endif
 
   Nan::AdjustExternalMemory(-int64_t(sizeof(LZMAStream)));
@@ -226,42 +175,23 @@ NAN_METHOD(LZMAStream::Code) {
   
   self->inbufs.push(LZMA_NATIVE_MOVE(inputData));
   
-  bool hadRunningThread = self->hasRunningThread;
-  bool async = info[1]->BooleanValue() || hadRunningThread;
-  self->hasRunningThread = async;
+  bool async = info[1]->BooleanValue();
   
   if (async) {
 #ifdef LZMA_ASYNC_AVAILABLE
-    if (!self->outputDataAsync) {
-      self->outputDataAsync = new uv_async_t;
-      if (!self->outputDataAsync)
-        return;
-      
-      uv_async_init(uv_default_loop(), self->outputDataAsync, invoke_buffer_handlers_async);
-      self->outputDataAsync->data = static_cast<void*>(self);
-    }
-    
-    if (!hadRunningThread) {
-      uv_thread_t worker_id;
-      uv_thread_create(&worker_id, worker, static_cast<void*>(self));
-    }
-    
-    uv_cond_broadcast(&self->inputDataCond);
+    AsyncQueueWorker(new LZMAStreamCodingWorker(self));
 #else
     std::abort();
 #endif
   } else {
-    self->doLZMACode(false);
+    self->doLZMACode();
+    self->invokeBufferHandlers(true);
   }
   
   info.GetReturnValue().SetUndefined();
 }
 
-void LZMAStream::invokeBufferHandlersFromAsync() {
-  invokeBufferHandlers(false, false);
-}
-
-void LZMAStream::invokeBufferHandlers(bool async, bool hasLock) {
+void LZMAStream::invokeBufferHandlers(bool hasLock) {
 #ifdef LZMA_ASYNC_AVAILABLE
   uv_mutex_guard lock(mutex, !hasLock);
 #define POSSIBLY_LOCK_MX    do { if (!hasLock) lock.lock(); } while(0)
@@ -270,41 +200,6 @@ void LZMAStream::invokeBufferHandlers(bool async, bool hasLock) {
 #define POSSIBLY_LOCK_MX
 #define POSSIBLY_UNLOCK_MX
 #endif
-
-  if (!hasLock && !hasPendingCallbacks)
-    return;
-  
-  if (async) {
-#ifdef LZMA_ASYNC_AVAILABLE
-    hasPendingCallbacks = true;
-    
-    if (outputDataAsync) {
-      // this calls invokeBufferHandlersFromAsync(false, …) from the main loop thread
-      uv_async_send(outputDataAsync);
-    }
-    
-    return;
-#else
-    std::abort();
-#endif
-  }
-  
-  hasRunningCallbacks = true;
-  hasPendingCallbacks = false;
-  
-  struct _ScopeGuard {
-    _ScopeGuard(LZMAStream* self_) : self(self_) {}
-    ~_ScopeGuard() {
-      self->hasRunningCallbacks = false;
-
-#ifdef LZMA_ASYNC_AVAILABLE
-      uv_cond_broadcast(&self->lifespanCond);
-#endif
-    }
-    
-    LZMAStream* self;
-  };
-  _ScopeGuard guard(this);
   
   Nan::HandleScope scope;
   
@@ -362,26 +257,10 @@ void LZMAStream::invokeBufferHandlers(bool async, bool hasLock) {
 void LZMAStream::doLZMACodeFromAsync() {
   LZMA_ASYNC_LOCK(this);
   
-  struct _ScopeGuard {
-    _ScopeGuard(LZMAStream* self_) : self(self_) {}
-    ~_ScopeGuard() {
-      self->hasRunningThread = false;
-
-#ifdef LZMA_ASYNC_AVAILABLE
-      uv_cond_broadcast(&self->lifespanCond);
-#endif
-    }
-    
-    LZMAStream* self;
-  };
-  _ScopeGuard guard(this);
-  
-  doLZMACode(true);
+  doLZMACode();
 }
 
-void LZMAStream::doLZMACode(bool async) {
-  bool invokedBufferHandlers = false;
-  
+void LZMAStream::doLZMACode() {
   std::vector<uint8_t> outbuf(bufsize), inbuf;
   _.next_out = outbuf.data();
   _.avail_out = outbuf.size();
@@ -392,31 +271,8 @@ void LZMAStream::doLZMACode(bool async) {
   size_t readChunks = 0;
   
   // _.internal is set to NULL when lzma_end() is called via resetUnderlying()
-  while (_.internal && !isNearDeath) {
+  while (_.internal) {
     if (_.avail_in == 0) { // more input neccessary?
-      if (inbufs.empty()) { // more input available?
-        if (async) {
-#ifdef LZMA_ASYNC_AVAILABLE
-          if (readChunks > 0) {
-            invokeBufferHandlers(async, true);
-            invokedBufferHandlers = true;
-          }
-          
-          processedChunks += readChunks;
-          readChunks = 0;
-
-          // wait until more data is available
-          while (inbufs.empty() && !shouldFinish && !isNearDeath)
-            uv_cond_wait(&inputDataCond, &mutex);
-#else
-          std::abort();
-#endif
-        }
-        
-        if (!async)
-          invokedBufferHandlers = false;
-      }
-      
       while (_.avail_in == 0 && !inbufs.empty()) {
         inbuf = LZMA_NATIVE_MOVE(inbufs.front());
         inbufs.pop();
@@ -433,7 +289,6 @@ void LZMAStream::doLZMACode(bool async) {
     _.next_out = outbuf.data();
     _.avail_out = outbuf.size();
     
-    invokedBufferHandlers = false;
     lastCodeResult = lzma_code(&_, action);
     
     if (lastCodeResult != LZMA_OK && lastCodeResult != LZMA_STREAM_END) {
@@ -453,14 +308,8 @@ void LZMAStream::doLZMACode(bool async) {
         outbufs.push(std::vector<uint8_t>(outbuf.data(), outbuf.data() + outsz));
 #endif
       }
-      
-      // save status, since invokeBufferHandlers() may reset
-      lzma_ret oldLCR = lastCodeResult;
-      
-      invokeBufferHandlers(async, true);
-      invokedBufferHandlers = true;
-      
-      if (oldLCR == LZMA_STREAM_END) {
+
+      if (lastCodeResult == LZMA_STREAM_END) {
         processedChunks += readChunks;
         readChunks = 0;
         
@@ -475,13 +324,10 @@ void LZMAStream::doLZMACode(bool async) {
       }
 
       
-      if (!async && !shouldFinish)
+      if (!shouldFinish)
         break;
     }
   }
-  
-  if (!invokedBufferHandlers || processedChunks)
-    invokeBufferHandlers(async, true);
 }
 
 void LZMAStream::Init(Local<Object> exports) {

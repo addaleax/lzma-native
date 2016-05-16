@@ -345,24 +345,6 @@ describe('LZMAStream', function() {
   });
 
   describe('#createStream', function() {
-    it('should switch to synchronous streams after too many Stream creations', function(done) {
-      assert.ok(lzma.Stream.maxAsyncStreamCount);
-      lzma.Stream.maxAsyncStreamCount = 3;
-      
-      var streams = [], i;
-      
-      for (i = 0; i < lzma.Stream.maxAsyncStreamCount * 2; ++i) 
-        streams.push(lzma.createStream({synchronous: false}));
-      
-      for (i = lzma.Stream.maxAsyncStreamCount + 1; i < lzma.Stream.maxAsyncStreamCount * 2; ++i)
-        assert.ok(streams[i].synchronous);
-        
-      for (i = 0; i < lzma.Stream.maxAsyncStreamCount * 2; ++i) 
-        streams[i].end();
-      
-      done();
-    });
-
     it('should work fine when synchronous streams are abandoned', function(done) {
       lzma.createStream({synchronous: true});
       
@@ -548,13 +530,10 @@ describe('LZMAStream', function() {
     });
   });
   
-  after('should not have any open asynchronous streams', function(done) {
+  after('should not have any open asynchronous streams', function() {
     if (typeof gc === 'function')
       gc();
-      
-    setTimeout(function() {
-      assert.equal(lzma.Stream.curAsyncStreams.length, 0);
-      done();
-    }, 500);
+
+    assert.equal(lzma.Stream.curAsyncStreamsCount, 0);
   });
 });
