@@ -34,7 +34,7 @@ install:
   - IF %nodejs_version% LSS 1 set PATH=%APPDATA%\npm;%PATH%
   - IF NOT "%nwjs_version%" == "" set NPG_ARGS=--runtime=node-webkit --target=%NWJS_VERSION%
   - IF NOT "%nwjs_version%" == "" npm install nw@%NWJS_VERSION% nw-gyp@%NWJS_VERSION%
-  - npm run prepublish
+  - npm run prepare
   - npm install --build-from-source %NPG_ARGS%
   - node_modules\.bin\node-pre-gyp package --target_arch=%PLATFORM:x86=ia32% %NPG_ARGS%
   - move build\stage\lzma-native lzma-native
