@@ -107,8 +107,12 @@ other LZMA libraries so you can use it nearly as a drop-in replacement:
  * [`Compressor()`](#api-robey_compressor) ([node-xz][node-xz] compatibility)
  * [`Decompressor()`](#api-robey_decompressor) ([node-xz][node-xz] compatibility)
 
-[Functions](#api-functions)
+[.xz file metadata](#api-parse-indexes)
  * [`isXZ()`](#api-isxz) – Test Buffer for `.xz` file format
+ * [`parseFileIndex()`](#api-parse-file-index) – Read `.xz` file metadata
+ * [`parseFileIndexFD()`](#api-parse-file-index-fd) – Read `.xz` metadata from a file descriptor
+
+[Miscellaneous functions](#api-functions)
  * [`crc32()`](#api-crc32) – Calculate CRC32 checksum
  * [`checkSize()`](#api-check-size) – Return required size for specific checksum type
  * [`easyDecoderMemusage()`](#api-easy-decoder-memusage) – Expected memory usage
@@ -117,10 +121,6 @@ other LZMA libraries so you can use it nearly as a drop-in replacement:
  * [`rawEncoderMemusage()`](#api-raw-encoder-memusage) – Expected memory usage
  * [`versionString()`](#api-version-string) – Native library version string
  * [`versionNumber()`](#api-version-number) – Native library numerical version identifier
-
-[.xz file metadata](#parse-indexes)
- * [`parseFileIndex()`](#api-parse-file-index) – Read .xz file metadata
- * [`parseFileIndexFD()`](#api-parse-file-index-fd) – Read .xz metadata from a file descriptor
 
 [Internals](#api-internals)
  * [`setPromiseAPI()`](#api-set-promise-api) – Set (or unset) the `Promise` API
@@ -337,30 +337,7 @@ The LZMA filter supports the additional options `.dict_size`, `.lp`, `.lc`, `pb`
 and `.preset`. See the [xz(1) manpage][xz-manpage] for meaning of these parameters and additional information.
 
 <a name="api-functions"></a>
-### Functions
-
-<a name="api-isxz"></a>
-#### `lzma.isXZ()`
-`lzma.isXZ(input)`
-
-Tells whether an input buffer is an XZ file (`.xz`, LZMA2 format) using the
-file format’s magic number. This is not a complete test, i.e. the data
-following the file header may still be invalid in some way.
-
-Param        |  Type            |  Description
------------- | ---------------- | --------------
-`input`      | string / Buffer  | Any string or Buffer (integer arrays accepted).
-
-Example usage:
-<!-- runtest:{.isXZ() checks some strings correctly} -->
-
-```js
-lzma.isXZ(fs.readFileSync('test/hamlet.txt.xz')); // => true
-lzma.isXZ(fs.readFileSync('test/hamlet.txt.lzma')); // => false
-lzma.isXZ('Banana'); // => false
-```
-
-(The magic number of XZ files is hex `fd 37 7a 58 5a 00` at position 0.)
+### Miscellaneous functions
 
 <a name="api-crc32"></a>
 #### `lzma.crc32()`
@@ -479,11 +456,37 @@ Example usage:
 lzma.versionNumber() // => 50020012
 ```
 
+<a name="api-parse-indexes"></a>
+### .xz file metadata
+
+<a name="api-isxz"></a>
+#### `lzma.isXZ()`
+`lzma.isXZ(input)`
+
+Tells whether an input buffer is an XZ file (`.xz`, LZMA2 format) using the
+file format’s magic number. This is not a complete test, i.e. the data
+following the file header may still be invalid in some way.
+
+Param        |  Type            |  Description
+------------ | ---------------- | --------------
+`input`      | string / Buffer  | Any string or Buffer (integer arrays accepted).
+
+Example usage:
+<!-- runtest:{.isXZ() checks some strings correctly} -->
+
+```js
+lzma.isXZ(fs.readFileSync('test/hamlet.txt.xz')); // => true
+lzma.isXZ(fs.readFileSync('test/hamlet.txt.lzma')); // => false
+lzma.isXZ('Banana'); // => false
+```
+
+(The magic number of XZ files is hex `fd 37 7a 58 5a 00` at position 0.)
+
 <a name="api-parse-file-index"></a>
 #### `lzma.parseFileIndex()`
 `lzma.parseFileIndex(options[, callback])`
 
-Read .xz file metadata.
+Read `.xz` file metadata.
 
 `options.fileSize` needs to be an integer indicating the size of the file
 being inspected, e.g. obtained by `fs.stat()`.
@@ -524,7 +527,7 @@ fs.readFile('test/hamlet.txt.xz', function(err, content) {
 #### `lzma.parseFileIndexFD()`
 `lzma.parseFileIndexFD(fd, callback)`
 
-Read .xz metadata from a file descriptor.
+Read `.xz` metadata from a file descriptor.
 
 This is like [`parseFileIndex()`](#api-parse-file-index), but lets you 
 pass an file descriptor in `fd`. The file will be inspected using
