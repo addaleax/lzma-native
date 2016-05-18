@@ -179,7 +179,7 @@ NAN_METHOD(LZMAStream::Code) {
   
   if (async) {
 #ifdef LZMA_ASYNC_AVAILABLE
-    AsyncQueueWorker(new LZMAStreamCodingWorker(self));
+    Nan::AsyncQueueWorker(new LZMAStreamCodingWorker(self));
 #else
     std::abort();
 #endif
