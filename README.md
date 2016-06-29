@@ -91,6 +91,19 @@ other LZMA libraries so you can use it nearly as a drop-in replacement:
   though without actual support for progress functions and returning `Buffer` objects
   instead of integer arrays. (This produces output in the `.lzma` file format, *not* the `.xz` format!)
 
+<a name="api-multithreading">
+### Multi-threaded encoding
+
+Since version `1.5.0`, lzma-native supports liblzma’s built-in multi-threading
+encoding capabilities. To make use of them, set the `threads` option to
+an integer value: `lzma.createCompressor({ threads: n });`. You can use
+value of `0` to use the number of processor cores. This option is only
+available for the `easyEncoder` (the default) and `streamEncoder` encoders.
+
+Note that, by default, encoding will take place in Node’s libuv thread pool
+regardless of this option, and setting it when multiple encoders are running
+is likely to affect performance negatively.
+
 <a name="api-reference"></a>
 ### Reference
 
@@ -321,6 +334,9 @@ Option name   |  Type      |  Description
 `flags`       | int        |  A bitwise or of `lzma.LZMA_TELL_NO_CHECK`, `lzma.LZMA_TELL_UNSUPPORTED_CHECK`, `lzma.LZMA_TELL_ANY_CHECK`, `lzma.LZMA_CONCATENATED`
 `synchronous` | bool       |  If true, forces synchronous coding (i.e. no usage of threading)
 `bufsize`     | int        |  The default size for allocated buffers
+`threads`     | int        |  Set to an integer to use liblzma’s multi-threading support. 0 will choose the number of CPU cores.
+`blockSize`   | int        |  Maximum uncompressed size of a block in multi-threading mode
+`timeout`     | int        |  Timeout for a single encoding operation in multi-threading mode
 
 <a name="api-options-filters"></a>
 `options.filters` can, if the coder supports it, be an array of filter objects, each with the following properties:
