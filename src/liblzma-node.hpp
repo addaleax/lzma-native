@@ -169,7 +169,7 @@ namespace lzma {
    */
   class FilterArray {
     public:
-      FilterArray() { finish(); }
+      FilterArray() : ok_(false) { finish(); }
       explicit FilterArray(Local<Array> arr);
       
       lzma_filter* array() { return filters.data(); }
@@ -189,6 +189,27 @@ namespace lzma {
       bool ok_;
       std::vector<lzma_filter> filters;
       std::list<options> optbuf;
+  };
+
+  /**
+   * Wrapper for lzma_mt (multi-threading options).
+   */
+  class MTOptions {
+    public:
+      MTOptions();
+      explicit MTOptions(Local<Object> opt);
+      ~MTOptions();
+
+      lzma_mt* opts() { return &opts_; }
+      const lzma_mt* opts() const { return &opts_; }
+      bool ok() const { return ok_; }
+    private:
+      MTOptions(const MTOptions&);
+      MTOptions& operator=(const MTOptions&);
+      
+      FilterArray* filters_;
+      lzma_mt opts_;
+      bool ok_;
   };
 
   /**
@@ -241,6 +262,7 @@ namespace lzma {
       static NAN_METHOD(EasyEncoder);
       static NAN_METHOD(StreamEncoder);
       static NAN_METHOD(AloneEncoder);
+      static NAN_METHOD(MTEncoder);
       static NAN_METHOD(StreamDecoder);
       static NAN_METHOD(AutoDecoder);
       static NAN_METHOD(AloneDecoder);

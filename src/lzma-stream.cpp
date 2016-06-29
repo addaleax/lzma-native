@@ -347,6 +347,7 @@ void LZMAStream::Init(Local<Object> exports) {
   Nan::SetPrototypeMethod(tpl, "easyEncoder_", EasyEncoder);
   Nan::SetPrototypeMethod(tpl, "streamEncoder_", StreamEncoder);
   Nan::SetPrototypeMethod(tpl, "aloneEncoder", AloneEncoder);
+  Nan::SetPrototypeMethod(tpl, "mtEncoder_", MTEncoder);
   Nan::SetPrototypeMethod(tpl, "streamDecoder_", StreamDecoder);
   Nan::SetPrototypeMethod(tpl, "autoDecoder_", AutoDecoder);
   Nan::SetPrototypeMethod(tpl, "aloneDecoder_", AloneDecoder);
@@ -449,8 +450,23 @@ NAN_METHOD(LZMAStream::StreamEncoder) {
   
   const FilterArray filters(Local<Array>::Cast(info[0]));
   Local<Integer> check = Local<Integer>::Cast(info[1]);
+
+  if (!filters.ok())
+    return;
   
   info.GetReturnValue().Set(lzmaRet(lzma_stream_encoder(&self->_, filters.array(), (lzma_check) check->Value())));
+}
+
+NAN_METHOD(LZMAStream::MTEncoder) {
+  LZMA_FETCH_SELF();
+  LZMA_ASYNC_LOCK(self);
+  
+  const MTOptions mt(Local<Object>::Cast(info[0]));
+
+  if (!mt.ok())
+    return;
+  
+  info.GetReturnValue().Set(lzmaRet(lzma_stream_encoder_mt(&self->_, mt.opts())));
 }
 
 NAN_METHOD(LZMAStream::AloneEncoder) {

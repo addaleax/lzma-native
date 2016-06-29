@@ -11,6 +11,7 @@
         "src/filter-array.cpp",
         "src/lzma-stream.cpp",
         "src/module.cpp",
+        "src/mt-options.cpp",
         "src/index-parser.cpp"
       ],
       "include_dirs" : [

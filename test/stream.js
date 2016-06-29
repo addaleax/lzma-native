@@ -183,6 +183,24 @@ describe('LZMAStream', function() {
     });
     });
     
+    it('should correctly encode the empty string in async MT mode', function(done) {
+      var enc = lzma.createStream('easyEncoder', { threads: 2 });
+      var dec = lzma.createStream('autoDecoder');
+      encodeAndDecode(enc, dec, done, bl(''));
+    });
+    
+    it('should correctly encode the empty string in async MT mode with default threading', function(done) {
+      var enc = lzma.createStream('easyEncoder', { threads: 0 });
+      var dec = lzma.createStream('autoDecoder');
+      encodeAndDecode(enc, dec, done, bl(''));
+    });
+
+    it('should correctly encode the empty string in sync MT mode', function(done) {
+      var enc = lzma.createStream('easyEncoder', { threads: 2, synchronous: true });
+      var dec = lzma.createStream('autoDecoder');
+      encodeAndDecode(enc, dec, done, bl(''));
+    });
+
     it('should correctly encode the empty string in async mode', function(done) {
       var enc = lzma.createStream('easyEncoder');
       var dec = lzma.createStream('autoDecoder');
@@ -252,6 +270,35 @@ describe('LZMAStream', function() {
         ],
         check: lzma.CHECK_SHA256,
         synchronous: true
+      });
+      var dec = lzma.createStream('autoDecoder', {synchronous: true});
+      
+      encodeAndDecode(enc, dec, done, x86BinaryData);
+    });
+    
+    it('should be undone by autoDecoder in async mode using the x86 filter in MT mode', function(done) {
+      var enc = lzma.createStream('streamEncoder', {
+        filters: [
+          { id: lzma.FILTER_X86 },
+          { id: lzma.FILTER_LZMA2 }
+        ],
+        check: lzma.CHECK_SHA256,
+        threads: 2
+      });
+      var dec = lzma.createStream('autoDecoder');
+      
+      encodeAndDecode(enc, dec, done, x86BinaryData);
+    });
+    
+    it('should be undone by autoDecoder in sync mode using the x86 filter in MT mode', function(done) {
+      var enc = lzma.createStream('streamEncoder', {
+        filters: [
+          { id: lzma.FILTER_X86 },
+          { id: lzma.FILTER_LZMA2 }
+        ],
+        check: lzma.CHECK_SHA256,
+        synchronous: true,
+        threads: 2
       });
       var dec = lzma.createStream('autoDecoder', {synchronous: true});
       

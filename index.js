@@ -246,11 +246,33 @@ Stream.prototype.rawDecoder = function(options) {
 };
 
 Stream.prototype.easyEncoder = function(options) {
-  return this.easyEncoder_(options.preset || exports.PRESET_DEFAULT, options.check || exports.CHECK_CRC32);
+  var preset = options.preset || exports.PRESET_DEFAULT;
+  var check = options.check || exports.CHECK_CRC32;
+
+  if (typeof options.threads !== 'undefined' && options.threads !== null) {
+    return this.mtEncoder_(extend({
+      preset: preset,
+      filters: null,
+      check: check
+    }, options));
+  } else {
+    return this.easyEncoder_(preset, check);
+  }
 };
 
 Stream.prototype.streamEncoder = function(options) {
-  return this.streamEncoder_(options.filters || [], options.check || exports.CHECK_CRC32);
+  var filters = options.filters || [];
+  var check = options.check || exports.CHECK_CRC32;
+
+  if (typeof options.threads !== 'undefined' && options.threads !== null) {
+    return this.mtEncoder_(extend({
+      preset: null,
+      filters: filters,
+      check: check
+    }, options));
+  } else {
+    return this.streamEncoder_(filters, check);
+  }
 };
 
 Stream.prototype.streamDecoder = function(options) {
