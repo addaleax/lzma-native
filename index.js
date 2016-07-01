@@ -48,14 +48,6 @@ Stream.curAsyncStreamsCount = 0;
 Stream.prototype.getStream = function(options) {
   options = options || {};
   
-  var _forceNextTickCb = function() {
-    /* I know this looks like “magic/more magic”, but
-     * apparently works around a bogus process.nextTick in
-     * node v0.11. This probably does not affect real
-     * applications which perform other I/O than LZMA compression. */
-    setTimeout(function() {}, 1);
-  };
-  
   var Ret = function(nativeStream) {
     Ret.super_.call(this, options);
     var self = this;
@@ -103,12 +95,11 @@ Stream.prototype.getStream = function(options) {
         self.totalOut_ = totalOut;
       }
       
-      process.nextTick(function() {
+      setImmediate(function() {
         if (err) {
           self.push(null);
           self.emit('error-cleanup', err);
           self.emit('error', err);
-          _forceNextTickCb();
         }
         
         if (totalIn !== null) {
@@ -125,8 +116,6 @@ Stream.prototype.getStream = function(options) {
           
           while (chunkCallbacks.length > 0)
             chunkCallbacks.shift().apply(self);
-          
-          _forceNextTickCb();
         } else if (buf === null) {
           if (self._writingLastChunk) {
             self.push(null);
@@ -146,8 +135,6 @@ Stream.prototype.getStream = function(options) {
           self.push(buf);
         }
       });
-      
-      _forceNextTickCb();
     };
     
     // add all methods from the native Stream

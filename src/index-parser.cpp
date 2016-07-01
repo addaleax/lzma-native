@@ -502,7 +502,7 @@ int64_t IndexParser::readCallback(void* opaque, uint8_t* buf, size_t count, int6
   };
   
   Local<Function> read_cb = Local<Function>::Cast(EmptyToUndefined(Nan::Get(handle(), NewString("read_cb"))));
-  Local<Value> ret = read_cb->Call(handle(), 2, argv);
+  Local<Value> ret = Nan::MakeCallback(handle(), read_cb, 2, argv);
   
   if (currentReadBuffer) {
     info.async = true;

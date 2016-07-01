@@ -209,7 +209,7 @@ void LZMAStream::invokeBufferHandlers(bool hasLock) {
   
 #define CALL_BUFFER_HANDLER_WITH_ARGV \
   POSSIBLY_UNLOCK_MX; \
-  bufferHandler->Call(handle(), 5, argv); \
+  Nan::MakeCallback(handle(), bufferHandler, 5, argv); \
   POSSIBLY_LOCK_MX;
   
   uint64_t in = UINT64_MAX, out = UINT64_MAX;
