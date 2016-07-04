@@ -91,7 +91,7 @@ other LZMA libraries so you can use it nearly as a drop-in replacement:
   though without actual support for progress functions and returning `Buffer` objects
   instead of integer arrays. (This produces output in the `.lzma` file format, *not* the `.xz` format!)
 
-<a name="api-multithreading">
+<a name="api-multithreading"></a>
 ### Multi-threaded encoding
 
 Since version `1.5.0`, lzma-native supports liblzma’s built-in multi-threading
