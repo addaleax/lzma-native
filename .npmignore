@@ -9,3 +9,4 @@ README.md.xz
 .jshint*
 .travis*
 appveyor.yml
+.nyc-output

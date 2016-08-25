@@ -167,6 +167,7 @@ describe('LZMAStream', function() {
         if (preset >= 7 && process.env.APPVEYOR) {
           // Sometimes there’s not enough memory on AppVeyor machines. :-(
           this.skip();
+          return;
         }
         
         var enc = lzma.createStream('easyEncoder', {
