@@ -370,7 +370,7 @@ NAN_METHOD(LZMAStream::New) {
     
     info.GetReturnValue().Set(info.This());
   } else {
-    info.GetReturnValue().Set(Nan::New<Function>(constructor)->NewInstance(0, NULL));
+    info.GetReturnValue().Set(Nan::NewInstance(Nan::New<Function>(constructor), 0, NULL).ToLocalChecked());
   }
 }
 
