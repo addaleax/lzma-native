@@ -33,8 +33,7 @@ before_install:
   # coveralls
   - pip install --user cpp-coveralls coveralls-merge
   # compilers
-  - export LTO_FLAG=""
-  - if [ "$CXX" = "g++" -a "$TRAVIS_OS_NAME" = "linux" ]; then export CXX="g++-4.9" CC="gcc-4.9" AR="gcc-ar-4.9" RANLIB="gcc-ranlib-4.9" NM="gcc-nm-4.9" LTO_FLAG="-flto" ; fi
+  - if [ "$CXX" = "g++" -a "$TRAVIS_OS_NAME" = "linux" ]; then export CXX="g++-4.9" CC="gcc-4.9" AR="gcc-ar-4.9" RANLIB="gcc-ranlib-4.9" NM="gcc-nm-4.9" ; fi
   - if [ "$CXX" = "clang++" ]; then export NPMOPT=--clang=1 ; fi
   # node versions
   - rm -rf ~/.nvm
@@ -44,12 +43,12 @@ before_install:
   - node --version
   # no coverage for tags (they are release builds!)
   - if [ -z "$TRAVIS_TAG" ]; then export DO_COVERAGE=1; fi
-  - if [ -n "$TRAVIS_TAG" ]; then export CFLAGS="$CFLAGS -O3 $LTO_FLAG" LDFLAGS="$LDFLAGS $LTO_FLAG"; fi
+  - if [ -n "$TRAVIS_TAG" ]; then export CFLAGS="$CFLAGS -O3" LDFLAGS="$LDFLAGS"; fi
   - if [ -n "$DO_COVERAGE" ]; then export LDFLAGS="$LDFLAGS --coverage" CFLAGS="$CFLAGS --coverage"; fi
   - echo "CFLAGS=\"$CFLAGS\" LDFLAGS=\"$LDFLAGS\""
   - npm install node-gyp@3.5.0
 install:
-  - npm install $NPMOPT --build-from-source
+  - npm install $NPMOPT --build-from-source --verbose
 script:
   - node --expose-gc ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha --report lcovonly -- -R spec -s 1000 -t 5000
   - npm run jshint
