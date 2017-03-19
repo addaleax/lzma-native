@@ -29,7 +29,7 @@ describe('Compressor/Decompressor', function() {
     
     outstream.on('finish', function() {
       assert.ok(helpers.bufferEqual(fs.readFileSync('test/random'), fs.readFileSync(outfile)));
-      fs.unlink(outfile);
+      fs.unlinkSync(outfile);
       done();
     });
     
