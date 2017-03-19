@@ -168,7 +168,7 @@ Example code:
 <!-- runtest:{Compress and decompress directly} -->
 
 ```js
-lzma.compress('Bananas', 9, function(result) {
+lzma.compress('Bananas', 6, function(result) {
     lzma.decompress(result, function(decompressedResult) {
         assert.equal(decompressedResult.toString(), 'Bananas');
     });
@@ -180,7 +180,7 @@ Example code for promises:
 <!-- runtest:{Compress and decompress directly using promises} -->
 
 ```js
-lzma.compress('Bananas', 9).then(function(result) {
+lzma.compress('Bananas', 6).then(function(result) {
     return lzma.decompress(result);
 }).then(function(decompressedResult) {
     assert.equal(decompressedResult.toString(), 'Bananas');

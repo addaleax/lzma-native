@@ -41,7 +41,7 @@ describe('LZMA.compress()/decompress()', function() {
   it('can compress strings to Buffers', function(done) {
     var LZMA = new lzma.LZMA();
     
-    LZMA.compress('Banana', 9, function(result) {
+    LZMA.compress('Banana', 6, function(result) {
       assert.ok(Buffer.isBuffer(result));
       assert.ok(result.length > 0);
       
@@ -79,8 +79,8 @@ describe('LZMA.compress()/decompress()', function() {
   it('can round-trip', function(done) {
     var LZMA = new lzma.LZMA();
     
-    LZMA.compress('Bananas', 9, function(result) {
-      assert.equal(result.toString('base64'), 'XQAAAAT//////////wAhGEnQgnOEP++//7v9AAA=');
+    LZMA.compress('Bananas', 5, function(result) {
+      assert.equal(result.toString('base64'), 'XQAAgAD//////////wAhGEnQgnOEP++//7v9AAA=');
       LZMA.decompress(result, function(result) {
         assert.ok(Buffer.isBuffer(result));
         assert.equal(result.toString(), 'Bananas');
@@ -103,10 +103,10 @@ describe('LZMA.compress()/decompress()', function() {
   });
 });
 
-var BananasCompressed = '/Td6WFoAAAFpIt42AgAhARwAAAAQz1jMAQAGQmFuYW5hcwAA0aJr3wABGwcS69QXkEKZDQEAAAAAAVla';
+var BananasCompressed = '/Td6WFoAAAFpIt42AgAhARYAAAB0L+WjAQAGQmFuYW5hcwAA0aJr3wABGwcS69QXkEKZDQEAAAAAAVla';
 describe('lzma.compress()/decompress()', function() {
   it('can round-trip', function(done) {
-    lzma.compress('Bananas', 9, function(result) {
+    lzma.compress('Bananas', 5, function(result) {
       assert.equal(result.toString('base64'), BananasCompressed);
       lzma.decompress(result, function(result) {
         assert.ok(Buffer.isBuffer(result));
@@ -123,7 +123,7 @@ describe('lzma.compress()/decompress() with ES6 Promises', function() {
   assert(typeof Promise === 'function');
   
   it('can round-trip', function() {
-    return lzma.compress('Bananas', 9).then(function(result) {
+    return lzma.compress('Bananas', 5).then(function(result) {
       assert.equal(result.toString('base64'), BananasCompressed);
       return lzma.decompress(result);
     }).then(function(result) {
