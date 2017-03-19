@@ -15,10 +15,13 @@ This package provides interfaces for compression and decompression
 of `.xz` (and legacy `.lzma`) files, both stream-based and string-based.
 
 <a name="example-usage"></a>
+
 ## Example usage
 
 <a name="installation"></a>
+
 ### Installation
+
 Simply install `lzma-native` via npm:
 ```bash
 $ npm install --save lzma-native
@@ -31,6 +34,7 @@ Please [create an issue here](https://github.com/addaleax/lzma-native/issues/new
 if you have any trouble installing this module.
 
 <a name="streams-usage"></a>
+
 ### For streams
 
 If you don’t have any fancy requirements, using this library is quite simple:
@@ -58,6 +62,7 @@ Both functions return a stream where you can pipe your
 input in and read your (de)compressed output from.
 
 <a name="buffers-usage"></a>
+
 ### For simple strings/Buffers
 
 If you want your input/output to be Buffers (strings will be accepted as input),
@@ -78,9 +83,11 @@ will return promises and you don’t need to provide any kind of callback
 ([Example code](#api-q-compress-examle)).
 
 <a name="api"></a>
+
 ## API
 
 <a name="api-compat-implementations"></a>
+
 ### Compatibility implementations
 
 Apart from the API described here, `lzma-native` implements the APIs of the following
@@ -92,6 +99,7 @@ other LZMA libraries so you can use it nearly as a drop-in replacement:
   instead of integer arrays. (This produces output in the `.lzma` file format, *not* the `.xz` format!)
 
 <a name="api-multithreading"></a>
+
 ### Multi-threaded encoding
 
 Since version `1.5.0`, lzma-native supports liblzma’s built-in multi-threading
@@ -105,6 +113,7 @@ regardless of this option, and setting it when multiple encoders are running
 is likely to affect performance negatively.
 
 <a name="api-reference"></a>
+
 ### Reference
 
 [Encoding strings and Buffer objects](#api-encoding-buffers)
@@ -139,13 +148,16 @@ is likely to affect performance negatively.
  * [`setPromiseAPI()`](#api-set-promise-api) – Set (or unset) the `Promise` API
 
 <a name="api-encoding-buffers"></a>
+
 ### Encoding strings and Buffer objects
 
 <a name="api-compress"></a>
 <a name="api-decompress"></a>
+
 #### `lzma.compress()`, `lzma.decompress()`
-`lzma.compress(string, [opt, ]on_finish)`
-`lzma.decompress(string, [opt, ]on_finish)`
+
+* `lzma.compress(string, [opt, ]on_finish)`
+* `lzma.decompress(string, [opt, ]on_finish)`
 
 Param        |  Type            |  Description
 ------------ | ---------------- | --------------
@@ -182,9 +194,11 @@ lzma.compress('Bananas', 9).then(function(result) {
 
 <a name="api-LZMA_compress"></a>
 <a name="api-LZMA_decompress"></a>
+
 #### `lzma.LZMA().compress()`, `lzma.LZMA().decompress()`
-`lzma.LZMA().compress(string, mode, on_finish[, on_progress])`
-`lzma.LZMA().decompress(string, on_finish[, on_progress])`
+
+* `lzma.LZMA().compress(string, mode, on_finish[, on_progress])`
+* `lzma.LZMA().decompress(string, on_finish[, on_progress])`
 
 (Compatibility; See [LZMA-JS][LZMA-JS] for the original specs.)
 
@@ -220,13 +234,16 @@ lzma.LZMA().compress('Bananas', 4, function(result) {
 For an example using promises, see [`compress()`](#api-q-compress-examle).
 
 <a name="api-creating-streams"></a>
+
 ### Creating streams for encoding
 
 <a name="api-create-compressor"></a>
 <a name="api-create-decompressor"></a>
+
 #### `lzma.createCompressor()`, `lzma.createDecompressor()`
-`lzma.createCompressor([options])`
-`lzma.createDecompressor([options])`
+
+* `lzma.createCompressor([options])`
+* `lzma.createDecompressor([options])`
 
 Param       |  Type            |  Description
 ----------- | ---------------- | --------------
@@ -249,9 +266,11 @@ will accept either format via automatic detection.
 
 <a name="api-robey_compressor"></a>
 <a name="api-robey_decompressor"></a>
+
 #### `lzma.Compressor()`, `lzma.Decompressor()`
-`lzma.Compressor([preset], [options])`
-`lzma.Decompressor([options])`
+
+* `lzma.Compressor([preset], [options])`
+* `lzma.Decompressor([options])`
 
 (Compatibility; See [node-xz][node-xz] for the original specs.)
 
@@ -275,8 +294,10 @@ process.stdin.pipe(compressor).pipe(process.stdout);
 ```
 
 <a name="api-create-stream"></a>
+
 #### `lzma.createStream()`
-`lzma.createStream(coder, options)`
+
+* `lzma.createStream(coder, options)`
 
 Param       |  Type            |  Description
 ----------- | ---------------- | --------------
@@ -318,6 +339,7 @@ Less likely to be of interest to you, but also available:
   Supports [`options.memlimit`](#api-options-memlimit) and [`options.flags`](#api-options-flags) options.
 
 <a name="api-options"></a>
+
 #### Options
 
 <a name="api-options-check"></a>
@@ -339,6 +361,7 @@ Option name   |  Type      |  Description
 `timeout`     | int        |  Timeout for a single encoding operation in multi-threading mode
 
 <a name="api-options-filters"></a>
+
 `options.filters` can, if the coder supports it, be an array of filter objects, each with the following properties:
 
 * `.id`
@@ -349,15 +372,19 @@ Option name   |  Type      |  Description
 The delta filter supports the additional option `.dist` for a distance between bytes (see the [xz(1) manpage][xz-manpage]).
 
 <a name="api-options-lzma"></a>
+
 The LZMA filter supports the additional options `.dict_size`, `.lp`, `.lc`, `pb`, `.mode`, `nice_len`, `.mf`, `.depth`
 and `.preset`. See the [xz(1) manpage][xz-manpage] for meaning of these parameters and additional information.
 
 <a name="api-functions"></a>
+
 ### Miscellaneous functions
 
 <a name="api-crc32"></a>
+
 #### `lzma.crc32()`
-`lzma.crc32(input[, encoding[, previous]])`
+
+* `lzma.crc32(input[, encoding[, previous]])`
 
 Compute the CRC32 checksum of a Buffer or string.
 
@@ -375,8 +402,10 @@ lzma.crc32('Banana') // => 69690105
 ```
 
 <a name="api-check-size"></a>
+
 #### `lzma.checkSize()`
-`lzma.checkSize(check)`
+
+* `lzma.checkSize(check)`
 
 Return the byte size of a check sum.
 
@@ -393,8 +422,10 @@ lzma.checkSize(lzma.CHECK_CRC32)  // => 4
 ```
 
 <a name="api-easy-decoder-memusage"></a>
+
 #### `lzma.easyDecoderMemusage()`
-`lzma.easyDecoderMemusage(preset)`
+
+* `lzma.easyDecoderMemusage(preset)`
 
 Returns the approximate memory usage when decoding using easyDecoder for a given preset.
 
@@ -410,8 +441,10 @@ lzma.easyDecoderMemusage(6) // => 8454192
 ```
 
 <a name="api-easy-encoder-memusage"></a>
+
 #### `lzma.easyEncoderMemusage()`
-`lzma.easyEncoderMemusage(preset)`
+
+* `lzma.easyEncoderMemusage(preset)`
 
 Returns the approximate memory usage when encoding using easyEncoder for a given preset.
 
@@ -427,8 +460,10 @@ lzma.easyEncoderMemusage(6) // => 97620499
 ```
 
 <a name="api-raw-decoder-memusage"></a>
+
 #### `lzma.rawDecoderMemusage()`
-`lzma.rawDecoderMemusage(filters)`
+
+* `lzma.rawDecoderMemusage(filters)`
 
 Returns the approximate memory usage when decoding using rawDecoder for a given filter list.
 
@@ -437,8 +472,10 @@ Param        |  Type       |  Description
 `filters`    | array       |  An array of [filters](#api-options-filters)
 
 <a name="api-raw-encoder-memusage"></a>
+
 #### `lzma.rawEncoderMemusage()`
-`lzma.rawEncoderMemusage(filters)`
+
+* `lzma.rawEncoderMemusage(filters)`
 
 Returns the approximate memory usage when encoding using rawEncoder for a given filter list.
 
@@ -447,8 +484,10 @@ Param        |  Type       |  Description
 `filters`    | array       |  An array of [filters](#api-options-filters)
 
 <a name="api-version-string"></a>
+
 #### `lzma.versionString()`
-`lzma.versionString()`
+
+* `lzma.versionString()`
 
 Returns the version of the underlying C library.
 
@@ -460,8 +499,10 @@ lzma.versionString() // => '5.2.1'
 ```
 
 <a name="api-version-number"></a>
+
 #### `lzma.versionNumber()`
-`lzma.versionNumber()`
+
+* `lzma.versionNumber()`
 
 Returns the version of the underlying C library.
 
@@ -473,11 +514,14 @@ lzma.versionNumber() // => 50020012
 ```
 
 <a name="api-parse-indexes"></a>
+
 ### .xz file metadata
 
 <a name="api-isxz"></a>
+
 #### `lzma.isXZ()`
-`lzma.isXZ(input)`
+
+* `lzma.isXZ(input)`
 
 Tells whether an input buffer is an XZ file (`.xz`, LZMA2 format) using the
 file format’s magic number. This is not a complete test, i.e. the data
@@ -499,8 +543,10 @@ lzma.isXZ('Banana'); // => false
 (The magic number of XZ files is hex `fd 37 7a 58 5a 00` at position 0.)
 
 <a name="api-parse-file-index"></a>
+
 #### `lzma.parseFileIndex()`
-`lzma.parseFileIndex(options[, callback])`
+
+* `lzma.parseFileIndex(options[, callback])`
 
 Read `.xz` file metadata.
 
@@ -540,8 +586,10 @@ fs.readFile('test/hamlet.txt.xz', function(err, content) {
 ```
 
 <a name="api-parse-file-index-fd"></a>
+
 #### `lzma.parseFileIndexFD()`
-`lzma.parseFileIndexFD(fd, callback)`
+
+* `lzma.parseFileIndexFD(fd, callback)`
 
 Read `.xz` metadata from a file descriptor.
 
@@ -569,11 +617,14 @@ fs.open('test/hamlet.txt.xz', 'r', function(err, fd) {
 
 
 <a name="api-internals"></a>
+
 ### Internals
 
 <a name="api-set-promise-api"></a>
+
 #### `lzma.setPromiseAPI()`
-`lzma.setPromiseAPI([api])`
+
+* `lzma.setPromiseAPI([api])`
 
 Set the used `Promise` API for the methods that encode/decode single strings
 of buffers in one run. You can pass in `null` to remove promise support
