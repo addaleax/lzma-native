@@ -1,79 +1,84 @@
 #!/usr/bin/env node
 'use strict';
 
-/* Based on cscott’s binary for the lzma-purejs library, licensed under BSD license */
-
 var program = require('commander');
 var lzma = require('../');
 var fs = require('fs');
+var path = require('path');
 
-program
-	.version(lzma.version)
-	.usage('-d|-z [infile] [outfile]')
-	.option('-d, --decompress',
-		'Decompress stdin to stdout')
-	.option('-z, --compress',
-		'Compress stdin to stdout')
-	.option('-t, --threads [number]',
-		'Use threads for encoding')
-	.option('-1', 'Fastest/largest compression')
-	.option('-2')
-	.option('-3')
-	.option('-4')
-	.option('-5')
-	.option('-6')
-	.option('-7')
-	.option('-8')
-	.option('-9', 'Slowest/smallest compression');
-program.on('--help', function() {
-	console.log('  If <infile> is omitted, reads from stdin.');
-	console.log('  If <outfile> is omitted, writes to stdout.');
-});
-program.parse(process.argv);
+var argv = process.argv.slice(2);
+var positionalArgs = [];
 
-if (!program.decompress) 
-	program.compress = true;
+var level = undefined;
+var threads = undefined;
+var compress = true;
 
-if (program.decompress && program.compress) {
-	console.error('Must specify either -d or -z.');
-	process.exit(1);
+for (var i = 0; i < argv.length; ++i) {
+  if (argv[i][0] !== '-') {
+    positionalArgs.push(argv[i]);
+    continue;
+  }
+
+  if (!isNaN(+argv[i][1])) {
+    level = +argv[i][1];
+    continue;
+  }
+
+  switch (argv[i]) {
+    case '-d':
+    case '--decompress':
+      compress = false;
+      break;
+    case '-z':
+    case '--compress':
+      compress = true;
+      break;
+    case '-t':
+    case '--threads':
+      if (!isNaN(+argv[i+1]))
+        threads = +argv[++i];
+      else
+        threads = 0;
+      break;
+    default:
+    case '-h':
+    case '--help':
+      usage();
+      return;
+  }
 }
 
-var level = null;
-for (var l = 1; l <= 9; l++) {
-	if (program[''+l]) {
-		if (level) {
-			console.error("Can’t specify both -"+level+" and -"+l);
-			return;
-		}
-		
-		level = l;
-	}
-}
-
-if (level && program.decompress) {
-	console.error('Compression level has no effect when decompressing.');
-	process.exit(1);
+function usage() {
+  process.stdout.write('Usage: \n' +
+      '  ' + path.basename(process.argv[1]) +
+        ' [-d|-z] [-t num] [-1|...|-9] [infile] [outfile]\n' +
+      '\n' +
+      '  -d, --decompress      Decompress infile to outfile\n' +
+      '  -z, --compress        Compress infile to outfile\n' +
+      '  -t n, --threads n     Use n threads for compressing\n' +
+      '  -1, ..., -9           Specifiy compression level\n' +
+      '  -h, --help            Display this text\n' +
+      '\n' +
+      '  <infile> defaults to stdin and <outfile> defaults to stdout.\n');
+  return;
 }
 
 var input = process.stdin, output = process.stdout;
-var usesStdout = true;
 
-if (program.args.length > 0)
-	input = fs.createReadStream(program.args.shift());
-if (program.args.length > 0) {
-	output = fs.createWriteStream(program.args.shift());
-	usesStdout = false;
+if (positionalArgs.length > 0) {
+  input = fs.createReadStream(positionalArgs.shift());
 }
 
-var opts = { preset: level || lzma.PRESET_DEFAULT };
-
-opts.threads = program.threads || undefined;
-if (opts.threads === true) {
-	opts.threads = 0;
+if (positionalArgs.length > 0) {
+  output = fs.createWriteStream(positionalArgs.shift());
 }
 
-var encoder = lzma.createStream(program.compress ? 'easyEncoder' : 'autoDecoder', opts);
+var opts = {
+  preset: level || lzma.PRESET_DEFAULT,
+  threads: threads,
+};
+
+var encoder = lzma.createStream(compress ? 'easyEncoder' : 'autoDecoder', opts);
 
 input.pipe(encoder).pipe(output);
 
