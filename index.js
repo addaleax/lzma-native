@@ -2,7 +2,6 @@
 'use strict';
 
 var stream = require('readable-stream');
-var extend = require('util-extend');
 var assert = require('assert');
 var fs = require('fs');
 
@@ -12,7 +11,7 @@ var path = require('path');
 var binding_path = nodePreGyp.find(path.resolve(path.join(__dirname,'./package.json')));
 var native = require(binding_path);
 
-extend(exports, native);
+Object.assign(exports, native);
 
 exports.version = '1.5.3';
 
@@ -217,7 +216,7 @@ Stream.prototype.easyEncoder = function(options) {
   var check = options.check || exports.CHECK_CRC32;
 
   if (typeof options.threads !== 'undefined' && options.threads !== null) {
-    return this.mtEncoder_(extend({
+    return this.mtEncoder_(Object.assign({
       preset: preset,
       filters: null,
       check: check
@@ -232,7 +231,7 @@ Stream.prototype.streamEncoder = function(options) {
   var check = options.check || exports.CHECK_CRC32;
 
   if (typeof options.threads !== 'undefined' && options.threads !== null) {
-    return this.mtEncoder_(extend({
+    return this.mtEncoder_(Object.assign({
       preset: null,
       filters: filters,
       check: check
@@ -311,7 +310,7 @@ exports.crc32 = function(input, encoding, presetCRC32) {
 
 /* compatibility: node-xz (https://github.com/robey/node-xz) */
 exports.Compressor = function(preset, options) {
-  options = extend({}, options);
+  options = Object.assign({}, options);
 
   if (preset)
     options.preset = preset;
