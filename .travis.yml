@@ -50,6 +50,7 @@ before_install:
   - if [ -n "$TRAVIS_TAG" ]; then export CFLAGS="$CFLAGS -O3 $LTO_FLAG" LDFLAGS="$LDFLAGS $LTO_FLAG"; fi
   - if [ -n "$DO_COVERAGE" ]; then export LDFLAGS="$LDFLAGS --coverage" CFLAGS="$CFLAGS --coverage"; fi
   - echo "CFLAGS=\"$CFLAGS\" LDFLAGS=\"$LDFLAGS\""
+  - npm install node-gyp@3.5.0
 install:
   - npm install $NPMOPT --build-from-source $NPG_ARGS
 script:
