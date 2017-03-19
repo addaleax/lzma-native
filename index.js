@@ -370,6 +370,10 @@ function singleStringCoding(stream, string, on_finish, on_progress) {
         deferred.resolve = resolve;
         deferred.reject = reject;
       });
+
+      // Since using the Promise API is optional, generating unhandled
+      // rejections is not okay.
+      deferred.promise.catch(noop);
     }
     
     assert.equal(typeof deferred.resolve, 'function');
@@ -609,5 +613,7 @@ function bufferIndexOfYZ(chunk) {
   
   return -1;
 }
+
+function noop() {}
 
 })();
