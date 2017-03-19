@@ -15,30 +15,6 @@ var native = require(binding_path);
 
 extend(exports, native);
 
-// We allow usage of any promise library using any-promise
-var Promise_ = null;
-
-// helper to enable/disable promises
-exports.setPromiseAPI = function(newPromiseAPI) {
-  var oldPromiseAPI = Promise_;
-  
-  if (newPromiseAPI === 'default') {
-    newPromiseAPI = null;
-    
-    try {
-      newPromiseAPI = require('any-promise');
-    } catch(e) {}
-  }
-  
-  // allow passing in undefined to only *get* the currently used API
-  if (typeof newPromiseAPI !== 'undefined')
-    Promise_ = newPromiseAPI;
-  
-  return oldPromiseAPI;
-};
-
-exports.setPromiseAPI('default');
-
 exports.version = '1.5.3';
 
 var Stream = exports.Stream;
@@ -353,36 +329,27 @@ function singleStringCoding(stream, string, on_finish, on_progress) {
   if (!Buffer.isBuffer(string))
     string = new Buffer(string);
   
-  var deferred = null, failed = false;
+  var deferred = {}, failed = false;
   
   stream.once('error', function(err) {
     failed = true;
     on_finish(null, err);
   });
-  
-  if (Promise_) {
-    if (Promise_.defer) {
-      deferred = Promise_.defer();
-    } else {
-      // emulate Promise.defer() if not supported
-      deferred = {};
-      deferred.promise = new Promise_(function(resolve, reject) {
-        deferred.resolve = resolve;
-        deferred.reject = reject;
-      });
 
-      // Since using the Promise API is optional, generating unhandled
-      // rejections is not okay.
-      deferred.promise.catch(noop);
-    }
+  // emulate Promise.defer()
+  var deferred = {};
+  deferred.promise = new Promise(function(resolve, reject) {
+    deferred.resolve = resolve;
+    deferred.reject = reject;
+  });
+
+  // Since using the Promise API is optional, generating unhandled
+  // rejections is not okay.
+  deferred.promise.catch(noop);
     
-    assert.equal(typeof deferred.resolve, 'function');
-    assert.equal(typeof deferred.reject, 'function');
-    
-    stream.once('error', function(e) {
-      deferred.reject(e);
-    });
-  }
+  stream.once('error', function(e) {
+    deferred.reject(e);
+  });
   
   var buffers = [];
 

@@ -78,7 +78,7 @@ lzma.compress('Banana', function(result) {
 
 Again, replace `lzma.compress` with `lzma.decompress` and you’ll get the inverse transformation.
 
-For `node >= 0.12` (with `Promise` available), `lzma.compress` and `lzma.decompress`
+`lzma.compress()` and `lzma.decompress()`
 will return promises and you don’t need to provide any kind of callback
 ([Example code](#api-q-compress-examle)).
 
@@ -144,9 +144,6 @@ is likely to affect performance negatively.
  * [`versionString()`](#api-version-string) – Native library version string
  * [`versionNumber()`](#api-version-number) – Native library numerical version identifier
 
-[Internals](#api-internals)
- * [`setPromiseAPI()`](#api-set-promise-api) – Set (or unset) the `Promise` API
-
 <a name="api-encoding-buffers"></a>
 
 ### Encoding strings and Buffer objects
@@ -165,7 +162,7 @@ Param        |  Type            |  Description
 [`opt`]      | Options / int    | Optional. See [options](#api-options)
 `on_finish`  | Callback         | Will be invoked with the resulting Buffer as the first parameter when encoding is finished, and as `on_finish(null, err)` in case of an error.
 
-If promises are available, a promise will be returned.
+These methods will also return a promise that you can use directly.
 
 Example code:
 <!-- runtest:{Compress and decompress directly} -->
@@ -213,7 +210,7 @@ Param         |  Type                   |  Description
 `on_finish`   | Callback                | Will be invoked with the resulting Buffer as the first parameter when encoding is finished, and as `on_finish(null, err)` in case of an error.
 `on_progress` | Callback                | Indicates progress by passing a number in [0.0, 1.0]. Currently, this package only invokes the callback with 0.0 and 1.0.
 
-If promises are available, a promise will be returned.
+These methods will also return a promise that you can use directly.
 
 This does not work exactly as described in the original [LZMA-JS][LZMA-JS] specification:
  * The results are `Buffer` objects, not integer arrays. This just makes a lot
@@ -614,43 +611,6 @@ fs.open('test/hamlet.txt.xz', 'r', function(err, fd) {
   });
 });
 ```
-
-
-<a name="api-internals"></a>
-
-### Internals
-
-<a name="api-set-promise-api"></a>
-
-#### `lzma.setPromiseAPI()`
-
-* `lzma.setPromiseAPI([api])`
-
-Set the used `Promise` API for the methods that encode/decode single strings
-of buffers in one run. You can pass in `null` to remove promise support
-and `'default'` to reset everything to auto-detection using 
-[any-promise](https://www.npmjs.com/package/any-promise).
-
-The previous value will be returned; Passing no parameters will result in
-no change, i.e. can be used to test for availability of promises.
-
-Example usage:
-<!-- runtest:{Set the promise API} -->
-
-```js
-lzma.setPromiseAPI() // => [Function: Promise] or similar
-
-var Q = require('q');
-lzma.setPromiseAPI(Q); // => old value, e.g. [Function: Promise]
-lzma.setPromiseAPI(); // => Q
-lzma.setPromiseAPI(null); // disable promises, return Q again
-lzma.setPromiseAPI('default'); // back to square 1
-```
-
-Note: This module uses the ES6 Promise API by default, which can be found
-in all Node.js versions `>= 0.12`. If no global `Promise` object is detected,
-but [Q][Q] is somewhere in your `node_modules`, it will be used; Otherwise,
-promises are not available by default.
 
 ## Installation
 

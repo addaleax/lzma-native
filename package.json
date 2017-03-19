@@ -14,7 +14,6 @@
     "lzmajs": "./bin/lzmajs"
   },
   "dependencies": {
-    "any-promise": "^1.1.0",
     "nan": "^2.3.2",
     "node-pre-gyp": "^0.6.21",
     "readable-stream": "^2.0.5",
@@ -49,8 +48,7 @@
     "coveralls": "^2.11.6",
     "istanbul": "^0.4.2",
     "jshint": "^2.9.1",
-    "mocha": "^3.0.2",
-    "q": "^1.4.1"
+    "mocha": "^3.0.2"
   },
   "binary": {
     "module_name": "lzma_native",
