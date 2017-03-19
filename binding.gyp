@@ -46,8 +46,8 @@
           "actions" : [
             {
               "action_name" : "build",
-               # a hack to run deps/xz-5.2.1 ./configure during `node-gyp configure`
-              'inputs': ['<!@(sh liblzma-config.sh "<(module_root_dir)/build" "<(module_root_dir)/deps/xz-5.2.1.tar.bz2")'],
+               # a hack to run deps/xz-5.2.3 ./configure during `node-gyp configure`
+              'inputs': ['<!@(sh liblzma-config.sh "<(module_root_dir)/build" "<(module_root_dir)/deps/xz-5.2.3.tar.bz2")'],
               'outputs': [''],
               'action': [
                 'sh', '<(module_root_dir)/liblzma-build.sh', '<(module_root_dir)/build'

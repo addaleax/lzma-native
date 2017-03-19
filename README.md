@@ -495,7 +495,7 @@ Example usage:
 <!-- runtest:{Return a version string} -->
 
 ```js
-lzma.versionString() // => '5.2.1'
+lzma.versionString() // => '5.2.3'
 ```
 
 <a name="api-version-number"></a>

@@ -2,7 +2,7 @@ build/
 test/
 coverage/
 binding/
-deps/xz-5.2.1-windows.7z
+deps/xz-5.2.3-windows.7z
 npm-debug.log
 core
 README.md.xz
