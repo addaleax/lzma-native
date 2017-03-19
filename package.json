@@ -6,7 +6,7 @@
   },
   "author": {
     "name": "Anna Henningsen",
-    "email": "sqrt@entless.org"
+    "email": "anna@addaleax.net"
   },
   "description": "Provides bindings to the native liblzma library (.xz file format, among others)",
   "main": "index",
@@ -25,7 +25,8 @@
     "lzma",
     "compression",
     "crc32",
-    "xz"
+    "xz",
+    "liblzma"
   ],
   "homepage": "https://github.com/addaleax/lzma-native",
   "license": "MIT",
