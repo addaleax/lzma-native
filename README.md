@@ -33,6 +33,9 @@ so for 99 % of users no compiler toolchain is necessary.
 Please [create an issue here](https://github.com/addaleax/lzma-native/issues/new)
 if you have any trouble installing this module.
 
+*Note*: `lzma-native@2.x` requires a Node version >= 4. If you want to support
+Node `0.10` or `0.12`, you can feel free to use `lzma-native@1.x`.
+
 <a name="streams-usage"></a>
 
 ### For streams
