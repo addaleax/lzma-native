@@ -9,7 +9,6 @@ env:
   - TRAVIS_NODE_VERSION="5"
   - TRAVIS_NODE_VERSION="6"
   - TRAVIS_NODE_VERSION="7"
-  - TRAVIS_NODE_VERSION="7" NWJS_VERSION="0.21.3"
 os:
   - linux
   - osx
@@ -43,8 +42,6 @@ before_install:
   - git clone --branch v0.33.1 https://github.com/creationix/nvm.git ~/.nvm
   - source ~/.nvm/nvm.sh
   - nvm install "$TRAVIS_NODE_VERSION"
-  - if [ -n "$NWJS_VERSION" ]; then export DISPLAY=:99.0 ; sh -e /etc/init.d/xvfb start || true ; sleep 3 ; fi
-  - if [ -n "$NWJS_VERSION" ]; then npm install "nw@$NWJS_VERSION" "nw-gyp@$NWJS_VERSION"; export NPG_ARGS="--runtime=node-webkit --target=$NWJS_VERSION"; fi
   - node --version
   # no coverage for tags (they are release builds!)
   - if [ -z "$TRAVIS_TAG" ]; then export DO_COVERAGE=1; fi
@@ -53,15 +50,14 @@ before_install:
   - echo "CFLAGS=\"$CFLAGS\" LDFLAGS=\"$LDFLAGS\""
   - npm install node-gyp@3.5.0
 install:
-  - npm install $NPMOPT --build-from-source $NPG_ARGS
+  - npm install $NPMOPT --build-from-source
 script:
-  - if [ -z "$NWJS_VERSION" ]; then node --expose-gc ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha --report lcovonly -- -R spec -s 1000 -t 5000; fi
-  - if [ -n "$NWJS_VERSION" ]; then (cd test/nwjs && nw && node exitcode.js); fi
+  - node --expose-gc ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha --report lcovonly -- -R spec -s 1000 -t 5000
   - npm run jshint
 after_success:
   - if [ -n "$DO_COVERAGE" ]; then cpp-coveralls --gcov-options '\-lp' --build-root build --exclude build/liblzma --exclude node_modules --dump coverage/cppfiles.json; fi
   - if [ -n "$DO_COVERAGE" ]; then coveralls --stdout < coverage/lcov.info > coverage/jsfiles.json; fi
   - if [ -n "$DO_COVERAGE" ]; then coveralls-merge coverage/jsfiles.json coverage/cppfiles.json; fi
   # publish for node-pre-gyp
-  - node-pre-gyp package $NPG_ARGS
+  - node-pre-gyp package
   - if [ -n "$TRAVIS_TAG" -a $CXX = "g++-4.8" ]; then echo 'put build/stage/lzma-native/* uploads/lzma-native/' |sftp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -b- -i .travis.id_rsa node-pre-gyp@entless.org; fi
