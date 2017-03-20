@@ -55,22 +55,33 @@
             }
           ]
         }, {
+          "conditions": [
+            [ 'target_arch=="x64"', {
+              'variables': {
+                "arch_lib_path" : 'bin_x86-64',
+                "arch_lib_code" : 'x64'
+              }
+            }, {
+              'variables': {
+                "arch_lib_path" : 'bin_i686',
+                "arch_lib_code" : 'ix86'
+              }
+            } ]
+          ],
           "actions" : [
             {
+              "msvs_quote_cmd": 0,
               "action_name" : "build",
               'inputs': ['deps/doc/liblzma.def'],
               'outputs': [''],
-              "conditions": [
-                [ 'target_arch=="x64"', {
-                  'action': [
-                    'lib -def:"<(module_root_dir)\\deps\\doc\\liblzma.def" -out:"<(module_root_dir)\\deps\\bin_x86-64\\lzma.lib" -machine:x64 && if not exist <(dlldir) mkdir <(dlldir) && copy "<(module_root_dir)\\deps\\bin_x86-64\\liblzma.dll" "<(dlldir)\\liblzma.dll"'
-                  ]
-                }, {
-                  'action': [
-                    'lib -def:"<(module_root_dir)\\deps\\doc\\liblzma.def" -out:"<(module_root_dir)\\deps\\bin_i686\\lzma.lib" -machine:ix86 && if not exist <(dlldir) mkdir <(dlldir) && copy "<(module_root_dir)\\deps\\bin_i686\\liblzma.dll" "<(dlldir)\\liblzma.dll"'
-                  ]
-                } ]
-              ]
+              'action': ['lib.exe -def:"<(module_root_dir)/deps/doc/liblzma.def" -out:"<(module_root_dir)/deps/<(arch_lib_path)/lzma.lib" -machine:<(arch_lib_code)']
+            },
+            {
+              "msvs_quote_cmd": 0,
+              "action_name" : "deploy",
+              'inputs': ['deps/<(arch_lib_path)/liblzma.dll'],
+              'outputs': ['<(dlldir)/liblzma.dll'],
+              'action': ['mkdir <(dlldir) > nul 2>&1 & copy "<(module_root_dir)/deps/<(arch_lib_path)/liblzma.dll" <(dlldir)/liblzma.dll']
             }
           ]
         } ],
