@@ -1,50 +1,45 @@
+# https://www.appveyor.com/docs/lang/nodejs-iojs/#testing-under-multiple-versions-of-nodejs-or-iojs
 environment:
+  fast_finish: true
   matrix:
-    - nodejs_version: "6"
-      platform: x64
-    - nodejs_version: "6"
-      platform: x86
-    - nodejs_version: "5"
-      platform: x64
-    - nodejs_version: "5"
-      platform: x86
-#   - nodejs_version: "5"
-#     platform: x86
-#     nwjs_version: "0.12.3"
-#   - nodejs_version: "5"
-#     platform: x64
-#     nwjs_version: "0.12.3"
-    - nodejs_version: "4.3.0"
-      platform: x86
-    - nodejs_version: "4.3.0"
-      platform: x64
+    - nodejs_version: "7"
     - nodejs_version: "0.12"
-      platform: x86
-    - nodejs_version: "0.12"
-      platform: x64
+    - nodejs_version: "4.3.0"
+    - nodejs_version: "4"
+    - nodejs_version: "5"
+    - nodejs_version: "6"
 
+platform:
+  - x86
+  - x64
+
+matrix:
+  allow_failures:
+    - nodejs_version: 0.12
+      platform: x86
+    - nodejs_version: 0.12
+      platform: x64
+    - nodejs_version: 4.3.0
+      platform: x86
+    - nodejs_version: 4.3.0"
+      platform: x64
 
 install:
-  # From https://github.com/nodejs/nan/blob/master/appveyor.yml
-  - ps: Install-Product node $env:nodejs_version
-  - ps: Update-NodeJsInstallation (Get-NodeJsLatestBuild $env:nodejs_version) $env:platform
+  - ps: Install-Product node $env:nodejs_version $env:platform
   - node -p process.arch
   - node -p process.version
-  # Temporary workaround for https://github.com/nodejs/node-gyp/pull/952
-  # and https://github.com/addaleax/lzma-native/issues/30
-  - npm install node-gyp@3.5.0
+  - npm install node-gyp@3.6.0
   - IF %nodejs_version% LSS 1 npm -g install npm
   - IF %nodejs_version% LSS 1 set PATH=%APPDATA%\npm;%PATH%
-  - IF NOT "%nwjs_version%" == "" set NPG_ARGS=--runtime=node-webkit --target=%NWJS_VERSION%
-  - IF NOT "%nwjs_version%" == "" npm install nw@%NWJS_VERSION% nw-gyp@%NWJS_VERSION%
   - npm run prepare
-  - npm install --build-from-source %NPG_ARGS%
-  - node_modules\.bin\node-pre-gyp package --target_arch=%PLATFORM:x86=ia32% %NPG_ARGS%
+  - set GYP_TARGET_ARCH=%PLATFORM:x86=ia32%
+  - echo %GYP_TARGET_ARCH%
+  - npm install --build-from-source --target_arch=%GYP_TARGET_ARCH%
+  - node_modules\.bin\node-pre-gyp package --target_arch=%GYP_TARGET_ARCH% %NPG_ARGS%
   - move build\stage\lzma-native lzma-native
 
 test_script:
-  - IF "%nwjs_version%" == "" npm test
-  - IF NOT "%nwjs_version%" == "" pushd test\nwjs && (..\..\node_modules\.bin\nw & node exitcode.js & popd)
+  - npm test
 
 build: off
 
@@ -66,9 +61,6 @@ deploy:
   # only build on tags
   on:
     appveyor_repo_tag: true
-
-matrix:
-  fast_finish: true
 
 cache:
   - node_modules
