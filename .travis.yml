@@ -28,8 +28,8 @@ addons:
 before_install:
   - echo "$TRAVIS_NODE_VERSION"
   - export "PATH=./node_modules/.bin:$PWD/node_modules/.bin:$HOME/.local/bin:$PATH"
-  - openssl aes-256-cbc -K $encrypted_5d419efedfca_key -iv $encrypted_5d419efedfca_iv -in .travis.id_rsa.enc -out .travis.id_rsa -d
-  - chmod 0600 .travis.id_rsa
+  - if [ -n "$TRAVIS_TAG" ]; then openssl aes-256-cbc -K $encrypted_5d419efedfca_key -iv $encrypted_5d419efedfca_iv -in .travis.id_rsa.enc -out .travis.id_rsa -d; fi
+  - if [ -n "$TRAVIS_TAG" ]; then chmod 0600 .travis.id_rsa; fi
   # dummy 7z because npm wants to run the prepublish script
   - mkdir -p $HOME/.local/bin/ && touch $HOME/.local/bin/7z && chmod +x $HOME/.local/bin/7z 
   # coveralls
