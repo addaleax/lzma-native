@@ -1,5 +1,10 @@
 # Changelog for lzma-native
 
+## 2.0.1, March 24 2017
+
+* [[`c0491a0a07`](https://github.com/addaleax/lzma-native/commit/c0491a0a07)] - refactored binding.gyp (Refael Ackermann) 
+* [[`70883635b7`](https://github.com/addaleax/lzma-native/commit/70883635b7)] - **ci**: skip artifact encryption setup for non-tag builds (Anna Henningsen) 
+
 ## 2.0.0, March 19 2017
 
 Changes since 1.5.2
