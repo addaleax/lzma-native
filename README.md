@@ -1,6 +1,8 @@
 lzma-native
 ===========
 
+[![Join the chat at https://gitter.im/addaleax/lzma-native](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/addaleax/lzma-native?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 [![NPM Version](https://img.shields.io/npm/v/lzma-native.svg?style=flat)](https://npmjs.org/package/lzma-native)
 [![NPM Downloads](https://img.shields.io/npm/dm/lzma-native.svg?style=flat)](https://npmjs.org/package/lzma-native)
 [![Build Status](https://travis-ci.org/addaleax/lzma-native.svg?style=flat&branch=master)](https://travis-ci.org/addaleax/lzma-native?branch=master)
