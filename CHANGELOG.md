@@ -1,5 +1,9 @@
 # Changelog for lzma-native
 
+## 2.0.2, May 18 2017
+
+* [[`39bd6a2dc0`](https://github.com/addaleax/lzma-native/commit/39bd6a2dc0)] - **package**: pin nan to 2.5.1 (Anna Henningsen)
+
 ## 2.0.1, March 24 2017
 
 * [[`c0491a0a07`](https://github.com/addaleax/lzma-native/commit/c0491a0a07)] - refactored binding.gyp (Refael Ackermann) 
