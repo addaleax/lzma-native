@@ -14,7 +14,7 @@
     "lzmajs": "./bin/lzmajs"
   },
   "dependencies": {
-    "nan": "^2.3.2",
+    "nan": "2.5.1",
     "node-pre-gyp": "^0.6.21",
     "readable-stream": "^2.0.5"
   },
