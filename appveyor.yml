@@ -2,6 +2,7 @@
 environment:
   fast_finish: true
   matrix:
+    - nodejs_version: "8"
     - nodejs_version: "7"
     - nodejs_version: "4"
     - nodejs_version: "5"
@@ -15,7 +16,8 @@ install:
   - ps: Install-Product node $env:nodejs_version $env:platform
   - node -p process.arch
   - node -p process.version
-  - npm install node-gyp@3.6.0
+  - npm install node-gyp@3.6.1
+  - npm install nan node-pre-gyp readable-stream
   - IF %nodejs_version% LSS 1 npm -g install npm
   - IF %nodejs_version% LSS 1 set PATH=%APPDATA%\npm;%PATH%
   - npm run prepare
@@ -48,6 +50,3 @@ deploy:
   # only build on tags
   on:
     appveyor_repo_tag: true
-
-cache:
-  - node_modules

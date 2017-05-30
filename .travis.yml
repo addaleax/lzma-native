@@ -7,16 +7,13 @@ env:
   - TRAVIS_NODE_VERSION="5"
   - TRAVIS_NODE_VERSION="6"
   - TRAVIS_NODE_VERSION="7"
+  - TRAVIS_NODE_VERSION="8"
 os:
   - linux
   - osx
 matrix:
   fast_finish: true
 sudo: false
-cache:
-  directories:
-    - node_modules
-    - $HOME/.npm
 addons:
   apt:
     sources:
@@ -46,7 +43,6 @@ before_install:
   - if [ -n "$TRAVIS_TAG" ]; then export CFLAGS="$CFLAGS -O3" LDFLAGS="$LDFLAGS"; fi
   - if [ -n "$DO_COVERAGE" ]; then export LDFLAGS="$LDFLAGS --coverage" CFLAGS="$CFLAGS --coverage"; fi
   - echo "CFLAGS=\"$CFLAGS\" LDFLAGS=\"$LDFLAGS\""
-  - npm install node-gyp@3.5.0
 install:
   - npm install $NPMOPT --build-from-source --verbose
 script:
