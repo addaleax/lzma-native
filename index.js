@@ -13,7 +13,7 @@ var native = require(binding_path);
 
 Object.assign(exports, native);
 
-exports.version = '2.0.2';
+exports.version = '2.0.3';
 
 var Stream = exports.Stream;
 

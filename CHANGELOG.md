@@ -1,5 +1,9 @@
 # Changelog for lzma-native
 
+## 2.0.3, Jun 21 2017
+
+* [[`621628abac`](https://github.com/addaleax/lzma-native/commit/621628abac)] - **ci**: add Node 8 to CI matrix (Anna Henningsen)
+
 ## 2.0.2, May 18 2017
 
 * [[`39bd6a2dc0`](https://github.com/addaleax/lzma-native/commit/39bd6a2dc0)] - **package**: pin nan to 2.5.1 (Anna Henningsen)
