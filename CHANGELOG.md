@@ -1,5 +1,9 @@
 # Changelog for lzma-native
 
+## 2.0.4, Jun 25 2017
+
+* [[`0cc00000b3`](https://github.com/addaleax/lzma-native/commit/0cc00000b3)] - **ci**: fix macOS prebuild binaries (Anna Henningsen)
+
 ## 2.0.3, Jun 21 2017
 
 * [[`621628abac`](https://github.com/addaleax/lzma-native/commit/621628abac)] - **ci**: add Node 8 to CI matrix (Anna Henningsen)
