@@ -2,6 +2,7 @@
 
 var assert = require('assert');
 var fs = require('fs');
+var util = require('util');
 var helpers = require('./helpers.js');
 
 var lzma = require('../');
@@ -134,6 +135,34 @@ describe('lzma.compress()/decompress() with ES6 Promises', function() {
   
   it('fails for invalid input', function() {
     return lzma.decompress('ABC').then(function(result) {
+      assert.ok(false); // never get here due to error
+    }).catch(function(err) {
+      assert.ok(err);
+    });
+  });
+});
+
+describe('lzma.compress()/decompress() with util.promisify()', function() {
+  var majorVersion = process.version.match(/^v(\d+)\./);
+  if (majorVersion && +majorVersion[1] < 8) {
+    return;
+  }
+
+  var compress = util.promisify(lzma.compress);
+  var decompress = util.promisify(lzma.decompress);
+
+  it('can round-trip', function() {
+    return compress('Bananas', 5).then(function(result) {
+      assert.equal(result.toString('base64'), BananasCompressed);
+      return decompress(result);
+    }).then(function(result) {
+      assert.ok(Buffer.isBuffer(result));
+      assert.equal(result.toString(), 'Bananas');
+    });
+  });
+  
+  it('fails for invalid input', function() {
+    return decompress('ABC').then(function(result) {
       assert.ok(false); // never get here due to error
     }).catch(function(err) {
       assert.ok(err);

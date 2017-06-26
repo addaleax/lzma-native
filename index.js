@@ -4,6 +4,7 @@
 var stream = require('readable-stream');
 var assert = require('assert');
 var fs = require('fs');
+var util = require('util');
 
 // node-pre-gyp magic
 var nodePreGyp = require('node-pre-gyp');
@@ -420,6 +421,11 @@ exports.decompress = function(string, opt, on_finish) {
   var stream = createStream('autoDecoder', opt);
   return singleStringCoding(stream, string, on_finish);
 };
+
+if (util.promisify) {
+  exports.compress[util.promisify.custom] = exports.compress;
+  exports.decompress[util.promisify.custom] = exports.decompress;
+}
 
 exports.isXZ = function(buf) {
   return buf && buf.length >= 6 &&
