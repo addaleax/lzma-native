@@ -17,7 +17,7 @@ install:
   - node -p process.arch
   - node -p process.version
   - npm install node-gyp@3.6.1
-  - npm install nan node-pre-gyp readable-stream
+  - npm install nan node-pre-gyp readable-stream rimraf
   - IF %nodejs_version% LSS 1 npm -g install npm
   - IF %nodejs_version% LSS 1 set PATH=%APPDATA%\npm;%PATH%
   - npm run prepare

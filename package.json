@@ -16,10 +16,11 @@
   "dependencies": {
     "nan": "2.5.1",
     "node-pre-gyp": "^0.6.21",
-    "readable-stream": "^2.0.5"
+    "readable-stream": "^2.0.5",
+    "rimraf": "^2.6.1"
   },
   "bundledDependencies": [
-    "node-pre-gyp"
+    "node-pre-gyp", "rimraf"
   ],
   "keywords": [
     "lzma",
@@ -35,7 +36,7 @@
     "url": "https://github.com/addaleax/lzma-native.git"
   },
   "scripts": {
-    "install": "node-pre-gyp install --fallback-to-build",
+    "install": "node-pre-gyp install --fallback-to-build && node node_modules/rimraf/bin.js build",
     "test": "mocha --expose-gc -s 1000 -t 5000",
     "prepare": "cd deps && 7z x -y xz-5.2.3-windows.7z bin_i686/liblzma.dll bin_x86-64/liblzma.dll include doc/liblzma.def",
     "jshint": "jshint ."
