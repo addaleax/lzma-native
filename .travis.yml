@@ -3,6 +3,8 @@ compiler:
   - clang
   - gcc
 env:
+  - TRAVIS_NODE_VERSION="8" npm_config_runtime="electron" npm_config_target="1.7.3" npm_config_dist_url=https://atom.io/download/electron
+  - TRAVIS_NODE_VERSION="8" npm_config_runtime="electron" npm_config_target="1.6.11" npm_config_dist_url=https://atom.io/download/electron
   - TRAVIS_NODE_VERSION="4"
   - TRAVIS_NODE_VERSION="5"
   - TRAVIS_NODE_VERSION="6"
@@ -31,7 +33,7 @@ before_install:
   - pip install --user cpp-coveralls coveralls-merge
   # compilers
   - if [ "$CXX" = "g++" -a "$TRAVIS_OS_NAME" = "linux" ]; then export CXX="g++-4.9" CC="gcc-4.9" AR="gcc-ar-4.9" RANLIB="gcc-ranlib-4.9" NM="gcc-nm-4.9" ; fi
-  - if [ "$CXX" = "clang++" ]; then export NPMOPT=--clang=1 ; fi
+  - if [ "$CXX" = "clang++" ]; then export npm_config_clang=1 ; fi
   # node versions
   - rm -rf ~/.nvm
   - git clone --branch v0.33.1 https://github.com/creationix/nvm.git ~/.nvm
@@ -43,10 +45,11 @@ before_install:
   - if [ -n "$TRAVIS_TAG" ]; then export CFLAGS="$CFLAGS -O3" LDFLAGS="$LDFLAGS"; fi
   - if [ -n "$DO_COVERAGE" ]; then export LDFLAGS="$LDFLAGS --coverage" CFLAGS="$CFLAGS --coverage"; fi
   - echo "CFLAGS=\"$CFLAGS\" LDFLAGS=\"$LDFLAGS\""
+  - unset NVM_IOJS_ORG_MIRROR
 install:
-  - npm install $NPMOPT --build-from-source --verbose
+  - npm install --build-from-source --verbose
 script:
-  - node --expose-gc ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha --report lcovonly -- -R spec -s 1000 -t 5000
+  - if [ x"$npm_config_runtime" != x"electron" ]; then node --expose-gc ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha --report lcovonly -- -R spec -s 1000 -t 5000; fi
   - npm run jshint
 after_success:
   - if [ -n "$DO_COVERAGE" ]; then cpp-coveralls --gcov-options '\-lp' --build-root build --exclude build/liblzma --exclude node_modules --dump coverage/cppfiles.json; fi
