@@ -1,5 +1,10 @@
 # Changelog for lzma-native
 
+## 3.0.1, Jul 04 2017
+
+* [[`9e2ee5129f`](https://github.com/addaleax/lzma-native/commit/9e2ee5129f)] - **ci**: fix CI on Windows (Anna Henningsen)
+* [[`8d75757031`](https://github.com/addaleax/lzma-native/commit/8d75757031)] - **lib**: fix race condition (Alexander Sagen) [#40](https://github.com/addaleax/lzma-native/pull/40)
+
 ## 3.0.0, Jun 26 2017
 
 This is unlikely to break anybody’s code, but removing the build files after install might qualify as semver-major.
