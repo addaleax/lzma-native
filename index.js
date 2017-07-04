@@ -68,6 +68,7 @@ class JSLzmaStream extends stream.Transform {
           this.push(null);
           this.emit('error-cleanup', err);
           this.emit('error', err);
+          return;
         }
 
         if (totalIn !== null) {
