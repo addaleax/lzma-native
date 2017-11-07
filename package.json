@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "nan": "2.5.1",
-    "node-pre-gyp": "^0.6.21",
+    "node-pre-gyp": "^0.6.39",
     "readable-stream": "^2.0.5",
     "rimraf": "^2.6.1"
   },
@@ -47,10 +47,10 @@
   },
   "devDependencies": {
     "bl": "^1.1.2",
-    "coveralls": "^2.11.6",
+    "coveralls": "^3.0.0",
     "istanbul": "^0.4.2",
     "jshint": "^2.9.1",
-    "mocha": "^3.0.2"
+    "mocha": "^4.0.1"
   },
   "binary": {
     "module_name": "lzma_native",
