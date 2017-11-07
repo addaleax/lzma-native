@@ -1,5 +1,9 @@
 # Changelog for lzma-native
 
+## 3.0.2, Nov 07 2017
+
+* [[`82b97dd94f`](https://github.com/addaleax/lzma-native/commit/82b97dd94f)] - **package**: update dependencies (Anna Henningsen)
+
 ## 3.0.1, Jul 04 2017
 
 * [[`9e2ee5129f`](https://github.com/addaleax/lzma-native/commit/9e2ee5129f)] - **ci**: fix CI on Windows (Anna Henningsen)
@@ -27,8 +31,8 @@ This is unlikely to break anybody’s code, but removing the build files after i
 
 ## 2.0.1, March 24 2017
 
-* [[`c0491a0a07`](https://github.com/addaleax/lzma-native/commit/c0491a0a07)] - refactored binding.gyp (Refael Ackermann) 
-* [[`70883635b7`](https://github.com/addaleax/lzma-native/commit/70883635b7)] - **ci**: skip artifact encryption setup for non-tag builds (Anna Henningsen) 
+* [[`c0491a0a07`](https://github.com/addaleax/lzma-native/commit/c0491a0a07)] - refactored binding.gyp (Refael Ackermann)
+* [[`70883635b7`](https://github.com/addaleax/lzma-native/commit/70883635b7)] - **ci**: skip artifact encryption setup for non-tag builds (Anna Henningsen)
 
 ## 2.0.0, March 19 2017
 
