@@ -14,7 +14,7 @@ var native = require(binding_path);
 
 Object.assign(exports, native);
 
-exports.version = '3.0.2';
+exports.version = '3.0.3';
 
 var Stream = exports.Stream;
 

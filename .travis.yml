@@ -58,4 +58,4 @@ after_success:
   - if [ -n "$DO_COVERAGE" ]; then coveralls-merge coverage/jsfiles.json coverage/cppfiles.json; fi
   # publish for node-pre-gyp
   - node-pre-gyp package
-  - if [ -n "$TRAVIS_TAG" ] && ([ $CXX = "g++" ] || [ $CXX = "g++-4.9" ]); then echo 'put build/stage/lzma-native/* uploads/lzma-native/' |sftp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -b- -i .travis.id_rsa node-pre-gyp@entless.org; fi
+  - if [ -n "$TRAVIS_TAG" ] && ([ $CXX = "g++" ] || [ $CXX = "g++-4.9" ]); then echo 'put build/stage/lzma-native/* uploads/lzma-native/' |sftp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -b- -i .travis.id_rsa node-pre-gyp@addaleax.net; fi

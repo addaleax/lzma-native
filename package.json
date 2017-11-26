@@ -1,6 +1,6 @@
 {
   "name": "lzma-native",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "engines": {
     "node": ">=4"
   },
@@ -55,7 +55,7 @@
   "binary": {
     "module_name": "lzma_native",
     "module_path": "./binding-v{version}-{node_abi}-{platform}-{arch}/",
-    "host": "https://node-pre-gyp.entless.org",
+    "host": "https://node-pre-gyp.addaleax.org",
     "remote_path": "./lzma-native/"
   }
 }

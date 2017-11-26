@@ -1,5 +1,9 @@
 # Changelog for lzma-native
 
+## 3.0.3, Nov 26 2017
+
+* [[`fcba77ebe0`](https://github.com/addaleax/lzma-native/commit/fcba77ebe0)] - **ci**: include Node 9 support (Anna Henningsen)
+
 ## 3.0.2, Nov 07 2017
 
 * [[`82b97dd94f`](https://github.com/addaleax/lzma-native/commit/82b97dd94f)] - **package**: update dependencies (Anna Henningsen)
