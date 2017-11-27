@@ -1,5 +1,9 @@
 # Changelog for lzma-native
 
+## 3.0.4, Nov 27 2017
+
+* [[`669ee5098b`](https://github.com/addaleax/lzma-native/commit/669ee5098b)] - **package**: replace unavailable host to node-pre-gyp.addaleax.net (JianyingLi) [#48](https://github.com/addaleax/lzma-native/pull/48)
+
 ## 3.0.3, Nov 26 2017
 
 * [[`fcba77ebe0`](https://github.com/addaleax/lzma-native/commit/fcba77ebe0)] - **ci**: include Node 9 support (Anna Henningsen)
