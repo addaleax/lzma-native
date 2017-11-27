@@ -55,7 +55,7 @@
   "binary": {
     "module_name": "lzma_native",
     "module_path": "./binding-v{version}-{node_abi}-{platform}-{arch}/",
-    "host": "https://node-pre-gyp.addaleax.org",
+    "host": "https://node-pre-gyp.addaleax.net",
     "remote_path": "./lzma-native/"
   }
 }
