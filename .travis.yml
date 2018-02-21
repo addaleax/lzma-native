@@ -31,7 +31,8 @@ before_install:
   # dummy 7z because npm wants to run the prepublish script
   - mkdir -p $HOME/.local/bin/ && touch $HOME/.local/bin/7z && chmod +x $HOME/.local/bin/7z
   # coveralls
-  - pip install --user cpp-coveralls coveralls-merge
+  - if [ -z "$TRAVIS_TAG" -a "$TRAVIS_OS_NAME" = "linux" ]; then export DO_COVERAGE=1; fi
+  - if [ -n "$DO_COVERAGE" ]; then pip install --user cpp-coveralls coveralls-merge; fi
   # compilers
   - if [ "$CXX" = "g++" -a "$TRAVIS_OS_NAME" = "linux" ]; then export CXX="g++-4.9" CC="gcc-4.9" AR="gcc-ar-4.9" RANLIB="gcc-ranlib-4.9" NM="gcc-nm-4.9" ; fi
   - if [ "$CXX" = "clang++" ]; then export npm_config_clang=1 ; fi
@@ -42,7 +43,6 @@ before_install:
   - nvm install "$TRAVIS_NODE_VERSION"
   - node --version
   # no coverage for tags (they are release builds!)
-  - if [ -z "$TRAVIS_TAG" ]; then export DO_COVERAGE=1; fi
   - if [ -n "$TRAVIS_TAG" ]; then export CFLAGS="$CFLAGS -O3" LDFLAGS="$LDFLAGS"; fi
   - if [ -n "$DO_COVERAGE" ]; then export LDFLAGS="$LDFLAGS --coverage" CFLAGS="$CFLAGS --coverage"; fi
   - echo "CFLAGS=\"$CFLAGS\" LDFLAGS=\"$LDFLAGS\""
