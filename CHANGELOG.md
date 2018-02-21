@@ -1,5 +1,10 @@
 # Changelog for lzma-native
 
+## 3.0.5, Feb 21 2018
+
+* [[`c03299db13`](https://github.com/addaleax/lzma-native/commit/c03299db13)] - **ci**: remove OS X from coverage (Anna Henningsen)
+* [[`5f640416e0`](https://github.com/addaleax/lzma-native/commit/5f640416e0)] - **lib**: fix issue with invalid input (Anna Henningsen)
+
 ## 3.0.4, Nov 27 2017
 
 * [[`669ee5098b`](https://github.com/addaleax/lzma-native/commit/669ee5098b)] - **package**: replace unavailable host to node-pre-gyp.addaleax.net (JianyingLi) [#48](https://github.com/addaleax/lzma-native/pull/48)
