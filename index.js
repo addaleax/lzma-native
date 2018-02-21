@@ -140,6 +140,7 @@ class JSLzmaStream extends stream.Transform {
   }
 
   _transform(chunk, encoding, callback) {
+    if (!this.nativeStream) return;
     // Split the chunk at 'YZ'. This is used to have a clean boundary at the
     // end of each `.xz` file stream.
     var possibleEndIndex = bufferIndexOfYZ(chunk);
