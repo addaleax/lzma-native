@@ -306,7 +306,7 @@ exports.crc32 = function(input, encoding, presetCRC32) {
   }
 
   if (typeof input === 'string')
-    input = new Buffer(input, encoding);
+    input = Buffer.from(input, encoding);
 
   return exports.crc32_(input, presetCRC32 || 0);
 };
@@ -333,7 +333,7 @@ function singleStringCoding(stream, string, on_finish, on_progress) {
   // possibly our input is an array of byte integers
   // or a typed array
   if (!Buffer.isBuffer(string))
-    string = new Buffer(string);
+    string = Buffer.from(string);
 
   var deferred = {}, failed = false;
 
@@ -532,7 +532,7 @@ exports.parseFileIndexFD = function(fd, callback) {
     exports.parseFileIndex({
       fileSize: stats.size,
       read: function(count, offset, cb) {
-        var buffer = new Buffer(count);
+        var buffer = Buffer.allocUnsafe(count);
 
         fs.read(fd, buffer, 0, count, offset, function(err, bytesRead, buffer) {
           if (err) {
