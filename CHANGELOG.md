@@ -1,5 +1,10 @@
 # Changelog for lzma-native
 
+## 3.0.6, Mar 26 2018
+
+* [[`484c53577f`](https://github.com/addaleax/lzma-native/commit/484c53577f)] - **package**: update dependencies (Anna Henningsen)
+* [[`6513708704`](https://github.com/addaleax/lzma-native/commit/6513708704)] - **lib**: use `Buffer.*` instead of deprecated Buffer constructor (Anna Henningsen)
+
 ## 3.0.5, Feb 21 2018
 
 * [[`c03299db13`](https://github.com/addaleax/lzma-native/commit/c03299db13)] - **ci**: remove OS X from coverage (Anna Henningsen)
