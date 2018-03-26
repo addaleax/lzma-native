@@ -1,5 +1,11 @@
 # Changelog for lzma-native
 
+## 3.0.7, Mar 26 2018
+
+This likely fixed a regression related to node-pre-gyp.
+
+* [[`430a440276`](https://github.com/addaleax/lzma-native/commit/430a440276)] - **package**: pin node-pre-gyp to 0.6.39 (Anna Henningsen)
+
 ## 3.0.6, Mar 26 2018
 
 * [[`484c53577f`](https://github.com/addaleax/lzma-native/commit/484c53577f)] - **package**: update dependencies (Anna Henningsen)

@@ -1,7 +1,7 @@
 build/
 test/
 coverage/
-binding/
+binding*/
 deps/xz-5.2.3-windows.7z
 npm-debug.log
 core
