@@ -1,5 +1,9 @@
 # Changelog for lzma-native
 
+## 3.0.8, May 12 2018
+
+* [[`8c18848609`](https://github.com/addaleax/lzma-native/commit/8c18848609)] - **ci**: add Node.js 10 to matrix (Anna Henningsen)
+
 ## 3.0.7, Mar 26 2018
 
 This likely fixed a regression related to node-pre-gyp.
