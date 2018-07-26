@@ -1,5 +1,9 @@
 # Changelog for lzma-native
 
+## 4.0.1, Jul 26 2018
+
+* [[`93b50cc2f7`](https://github.com/addaleax/lzma-native/commit/93b50cc2f7)] - **package**: fix rimraf invocation in install script (webcarrot) [#63](https://github.com/addaleax/lzma-native/pull/63)
+
 ## 4.0.0, Jul 26 2018
 
 There are no breaking changes to the API provided by this module.
