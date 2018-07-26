@@ -33,7 +33,7 @@
     "url": "https://github.com/addaleax/lzma-native.git"
   },
   "scripts": {
-    "install": "node-pre-gyp install --fallback-to-build && node node_modules/rimraf/bin.js build",
+    "install": "node-pre-gyp install --fallback-to-build && rimraf build",
     "test": "mocha --expose-gc -s 1000 -t 5000",
     "prepare": "cd deps && 7z x -y xz-5.2.3-windows.7z bin_i686/liblzma.dll bin_x86-64/liblzma.dll include doc/liblzma.def",
     "jshint": "jshint ."
