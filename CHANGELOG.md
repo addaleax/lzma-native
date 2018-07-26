@@ -1,5 +1,22 @@
 # Changelog for lzma-native
 
+## 4.0.0, Jul 26 2018
+
+There are no breaking changes to the API provided by this module.
+
+This drops pre-built binaries and testing for officially unsupported Node.js
+versions. Those versions have known security issues and should not be used
+anymore.
+
+This also updates node-pre-gyp to a more recent version. In the past,
+this has caused trouble for some users, so this considered
+is a semver-major change as well.
+
+* [[`b625b3e525`](https://github.com/addaleax/lzma-native/commit/b625b3e525)] - **package**: stop bundling dependencies (Anna Henningsen)
+* [[`98155a8179`](https://github.com/addaleax/lzma-native/commit/98155a8179)] - **ci**: drop unsupported Node.js versions (4, 5, 7, 9) (Anna Henningsen)
+* [[`d59574481f`](https://github.com/addaleax/lzma-native/commit/d59574481f)] - **package**: update bl to 2.0.1 (Anna Henningsen)
+* [[`f2c6e84d2c`](https://github.com/addaleax/lzma-native/commit/f2c6e84d2c)] - **package**: update node-pre-gyp to 0.10.3 (simlu) [#61](https://github.com/addaleax/lzma-native/pull/61)
+
 ## 3.0.8, May 12 2018
 
 * [[`8c18848609`](https://github.com/addaleax/lzma-native/commit/8c18848609)] - **ci**: add Node.js 10 to matrix (Anna Henningsen)
