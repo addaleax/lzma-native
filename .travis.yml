@@ -4,13 +4,9 @@ compiler:
   - gcc
 env:
   - TRAVIS_NODE_VERSION="8" npm_config_runtime="electron" npm_config_target="1.7.3" npm_config_dist_url=https://atom.io/download/electron
-  - TRAVIS_NODE_VERSION="8" npm_config_runtime="electron" npm_config_target="1.6.11" npm_config_dist_url=https://atom.io/download/electron
-  - TRAVIS_NODE_VERSION="4"
-  - TRAVIS_NODE_VERSION="5"
+  - TRAVIS_NODE_VERSION="8" npm_config_runtime="electron" npm_config_target="2.0.5" npm_config_dist_url=https://atom.io/download/electron
   - TRAVIS_NODE_VERSION="6"
-  - TRAVIS_NODE_VERSION="7"
   - TRAVIS_NODE_VERSION="8"
-  - TRAVIS_NODE_VERSION="9"
   - TRAVIS_NODE_VERSION="10"
 os:
   - linux
@@ -39,7 +35,7 @@ before_install:
   - if [ "$CXX" = "clang++" ]; then export npm_config_clang=1 ; fi
   # node versions
   - rm -rf ~/.nvm
-  - git clone --branch v0.33.6 https://github.com/creationix/nvm.git ~/.nvm
+  - git clone --branch v0.33.11 https://github.com/creationix/nvm.git ~/.nvm
   - source ~/.nvm/nvm.sh
   - nvm install "$TRAVIS_NODE_VERSION"
   - node --version
