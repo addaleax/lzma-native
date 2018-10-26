@@ -1,5 +1,9 @@
 # Changelog for lzma-native
 
+## 4.0.2, Oct 26 2018
+
+* [[`bb6bfe0988`](https://github.com/addaleax/lzma-native/commit/bb6bfe0988)] - **package**: update node-pre-gyp to 0.11.0 (webcarrot) [#68](https://github.com/addaleax/lzma-native/pull/68)
+
 ## 4.0.1, Jul 26 2018
 
 * [[`93b50cc2f7`](https://github.com/addaleax/lzma-native/commit/93b50cc2f7)] - **package**: fix rimraf invocation in install script (webcarrot) [#63](https://github.com/addaleax/lzma-native/pull/63)
