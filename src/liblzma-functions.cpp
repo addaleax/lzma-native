@@ -2,103 +2,83 @@
 
 namespace lzma {
 
-NAN_METHOD(lzmaVersionNumber) {
-  info.GetReturnValue().Set(lzma_version_number());
+Value lzmaVersionNumber(const CallbackInfo& info) {
+  return Number::New(info.Env(), lzma_version_number());
 }
 
-NAN_METHOD(lzmaVersionString) {
-  info.GetReturnValue().Set(Nan::New<String>(lzma_version_string()).ToLocalChecked());
+Value lzmaVersionString(const CallbackInfo& info) {
+  return String::New(info.Env(), lzma_version_string());
 }
 
-NAN_METHOD(lzmaCheckIsSupported) {
-  Local<Integer> arg = Local<Integer>::Cast(info[0]);
-  
-  info.GetReturnValue().Set((bool)lzma_check_is_supported((lzma_check) arg->Value()));
+Value lzmaCheckIsSupported(const CallbackInfo& info) {
+  lzma_check arg = (lzma_check) info[0].ToNumber().Int64Value();
+
+  return Boolean::New(info.Env(), lzma_check_is_supported(arg));
 }
 
-NAN_METHOD(lzmaCheckSize) {
-  Local<Integer> arg = Local<Integer>::Cast(info[0]);
-  
-  info.GetReturnValue().Set(Nan::New<Number>(lzma_check_size((lzma_check) arg->Value())));
+Value lzmaCheckSize(const CallbackInfo& info) {
+  lzma_check arg = (lzma_check) info[0].ToNumber().Int64Value();
+
+  return Number::New(info.Env(), lzma_check_size(arg));
 }
 
-NAN_METHOD(lzmaFilterEncoderIsSupported) {
+Value lzmaFilterEncoderIsSupported(const CallbackInfo& info) {
   uint64_t arg = FilterByName(info[0]);
-  
-  info.GetReturnValue().Set((bool)lzma_filter_encoder_is_supported(arg));
+
+  return Boolean::New(info.Env(), lzma_filter_encoder_is_supported(arg));
 }
 
-NAN_METHOD(lzmaFilterDecoderIsSupported) {
+Value lzmaFilterDecoderIsSupported(const CallbackInfo& info) {
   uint64_t arg = FilterByName(info[0]);
-  
-  info.GetReturnValue().Set((bool)lzma_filter_decoder_is_supported(arg));
+
+  return Boolean::New(info.Env(), lzma_filter_decoder_is_supported(arg));
 }
 
-NAN_METHOD(lzmaMfIsSupported) {
-  Local<Integer> arg = Local<Integer>::Cast(info[0]);
-  
-  info.GetReturnValue().Set((bool)lzma_mf_is_supported((lzma_match_finder) arg->Value()));
+Value lzmaMfIsSupported(const CallbackInfo& info) {
+  lzma_match_finder arg = (lzma_match_finder) info[0].ToNumber().Int64Value();
+
+  return Boolean::New(info.Env(), lzma_mf_is_supported(arg));
 }
 
-NAN_METHOD(lzmaModeIsSupported) {
-  Local<Integer> arg = Local<Integer>::Cast(info[0]);
-  
-  info.GetReturnValue().Set((bool)lzma_mode_is_supported((lzma_mode) arg->Value()));
+Value lzmaModeIsSupported(const CallbackInfo& info) {
+  lzma_mode arg = (lzma_mode) info[0].ToNumber().Int64Value();
+
+  return Boolean::New(info.Env(), lzma_mode_is_supported(arg));
 }
 
-NAN_METHOD(lzmaEasyEncoderMemusage) {
-  Local<Integer> arg = Local<Integer>::Cast(info[0]);
-  
-  info.GetReturnValue().Set(Uint64ToNumberMaxNull(lzma_easy_encoder_memusage(arg->Value())));
+Value lzmaEasyEncoderMemusage(const CallbackInfo& info) {
+  int64_t arg = info[0].ToNumber();
+
+  return Uint64ToNumberMaxNull(info.Env(), lzma_easy_encoder_memusage(arg));
 }
 
-NAN_METHOD(lzmaEasyDecoderMemusage) {
-  Local<Integer> arg = Local<Integer>::Cast(info[0]);
-  
-  info.GetReturnValue().Set(Uint64ToNumberMaxNull(lzma_easy_decoder_memusage(arg->Value())));
+Value lzmaEasyDecoderMemusage(const CallbackInfo& info) {
+  int64_t arg = info[0].ToNumber();
+
+  return Uint64ToNumberMaxNull(info.Env(), lzma_easy_decoder_memusage(arg));
 }
 
-NAN_METHOD(lzmaCRC32) {
-  Local<Integer> arg = Local<Integer>::Cast(info[1]);
-  
-  if (arg.IsEmpty() || info[1]->IsUndefined())
-    arg = Nan::New<Integer>(0);
-  
+Value lzmaCRC32(const CallbackInfo& info) {
+  int64_t arg = info[1].ToNumber();
+
   std::vector<uint8_t> data;
-  
-  if (!readBufferFromObj(info[0], data)) {
-    Nan::ThrowTypeError("CRC32 expects Buffer as input");
-    info.GetReturnValue().SetUndefined();
-    return;
-  }
-  
-  info.GetReturnValue().Set(Nan::New<Number>(lzma_crc32(data.data(), data.size(), arg->Value())));
+
+  if (!readBufferFromObj(info[0], &data))
+    throw TypeError::New(info.Env(), "CRC32 expects Buffer as input");
+
+  return Number::New(info.Env(), lzma_crc32(data.data(), data.size(), arg));
 }
 
-NAN_METHOD(lzmaRawEncoderMemusage) {
-  Local<Array> arg = Local<Array>::Cast(info[0]);
-  
-  const FilterArray filters(arg);
-  if (!filters.ok()) {
-    Nan::ThrowTypeError("rawEncoderMemusage requires filter array as arguments");
-    info.GetReturnValue().SetUndefined();
-    return;
-  }
-  
-  info.GetReturnValue().Set(Uint64ToNumberMaxNull(lzma_raw_encoder_memusage(filters.array())));
+Value lzmaRawEncoderMemusage(const CallbackInfo& info) {
+  const FilterArray filters(info[0]);
+
+  return Uint64ToNumberMaxNull(info.Env(), lzma_raw_encoder_memusage(filters.array()));
 }
 
-NAN_METHOD(lzmaRawDecoderMemusage) {
-  Local<Array> arg = Local<Array>::Cast(info[0]);
-  
-  const FilterArray filters(arg);
-  if (!filters.ok()) {
-    Nan::ThrowTypeError("rawDecoderMemusage requires filter array as arguments");
-    info.GetReturnValue().SetUndefined();
-    return;
-  }
-  
-  info.GetReturnValue().Set(Uint64ToNumberMaxNull(lzma_raw_decoder_memusage(filters.array())));
+Value lzmaRawDecoderMemusage(const CallbackInfo& info) {
+  const FilterArray filters(info[0]);
+
+  return Uint64ToNumberMaxNull(info.Env(), lzma_raw_decoder_memusage(filters.array()));
 }
 
 }

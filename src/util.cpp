@@ -1,20 +1,17 @@
 #include "liblzma-node.hpp"
-#include <node_buffer.h>
 #include <cstring>
 
 namespace lzma {
 
-lzma_vli FilterByName(Local<Value> v) {
-  Nan::Utf8String cmpto(v);
-  if (cmpto.length() == 0)
-    return LZMA_VLI_UNKNOWN;
-  
-  struct searchEntry {
+lzma_vli FilterByName(Value name) {
+  std::string cpp_string(name.ToString());
+
+  struct SearchEntry {
     const char* str;
     lzma_vli value;
   };
-  
-  static const struct searchEntry search[] = {
+
+  static const struct SearchEntry search[] = {
     { "LZMA_FILTER_X86", LZMA_FILTER_X86 },
     { "LZMA_FILTER_POWERPC", LZMA_FILTER_POWERPC },
     { "LZMA_FILTER_IA64", LZMA_FILTER_IA64 },
@@ -27,21 +24,21 @@ lzma_vli FilterByName(Local<Value> v) {
     { "LZMA_FILTERS_MAX", LZMA_FILTERS_MAX },
     { "LZMA_VLI_UNKNOWN", LZMA_VLI_UNKNOWN }
   };
-  
-  for (const struct searchEntry* p = search; ; ++p) 
-    if (p->value == LZMA_VLI_UNKNOWN || std::strcmp(*cmpto, p->str) == 0)
+
+  for (const struct SearchEntry* p = search; ; ++p)
+    if (p->value == LZMA_VLI_UNKNOWN || cpp_string == p->str)
       return p->value;
 }
 
-Local<Object> lzmaRetError(lzma_ret rv) {
-  struct errorInfo {
+Error lzmaRetError(Env env, lzma_ret rv) {
+  struct ErrorInfo {
     lzma_ret code;
     const char* name;
     const char* desc;
   };
-  
+
   /* description strings taken from liblzma/…/api/base.h */
-  static const struct errorInfo searchErrorInfo[] = {
+  static const struct ErrorInfo searchErrorInfo[] = {
     { LZMA_OK,                "LZMA_OK", "Operation completed successfully" },
     { LZMA_STREAM_END,        "LZMA_STREAM_END", "End of stream was reached" },
     { LZMA_NO_CHECK,          "LZMA_NO_CHECK", "Input stream has no integrity check" },
@@ -56,95 +53,88 @@ Local<Object> lzmaRetError(lzma_ret rv) {
     { LZMA_BUF_ERROR,         "LZMA_BUF_ERROR", "No progress is possible" },
     { (lzma_ret)-1,           "LZMA_UNKNOWN_ERROR", "Unknown error code" }
   };
-  
-  const struct errorInfo* p = searchErrorInfo;
+
+  const struct ErrorInfo* p = searchErrorInfo;
   while (p->code != rv && p->code != (lzma_ret)-1)
     ++p;
-  
-  Local<Object> e = Local<Object>::Cast(Nan::Error(p->desc));
-  Nan::Set(e, NewString("code"), Nan::New<Integer>(rv));
-  Nan::Set(e, NewString("name"), NewString(p->name));
-  Nan::Set(e, NewString("desc"), NewString(p->desc));
-  
-  return e;
+
+  Error err = Error::New(env, p->desc);
+  err.Set("code", Number::New(env, rv));
+  err.Set("name", String::New(env, p->name));
+  err.Set("desc", String::New(env, p->desc));
+
+  return err;
 }
 
-Local<Value> lzmaRet(lzma_ret rv) {
+Number lzmaRet(Env env, lzma_ret rv) {
   if (rv != LZMA_OK && rv != LZMA_STREAM_END)
-    Nan::ThrowError(Local<Value>(lzmaRetError(rv)));
-  
-  return Nan::New<Integer>(rv);
+    throw lzmaRetError(env, rv);
+
+  return Number::New(env, rv);
 }
 
-bool readBufferFromObj(Local<Value> buf_, std::vector<uint8_t>& data) {
-  if (buf_.IsEmpty() || !node::Buffer::HasInstance(buf_)) {
-    Nan::ThrowTypeError("Expected Buffer as input");
+bool readBufferFromObj(Value buf_, std::vector<uint8_t>* data) {
+  if (!buf_.IsTypedArray()) {
+    throw TypeError::New(buf_.Env(), "Expected Buffer as input");
     return false;
   }
-  
-  Local<Object> buf = Local<Object>::Cast(buf_);
-  size_t len = node::Buffer::Length(buf);
-  const uint8_t* ptr = reinterpret_cast<const uint8_t*>(len > 0 ? node::Buffer::Data(buf) : "");
-  
-  data = std::vector<uint8_t>(ptr, ptr + len);
-  
+
+  TypedArray buf = buf_.As<TypedArray>();
+  size_t len = buf.ByteLength();
+  const uint8_t* ptr = len > 0 ?
+      static_cast<const uint8_t*>(buf.ArrayBuffer().Data()) + buf.ByteOffset() :
+      reinterpret_cast<const uint8_t*>("");
+
+  *data = std::vector<uint8_t>(ptr, ptr + len);
+
   return true;
 }
 
-lzma_options_lzma parseOptionsLZMA (Local<Object> obj) {
-  Nan::HandleScope();
+lzma_options_lzma parseOptionsLZMA (Value val) {
+  HandleScope scope(val.Env());
+  Object obj = val.IsUndefined() || val.IsNull() ?
+      Object::New(val.Env()) : val.ToObject();
+
   lzma_options_lzma r;
-  
-  if (obj.IsEmpty() || obj->IsUndefined())
-    obj = Nan::New<Object>();
-  
   r.dict_size = GetIntegerProperty(obj, "dictSize", LZMA_DICT_SIZE_DEFAULT);
   r.lp = GetIntegerProperty(obj, "lp", LZMA_LP_DEFAULT);
   r.lc = GetIntegerProperty(obj, "lc", LZMA_LC_DEFAULT);
   r.pb = GetIntegerProperty(obj, "pb", LZMA_PB_DEFAULT);
-  r.mode = (lzma_mode)GetIntegerProperty(obj, "mode", (uint64_t)LZMA_MODE_FAST);
+  r.mode = (lzma_mode)GetIntegerProperty(obj, "mode", (int64_t)LZMA_MODE_FAST);
   r.nice_len = GetIntegerProperty(obj, "niceLen", 64);
-  r.mf = (lzma_match_finder)GetIntegerProperty(obj, "mf", (uint64_t)LZMA_MF_HC4);
+  r.mf = (lzma_match_finder)GetIntegerProperty(obj, "mf", (int64_t)LZMA_MF_HC4);
   r.depth = GetIntegerProperty(obj, "depth", 0);
   uint64_t preset_ = GetIntegerProperty(obj, "preset", UINT64_MAX);
-  
-  r.preset_dict = NULL;
-  
-  if (preset_ != UINT64_MAX) 
+
+  r.preset_dict = nullptr;
+
+  if (preset_ != UINT64_MAX)
     lzma_lzma_preset(&r, preset_);
-  
+
   return r;
 }
 
-Local<Value> Uint64ToNumberMaxNull(uint64_t in) {
+Value Uint64ToNumberMaxNull(Env env, uint64_t in) {
   if (in == UINT64_MAX)
-    return Nan::Null();
+    return env.Null();
   else
-    return Nan::New<Number>(in);
+    return Number::New(env, in);
 }
 
-Local<Value> Uint64ToNumber0Null(uint64_t in) {
+Value Uint64ToNumber0Null(Env env, uint64_t in) {
   if (in == 0)
-    return Nan::Null();
+    return env.Null();
   else
-    return Nan::New<Number>(in);
+    return Number::New(env, in);
 }
 
-uint64_t NumberToUint64ClampNullMax(Local<Value> in) {
-  if (in->IsNull() || in->IsUndefined())
+uint64_t NumberToUint64ClampNullMax(Value in) {
+  if (in.IsNull() || in.IsUndefined())
     return UINT64_MAX;
-  
-  Local<Number> n = Local<Number>::Cast(in);
-  if (n.IsEmpty() && !in.IsEmpty()) {
-    Nan::ThrowTypeError("Number required");
-    return UINT64_MAX;
-  }
-  
-  Local<Integer> integer = Local<Integer>::Cast(n);
-  if (!integer.IsEmpty())
-    return integer->Value();
-  
-  return n->Value();
+
+  Number n = in.ToNumber();
+
+  return n.Int64Value();
 }
 
 }

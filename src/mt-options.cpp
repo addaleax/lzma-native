@@ -2,38 +2,26 @@
 
 namespace lzma {
 
-MTOptions::MTOptions() : filters_(NULL), ok_(false) { }
-
-MTOptions::~MTOptions() {
-  delete filters_;
-}
-
-MTOptions::MTOptions(Local<Object> opt) : filters_(NULL), ok_(true) {
+MTOptions::MTOptions(Value val) {
+  Object opt = val.IsUndefined() || val.IsNull() ?
+      Object::New(val.Env()) : val.ToObject();
   opts_.flags = 0;
-  opts_.filters = NULL;
-  
-  opts_.block_size = Nan::To<int64_t>(Nan::Get(opt, NewString("blockSize")).ToLocalChecked()).ToChecked();
-  opts_.timeout = Nan::To<uint32_t>(Nan::Get(opt, NewString("timeout")).ToLocalChecked())
-      .FromMaybe(0);
-  opts_.preset = Nan::To<uint32_t>(Nan::Get(opt, NewString("preset")).ToLocalChecked())
-      .FromMaybe(LZMA_PRESET_DEFAULT);
-  opts_.check = (lzma_check)Nan::To<int32_t>(Nan::Get(opt, NewString("check")).ToLocalChecked())
-      .FromMaybe((int)LZMA_CHECK_CRC64);
-  opts_.threads = Nan::To<uint32_t>(Nan::Get(opt, NewString("threads")).ToLocalChecked())
-      .FromMaybe(0);
+  opts_.filters = nullptr;
+
+  opts_.block_size = Value(opt["blockSize"]).ToNumber().Int64Value();
+  opts_.timeout = Value(opt["timeout"]).ToNumber().Uint32Value();
+  opts_.preset = Value(opt["preset"]).ToNumber().Uint32Value();
+  opts_.check = (lzma_check)Value(opt["check"]).ToNumber().Int32Value();
+  opts_.threads = Value(opt["threads"]).ToNumber().Uint32Value();
 
   if (opts_.threads == 0) {
     opts_.threads = lzma_cputhreads();
   }
 
-  Local<Value> filters = Nan::Get(opt, NewString("filters")).ToLocalChecked();
-  if (filters->IsArray()) {
-    filters_ = new FilterArray(Local<Array>::Cast(filters));
-    if (filters_->ok()) {
-      opts_.filters = filters_->array();
-    } else {
-      ok_ = false;
-    }
+  Value filters = opt["filters"];
+  if (filters.IsArray()) {
+    filters_.reset(new FilterArray(filters));
+    opts_.filters = filters_->array();
   }
 }
 

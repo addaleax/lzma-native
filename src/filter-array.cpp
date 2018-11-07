@@ -2,42 +2,43 @@
 
 namespace lzma {
 
-FilterArray::FilterArray(Local<Array> arr) : ok_(false) {
-  Nan::HandleScope();
-  
-  if (!arr->IsArray() || arr.IsEmpty()) {
-    Nan::ThrowTypeError("Filter array expected");
-    return;
-  }
-  
-  size_t len = arr->Length();
-  
-  Local<String> id_ = NewString("id");
-  Local<String> options_ = NewString("options");
-  
+FilterArray::FilterArray(Value val) {
+  Env env = val.Env();
+  HandleScope handle_scope(env);
+
+  if (!val.IsArray())
+    throw TypeError::New(env, "Filter array expected");
+  Array arr = val.As<Array>();
+
+  size_t len = arr.Length();
+
+  String id_ = String::New(env, "id");
+  String options_ = String::New(env, "options");
+
   for (size_t i = 0; i < len; ++i) {
-    Local<Object> entry = Local<Object>::Cast(EmptyToUndefined(Nan::Get(arr, i)));
-    if (entry.IsEmpty() || entry->IsUndefined() || entry->IsNull() || !Nan::Has(entry, id_).ToChecked()) {
-      Nan::ThrowTypeError("Filter array needs object entries");
-      return;
-    }
-    
-    Local<String> id = Local<String>::Cast(EmptyToUndefined(Nan::Get(entry, id_)));
-    Local<Object> opt = Local<Object>::Cast(EmptyToUndefined(Nan::Get(entry, options_)));
-    
+    Value entry_v = arr[i];
+    if (!entry_v.IsObject() || !entry_v.As<Object>().Has(id_))
+      throw TypeError::New(env, "Filter array expected");
+    Object entry = entry_v.As<Object>();
+
+    String id = Value(entry[id_]).ToString();
+    Value opt_v = entry[options_];
+
     lzma_filter f;
     f.id = FilterByName(id);
-    f.options = NULL;
-    
-    if ((opt.IsEmpty() || opt->IsUndefined() || opt->IsNull()) &&
-      (f.id != LZMA_FILTER_LZMA1 && f.id != LZMA_FILTER_LZMA2)) {
+    f.options = nullptr;
+
+    bool has_options = !opt_v.IsUndefined() && !opt_v.IsNull();
+    if (!has_options && (f.id != LZMA_FILTER_LZMA1 && f.id != LZMA_FILTER_LZMA2)) {
       filters.push_back(f);
       continue;
     }
-    
+
+    Object opt = has_options ? opt_v.ToObject() : Object::New(env);
+
     optbuf.push_back(options());
     union options& bopt = optbuf.back();
-    
+
     switch (f.id) {
       case LZMA_FILTER_DELTA:
         bopt.delta.type = (lzma_delta_type) GetIntegerProperty(opt, "type", LZMA_DELTA_TYPE_BYTE);
@@ -50,21 +51,15 @@ FilterArray::FilterArray(Local<Array> arr) : ok_(false) {
         f.options = &bopt.lzma;
         break;
       default:
-        Nan::ThrowTypeError("LZMA wrapper library understands .options only for DELTA and LZMA1, LZMA2 filters");
-        return;
+        throw TypeError::New(env, "LZMA wrapper library understands .options only for DELTA and LZMA1, LZMA2 filters");
     }
-    
+
     filters.push_back(f);
   }
-  
-  finish();
-}
 
-void FilterArray::finish() {
   lzma_filter end;
   end.id = LZMA_VLI_UNKNOWN;
   filters.push_back(end);
-  ok_ = true;
 }
 
 }

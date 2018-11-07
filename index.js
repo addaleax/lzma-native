@@ -201,7 +201,9 @@ class JSLzmaStream extends stream.Transform {
 }
 
 // add all methods from the native Stream
-Object.keys(native.Stream.prototype).forEach(function(key) {
+Object.getOwnPropertyNames(native.Stream.prototype).forEach(function(key) {
+  if (typeof native.Stream.prototype[key] !== 'function' || key === 'constructor')
+    return;
   JSLzmaStream.prototype[key] = function() {
     return this.nativeStream[key].apply(this.nativeStream, arguments);
   };
