@@ -201,7 +201,7 @@ typedef struct {
  *             performed after the data has been read.
  */
 extern lzma_ret
-my_lzma_parse_indexes_from_file(lzma_index_parser_data *info) lzma_nothrow;
+my_lzma_parse_indexes_from_file(lzma_index_parser_data *info);
 
 }
 

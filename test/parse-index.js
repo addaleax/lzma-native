@@ -99,8 +99,7 @@ describe('lzma', function() {
       lzma.parseFileIndex({
         fileSize: hamletXZ.length,
         read: function(count, offset, cb) {
-          var buf = new Buffer(count);
-          buf.fill(0);
+          var buf = Buffer.alloc(count);
           cb(buf);
         }
       }, function(err, info) {
