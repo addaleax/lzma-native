@@ -30,7 +30,7 @@
         [ 'OS!="win"' , {
           "include_dirs" : [ "<(module_root_dir)/build/liblzma/build/include" ],
           "libraries" : [ "<(module_root_dir)/build/liblzma/build/lib/liblzma.a" ],
-          "cflags": ['<!@(sh ./cflags.sh)']
+          "cflags": ['-O3 -std=c++11']
         }, {
           "include_dirs" : [ "<(module_root_dir)\\deps\\include" ],
           "link_settings": {
