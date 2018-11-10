@@ -3,8 +3,7 @@ compiler:
   - clang
   - gcc
 env:
-  - TRAVIS_NODE_VERSION="8.10" npm_config_runtime="electron" npm_config_target="2.0.5" npm_config_dist_url=https://atom.io/download/electron
-  - TRAVIS_NODE_VERSION="8.10"
+  - TRAVIS_NODE_VERSION="10" npm_config_runtime="electron" npm_config_target="3.0.8" npm_config_dist_url=https://atom.io/download/electron
   - TRAVIS_NODE_VERSION="10"
   - TRAVIS_NODE_VERSION="12"
   - TRAVIS_NODE_VERSION="13"
