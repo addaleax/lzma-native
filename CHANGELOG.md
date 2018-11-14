@@ -1,5 +1,10 @@
 # Changelog for lzma-native
 
+## 4.0.3, Nov 14 2018
+
+* [[`d07d5f5571`](https://github.com/addaleax/lzma-native/commit/d07d5f5571)] - **ci**: update platform list with Node 11 (Anna Henningsen)
+* [[`8bbfb0a4d1`](https://github.com/addaleax/lzma-native/commit/8bbfb0a4d1)] - **ci**: fix Node 8 version at 8.10 (Anna Henningsen)
+
 ## 4.0.2, Oct 26 2018
 
 * [[`bb6bfe0988`](https://github.com/addaleax/lzma-native/commit/bb6bfe0988)] - **package**: update node-pre-gyp to 0.11.0 (webcarrot) [#68](https://github.com/addaleax/lzma-native/pull/68)
