@@ -175,7 +175,7 @@ NAN_METHOD(LZMAStream::Code) {
   
   self->inbufs.push(LZMA_NATIVE_MOVE(inputData));
   
-  bool async = info[1]->BooleanValue();
+  bool async = Nan::To<bool>(info[1]).ToChecked();
   
   if (async) {
 #ifdef LZMA_ASYNC_AVAILABLE

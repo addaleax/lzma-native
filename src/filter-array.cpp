@@ -17,7 +17,7 @@ FilterArray::FilterArray(Local<Array> arr) : ok_(false) {
   
   for (size_t i = 0; i < len; ++i) {
     Local<Object> entry = Local<Object>::Cast(EmptyToUndefined(Nan::Get(arr, i)));
-    if (entry.IsEmpty() || entry->IsUndefined() || entry->IsNull() || !entry->Has(id_)) {
+    if (entry.IsEmpty() || entry->IsUndefined() || entry->IsNull() || !Nan::Has(entry, id_).ToChecked()) {
       Nan::ThrowTypeError("Filter array needs object entries");
       return;
     }
