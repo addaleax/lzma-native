@@ -15,7 +15,7 @@ platform:
 install:
   - python -V
   - set PYTHON=python
-  - ps: Install-Product node $env:nodejs_version $env:platform
+  - ps: Update-NodeJsInstallation (Get-NodeJsLatestBuild $env:nodejs_version) $env:PLATFORM
   - node -p process.arch
   - node -p process.version
   - npm install node-gyp@3.6.1
