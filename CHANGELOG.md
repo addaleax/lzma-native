@@ -1,5 +1,9 @@
 # Changelog for lzma-native
 
+## 4.0.4, May 23 2019
+
+* [[`0dc31e34de`](https://github.com/addaleax/lzma-native/commit/0dc31e34de)] - Enable compilation for Node 12 (Gergely Imreh) [#81](https://github.com/addaleax/lzma-native/pull/81)
+
 ## 4.0.3, Nov 14 2018
 
 * [[`d07d5f5571`](https://github.com/addaleax/lzma-native/commit/d07d5f5571)] - **ci**: update platform list with Node 11 (Anna Henningsen)
