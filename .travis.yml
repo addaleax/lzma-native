@@ -9,6 +9,7 @@ env:
   - TRAVIS_NODE_VERSION="8.10"
   - TRAVIS_NODE_VERSION="10"
   - TRAVIS_NODE_VERSION="11"
+  - TRAVIS_NODE_VERSION="12"
 os:
   - linux
   - osx

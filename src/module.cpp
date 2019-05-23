@@ -6,19 +6,19 @@ void moduleInit(Local<Object> exports) {
   LZMAStream::Init(exports);
   IndexParser::Init(exports);
   
-  exports->Set(NewString("versionNumber"),            Nan::New<FunctionTemplate>(lzmaVersionNumber)->GetFunction());
-  exports->Set(NewString("versionString"),            Nan::New<FunctionTemplate>(lzmaVersionString)->GetFunction());
-  exports->Set(NewString("checkIsSupported"),         Nan::New<FunctionTemplate>(lzmaCheckIsSupported)->GetFunction());
-  exports->Set(NewString("checkSize"),                Nan::New<FunctionTemplate>(lzmaCheckSize)->GetFunction());
-  exports->Set(NewString("crc32_"),                   Nan::New<FunctionTemplate>(lzmaCRC32)->GetFunction());
-  exports->Set(NewString("filterEncoderIsSupported"), Nan::New<FunctionTemplate>(lzmaFilterEncoderIsSupported)->GetFunction());
-  exports->Set(NewString("filterDecoderIsSupported"), Nan::New<FunctionTemplate>(lzmaFilterDecoderIsSupported)->GetFunction());
-  exports->Set(NewString("rawEncoderMemusage"),       Nan::New<FunctionTemplate>(lzmaRawEncoderMemusage)->GetFunction());
-  exports->Set(NewString("rawDecoderMemusage"),       Nan::New<FunctionTemplate>(lzmaRawDecoderMemusage)->GetFunction());
-  exports->Set(NewString("mfIsSupported"),            Nan::New<FunctionTemplate>(lzmaMfIsSupported)->GetFunction());
-  exports->Set(NewString("modeIsSupported"),          Nan::New<FunctionTemplate>(lzmaModeIsSupported)->GetFunction());
-  exports->Set(NewString("easyEncoderMemusage"),      Nan::New<FunctionTemplate>(lzmaEasyEncoderMemusage)->GetFunction());
-  exports->Set(NewString("easyDecoderMemusage"),      Nan::New<FunctionTemplate>(lzmaEasyDecoderMemusage)->GetFunction());
+  exports->Set(NewString("versionNumber"),            Nan::GetFunction(Nan::New<FunctionTemplate>(lzmaVersionNumber)).ToLocalChecked());
+  exports->Set(NewString("versionString"),            Nan::GetFunction(Nan::New<FunctionTemplate>(lzmaVersionString)).ToLocalChecked());
+  exports->Set(NewString("checkIsSupported"),         Nan::GetFunction(Nan::New<FunctionTemplate>(lzmaCheckIsSupported)).ToLocalChecked());
+  exports->Set(NewString("checkSize"),                Nan::GetFunction(Nan::New<FunctionTemplate>(lzmaCheckSize)).ToLocalChecked());
+  exports->Set(NewString("crc32_"),                   Nan::GetFunction(Nan::New<FunctionTemplate>(lzmaCRC32)).ToLocalChecked());
+  exports->Set(NewString("filterEncoderIsSupported"), Nan::GetFunction(Nan::New<FunctionTemplate>(lzmaFilterEncoderIsSupported)).ToLocalChecked());
+  exports->Set(NewString("filterDecoderIsSupported"), Nan::GetFunction(Nan::New<FunctionTemplate>(lzmaFilterDecoderIsSupported)).ToLocalChecked());
+  exports->Set(NewString("rawEncoderMemusage"),       Nan::GetFunction(Nan::New<FunctionTemplate>(lzmaRawEncoderMemusage)).ToLocalChecked());
+  exports->Set(NewString("rawDecoderMemusage"),       Nan::GetFunction(Nan::New<FunctionTemplate>(lzmaRawDecoderMemusage)).ToLocalChecked());
+  exports->Set(NewString("mfIsSupported"),            Nan::GetFunction(Nan::New<FunctionTemplate>(lzmaMfIsSupported)).ToLocalChecked());
+  exports->Set(NewString("modeIsSupported"),          Nan::GetFunction(Nan::New<FunctionTemplate>(lzmaModeIsSupported)).ToLocalChecked());
+  exports->Set(NewString("easyEncoderMemusage"),      Nan::GetFunction(Nan::New<FunctionTemplate>(lzmaEasyEncoderMemusage)).ToLocalChecked());
+  exports->Set(NewString("easyDecoderMemusage"),      Nan::GetFunction(Nan::New<FunctionTemplate>(lzmaEasyDecoderMemusage)).ToLocalChecked());
   
   // enum lzma_ret
   exports->Set(NewString("OK"),                Nan::New<Number>(LZMA_OK));

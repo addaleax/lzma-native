@@ -12,7 +12,7 @@ MTOptions::MTOptions(Local<Object> opt) : filters_(NULL), ok_(true) {
   opts_.flags = 0;
   opts_.filters = NULL;
   
-  opts_.block_size = Nan::Get(opt, NewString("blockSize")).ToLocalChecked()->IntegerValue();
+  opts_.block_size = Nan::To<int64_t>(Nan::Get(opt, NewString("blockSize")).ToLocalChecked()).ToChecked();
   opts_.timeout = Nan::To<uint32_t>(Nan::Get(opt, NewString("timeout")).ToLocalChecked())
       .FromMaybe(0);
   opts_.preset = Nan::To<uint32_t>(Nan::Get(opt, NewString("preset")).ToLocalChecked())
