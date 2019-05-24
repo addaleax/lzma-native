@@ -10,3 +10,4 @@ README.md.xz
 .travis*
 appveyor.yml
 .nyc-output
+.git
