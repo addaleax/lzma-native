@@ -1,5 +1,9 @@
 # Changelog for lzma-native
 
+## 4.0.5, May 24 2019
+
+* [[`dfd9098c85`](https://github.com/addaleax/lzma-native/commit/dfd9098c85)] - Ignore .git when publishing to npm (Juan Cruz Viotti) [#83](https://github.com/addaleax/lzma-native/pull/83)
+
 ## 4.0.4, May 23 2019
 
 * [[`0dc31e34de`](https://github.com/addaleax/lzma-native/commit/0dc31e34de)] - Enable compilation for Node 12 (Gergely Imreh) [#81](https://github.com/addaleax/lzma-native/pull/81)
