@@ -353,7 +353,7 @@ void LZMAStream::Init(Local<Object> exports) {
   Nan::SetPrototypeMethod(tpl, "aloneDecoder_", AloneDecoder);
   
   constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
-  exports->Set(NewString("Stream"), Nan::New<Function>(constructor));
+  Nan::Set(exports, NewString("Stream"), Nan::New<Function>(constructor));
 }
 
 NAN_METHOD(LZMAStream::New) {

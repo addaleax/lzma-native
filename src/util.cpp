@@ -62,9 +62,9 @@ Local<Object> lzmaRetError(lzma_ret rv) {
     ++p;
   
   Local<Object> e = Local<Object>::Cast(Nan::Error(p->desc));
-  e->Set(NewString("code"), Nan::New<Integer>(rv));
-  e->Set(NewString("name"), NewString(p->name));
-  e->Set(NewString("desc"), NewString(p->desc));
+  Nan::Set(e, NewString("code"), Nan::New<Integer>(rv));
+  Nan::Set(e, NewString("name"), NewString(p->name));
+  Nan::Set(e, NewString("desc"), NewString(p->desc));
   
   return e;
 }
