@@ -1,5 +1,9 @@
 # Changelog for lzma-native
 
+## 4.0.6, Nov 22 2019
+
+* [[`6ebced9b57`](https://github.com/addaleax/lzma-native/commit/6ebced9b57)] - Fix compatibility with Node 13 (Christian Moritz) [#86](https://github.com/addaleax/lzma-native/pull/86)
+
 ## 4.0.5, May 24 2019
 
 * [[`dfd9098c85`](https://github.com/addaleax/lzma-native/commit/dfd9098c85)] - Ignore .git when publishing to npm (Juan Cruz Viotti) [#83](https://github.com/addaleax/lzma-native/pull/83)
