@@ -440,7 +440,7 @@ void IndexParser::Init(Local<Object> exports) {
   Nan::SetPrototypeMethod(tpl, "parse", Parse);
   
   constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
-  exports->Set(NewString("IndexParser"), Nan::New<Function>(constructor));
+  Nan::Set(exports, NewString("IndexParser"), Nan::New<Function>(constructor));
 }
 
 NAN_METHOD(IndexParser::New) {
