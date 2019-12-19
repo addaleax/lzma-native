@@ -19,7 +19,7 @@ addons:
     sources:
       - ubuntu-toolchain-r-test
     packages:
-      - g++-8
+      - g++-4.9
 before_install:
   - echo "$TRAVIS_NODE_VERSION"
   - export "PATH=./node_modules/.bin:$PWD/node_modules/.bin:$HOME/.local/bin:$PATH"
@@ -31,7 +31,7 @@ before_install:
   - if [ -z "$TRAVIS_TAG" -a "$TRAVIS_OS_NAME" = "linux" ]; then export DO_COVERAGE=1; fi
   - if [ -n "$DO_COVERAGE" ]; then pip install --user cpp-coveralls coveralls-merge; fi
   # compilers
-  - if [ "$CXX" = "g++" -a "$TRAVIS_OS_NAME" = "linux" ]; then export CXX="g++-8" CC="gcc-8" AR="gcc-ar-8" RANLIB="gcc-ranlib-8" NM="gcc-nm-8" ; fi
+  - if [ "$CXX" = "g++" -a "$TRAVIS_OS_NAME" = "linux" ]; then export CXX="g++-4.9" CC="gcc-4.9" AR="gcc-ar-4.9" RANLIB="gcc-ranlib-4.9" NM="gcc-nm-4.9" ; fi
   - if [ "$CXX" = "clang++" ]; then export npm_config_clang=1 ; fi
   # node versions
   - rm -rf ~/.nvm
@@ -55,4 +55,4 @@ after_success:
   - if [ -n "$DO_COVERAGE" ]; then coveralls-merge coverage/jsfiles.json coverage/cppfiles.json; fi
   # publish for node-pre-gyp
   - node-pre-gyp package
-  - if [ -n "$TRAVIS_TAG" ] && ([ $CXX = "g++" ] || [ $CXX = "g++-8" ]); then echo 'put build/stage/lzma-native/* uploads/lzma-native/' |sftp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -b- -i .travis.id_rsa node-pre-gyp@addaleax.net; fi
+  - if [ -n "$TRAVIS_TAG" ] && ([ $CXX = "g++" ] || [ $CXX = "g++-4.9" ]); then echo 'put build/stage/lzma-native/* uploads/lzma-native/' |sftp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -b- -i .travis.id_rsa node-pre-gyp@addaleax.net; fi
