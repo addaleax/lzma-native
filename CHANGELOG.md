@@ -1,5 +1,9 @@
 # Changelog for lzma-native
 
+## 5.0.1, Dec 19 2019
+
+* [[`56ff7693a8`](https://github.com/addaleax/lzma-native/commit/56ff7693a8)] - **ci**: revert back to using gcc 4.9 (Anna Henningsen)
+
 ## 5.0.0, Nov 23 2019
 
 * [[`607c4f450c`](https://github.com/addaleax/lzma-native/commit/607c4f450c)] - **ci**: remove Node.js 6, 11 (Anna Henningsen) [#87](https://github.com/addaleax/lzma-native/pull/87)
