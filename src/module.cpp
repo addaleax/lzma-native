@@ -96,5 +96,6 @@ void moduleInit(Local<Object> exports) {
 
 }
 
-NODE_MODULE(lzma_native, lzma::moduleInit)
-
+NODE_MODULE_INIT(/* exports, module, context */) {
+    lzma::moduleInit(exports);
+}
