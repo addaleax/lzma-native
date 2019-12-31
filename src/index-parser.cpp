@@ -619,4 +619,8 @@ IndexParser::~IndexParser() {
   assert(ret == LZMA_OPTIONS_ERROR);
 }
 
+#ifndef LZMA_NATIVE_THREAD_SUPPORT
+Nan::Persistent<Function> IndexParser::constructor;
+#endif
+
 }

@@ -516,4 +516,8 @@ NAN_METHOD(LZMAStream::AloneDecoder) {
   info.GetReturnValue().Set(lzmaRet(lzma_alone_decoder(&self->_, memlimit)));
 }
 
+#ifndef LZMA_NATIVE_THREAD_SUPPORT
+Nan::Persistent<Function> LZMAStream::constructor;
+#endif
+
 }
