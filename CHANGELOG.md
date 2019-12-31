@@ -1,5 +1,11 @@
 # Changelog for lzma-native
 
+## 6.0.0, Jan 1 2020
+
+* [[`f33038b345`](https://github.com/addaleax/lzma-native/commit/f33038b345)] - **ci**: update platform list (Anna Henningsen) [#72](https://github.com/addaleax/lzma-native/pull/72)
+* [[`66499a02b6`](https://github.com/addaleax/lzma-native/commit/66499a02b6)] - **build**: remove cflags.sh build step (Anna Henningsen) [#72](https://github.com/addaleax/lzma-native/pull/72)
+* [[`8bea0ff0cf`](https://github.com/addaleax/lzma-native/commit/8bea0ff0cf)] - **src**: convert to N-API (Anna Henningsen) [#72](https://github.com/addaleax/lzma-native/pull/72)
+
 ## 5.0.1, Dec 19 2019
 
 * [[`56ff7693a8`](https://github.com/addaleax/lzma-native/commit/56ff7693a8)] - **ci**: revert back to using gcc 4.9 (Anna Henningsen)
