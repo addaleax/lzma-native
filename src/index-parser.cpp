@@ -430,8 +430,13 @@ error:
 
 namespace lzma {
 
+#ifdef LZMA_NATIVE_THREAD_SUPPORT
 void IndexParser::Init(Local<Object> exports, Local<External> external, Nan::Persistent<Function> &constructor) {
   Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(New, external);
+#else
+void IndexParser::Init(Local<Object> exports) {
+  Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(New);
+#endif
   tpl->SetClassName(NewString("IndexParser"));
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
   
@@ -440,7 +445,6 @@ void IndexParser::Init(Local<Object> exports, Local<External> external, Nan::Per
   Nan::SetPrototypeMethod(tpl, "parse", Parse);
 
   constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
-  constructor.SetWeak(&constructor, AddonContext::WeakFunctionCallback, WeakCallbackType::kParameter);
   Nan::Set(exports, NewString("IndexParser"), Nan::New<Function>(constructor));
 }
 
@@ -457,8 +461,12 @@ NAN_METHOD(IndexParser::New) {
     
     info.GetReturnValue().Set(info.This());
   } else {
+#ifdef LZMA_NATIVE_THREAD_SUPPORT
     AddonContext *addon_context = reinterpret_cast<AddonContext*>(info.Data().As<External>()->Value());
     info.GetReturnValue().Set(Nan::NewInstance(Nan::New<Function>(addon_context->index_parser_constructor_), 0, NULL).ToLocalChecked());
+#else
+    info.GetReturnValue().Set(Nan::NewInstance(Nan::New<Function>(constructor), 0, NULL).ToLocalChecked());
+#endif
   }
 }
 

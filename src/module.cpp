@@ -2,6 +2,7 @@
 
 namespace lzma {
 
+#ifdef LZMA_NATIVE_THREAD_SUPPORT
 AddonContext::AddonContext(Isolate* isolate, Local<Object> exports) {
   // Link the existence of this object instance to the existence of exports.
   exports_.Reset(isolate, exports);
@@ -29,10 +30,17 @@ void AddonContext::CleanUp(void* arg) {
   delete self;
 }
 
+#endif
+
+#ifdef LZMA_NATIVE_THREAD_SUPPORT
 void AddonContext::moduleInit(Local<Object> exports, Local<External> external) {
   LZMAStream::Init(exports, external, lzma_stream_constructor_);
   IndexParser::Init(exports, external, index_parser_constructor_);
-
+#else
+void AddonContext::moduleInit(Local<Object> exports) {
+  LZMAStream::Init(exports);
+  IndexParser::Init(exports);
+#endif
   Nan::Set(exports, NewString("versionNumber"),            Nan::GetFunction(Nan::New<FunctionTemplate>(lzmaVersionNumber)).ToLocalChecked());
   Nan::Set(exports, NewString("versionString"),            Nan::GetFunction(Nan::New<FunctionTemplate>(lzmaVersionString)).ToLocalChecked());
   Nan::Set(exports, NewString("checkIsSupported"),         Nan::GetFunction(Nan::New<FunctionTemplate>(lzmaCheckIsSupported)).ToLocalChecked());
@@ -121,13 +129,9 @@ void AddonContext::moduleInit(Local<Object> exports, Local<External> external) {
   Nan::Set(exports, NewString("asyncCodeAvailable"),       Nan::New<Boolean>(LZMAStream::asyncCodeAvailable));
 }
 
-void AddonContext::WeakFunctionCallback(const Nan::WeakCallbackInfo<Nan::Persistent<Function>>& info) {
-  info.GetParameter()->ClearWeak();
-  info.GetParameter()->Reset();
 }
 
-}
-
+#ifdef LZMA_NATIVE_THREAD_SUPPORT
 NODE_MODULE_INIT(/* exports, module, context */) {
   v8::Isolate* isolate = context->GetIsolate();
 
@@ -139,3 +143,6 @@ NODE_MODULE_INIT(/* exports, module, context */) {
 
   data->moduleInit(exports, external);
 }
+#else
+NODE_MODULE(lzma_native, lzma::moduleInit)
+#endif

@@ -36,6 +36,10 @@
 #define LZMA_ASYNC_AVAILABLE
 #endif
 
+#if NODE_MAJOR_VERSION >= 12
+#define LZMA_NATIVE_THREAD_SUPPORT
+#endif
+
 namespace lzma {
   using namespace v8;
   
@@ -163,6 +167,7 @@ namespace lzma {
   NAN_METHOD(lzmaRawEncoderMemusage);
   NAN_METHOD(lzmaRawDecoderMemusage);
 
+#ifdef LZMA_NATIVE_THREAD_SUPPORT
   /* module context */
   class AddonContext {
     public:
@@ -173,13 +178,12 @@ namespace lzma {
       Nan::Persistent<Function> lzma_stream_constructor_;
       Nan::Persistent<Function> index_parser_constructor_;
 
-      static void WeakFunctionCallback(const Nan::WeakCallbackInfo<Nan::Persistent<Function>>& info);
-
     private:
       static void DeleteMe(const WeakCallbackInfo<AddonContext>& info);
       static void CleanUp(void* arg);
       Persistent<Object> exports_;
   };
+#endif
   
   /* wrappers */
   /**
@@ -235,7 +239,11 @@ namespace lzma {
    */
   class LZMAStream : public Nan::ObjectWrap {
     public:
+#ifdef LZMA_NATIVE_THREAD_SUPPORT
       static void Init(Local<Object> exports, Local<External> external, Nan::Persistent<Function> &constructor);
+#else
+      static void Init(Local<Object> exports);
+#endif
       static const bool asyncCodeAvailable;
       
     /* regard as private: */
@@ -250,6 +258,9 @@ namespace lzma {
       explicit LZMAStream();
       ~LZMAStream();
 
+#ifndef LZMA_NATIVE_THREAD_SUPPORT
+      static Nan::Persistent<Function> constructor;
+#endif
       static NAN_METHOD(New);
       
       static void _failMissingSelf(const Nan::FunctionCallbackInfo<Value>& info);
@@ -325,7 +336,11 @@ namespace lzma {
   
   class IndexParser : public Nan::ObjectWrap {
     public:
+#ifdef LZMA_NATIVE_THREAD_SUPPORT
       static void Init(Local<Object> exports, Local<External> external, Nan::Persistent<Function> &constructor);
+#else
+    static void Init(Local<Object> exports);
+#endif
     
     /* regard as private: */
       int64_t readCallback(void* opaque, uint8_t* buf, size_t count, int64_t offset);
@@ -341,7 +356,10 @@ namespace lzma {
       bool isCurrentlyInParseCall;
       
       Local<Object> getObject() const;
-      
+
+#ifndef LZMA_NATIVE_THREAD_SUPPORT
+    static Nan::Persistent<Function> constructor;
+#endif
       static NAN_METHOD(New);
       static NAN_METHOD(Init);
       static NAN_METHOD(Feed);
