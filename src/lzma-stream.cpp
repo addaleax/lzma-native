@@ -27,8 +27,6 @@ namespace {
   }
 }
 
-Nan::Persistent<Function> LZMAStream::constructor;
-
 LZMAStream::LZMAStream() :
   bufsize(65536),
   shouldFinish(false),
@@ -330,8 +328,8 @@ void LZMAStream::doLZMACode() {
   }
 }
 
-void LZMAStream::Init(Local<Object> exports) {
-  Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(New);
+void LZMAStream::Init(Local<Object> exports, Local<External> external, Nan::Persistent<Function> &constructor) {
+  Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(New, external);
   tpl->SetClassName(NewString("LZMAStream"));
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
   
@@ -351,8 +349,9 @@ void LZMAStream::Init(Local<Object> exports) {
   Nan::SetPrototypeMethod(tpl, "streamDecoder_", StreamDecoder);
   Nan::SetPrototypeMethod(tpl, "autoDecoder_", AutoDecoder);
   Nan::SetPrototypeMethod(tpl, "aloneDecoder_", AloneDecoder);
-  
+
   constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
+  constructor.SetWeak(&constructor, AddonContext::WeakFunctionCallback, WeakCallbackType::kParameter);
   Nan::Set(exports, NewString("Stream"), Nan::New<Function>(constructor));
 }
 
@@ -370,7 +369,8 @@ NAN_METHOD(LZMAStream::New) {
     
     info.GetReturnValue().Set(info.This());
   } else {
-    info.GetReturnValue().Set(Nan::NewInstance(Nan::New<Function>(constructor), 0, NULL).ToLocalChecked());
+    AddonContext *addon_context = reinterpret_cast<AddonContext*>(info.Data().As<External>()->Value());
+    info.GetReturnValue().Set(Nan::NewInstance(Nan::New<Function>(addon_context->lzma_stream_constructor_), 0, NULL).ToLocalChecked());
   }
 }
 

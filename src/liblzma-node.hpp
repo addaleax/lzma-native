@@ -162,6 +162,24 @@ namespace lzma {
   NAN_METHOD(lzmaCRC32);
   NAN_METHOD(lzmaRawEncoderMemusage);
   NAN_METHOD(lzmaRawDecoderMemusage);
+
+  /* module context */
+  class AddonContext {
+    public:
+      AddonContext(Isolate* isolate, Local<Object> exports);
+      ~AddonContext();
+      void moduleInit(Local<Object> exports, Local<External> external);
+
+      Nan::Persistent<Function> lzma_stream_constructor_;
+      Nan::Persistent<Function> index_parser_constructor_;
+
+      static void WeakFunctionCallback(const Nan::WeakCallbackInfo<Nan::Persistent<Function>>& info);
+
+    private:
+      static void DeleteMe(const WeakCallbackInfo<AddonContext>& info);
+      static void CleanUp(void* arg);
+      Persistent<Object> exports_;
+  };
   
   /* wrappers */
   /**
@@ -217,7 +235,7 @@ namespace lzma {
    */
   class LZMAStream : public Nan::ObjectWrap {
     public:
-      static void Init(Local<Object> exports);
+      static void Init(Local<Object> exports, Local<External> external, Nan::Persistent<Function> &constructor);
       static const bool asyncCodeAvailable;
       
     /* regard as private: */
@@ -231,8 +249,7 @@ namespace lzma {
       
       explicit LZMAStream();
       ~LZMAStream();
-      
-      static Nan::Persistent<Function> constructor;
+
       static NAN_METHOD(New);
       
       static void _failMissingSelf(const Nan::FunctionCallbackInfo<Value>& info);
@@ -308,7 +325,7 @@ namespace lzma {
   
   class IndexParser : public Nan::ObjectWrap {
     public:
-      static void Init(Local<Object> exports);
+      static void Init(Local<Object> exports, Local<External> external, Nan::Persistent<Function> &constructor);
     
     /* regard as private: */
       int64_t readCallback(void* opaque, uint8_t* buf, size_t count, int64_t offset);
@@ -325,7 +342,6 @@ namespace lzma {
       
       Local<Object> getObject() const;
       
-      static Nan::Persistent<Function> constructor;
       static NAN_METHOD(New);
       static NAN_METHOD(Init);
       static NAN_METHOD(Feed);
