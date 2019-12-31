@@ -37,7 +37,7 @@ void AddonContext::moduleInit(Local<Object> exports, Local<External> external) {
   LZMAStream::Init(exports, external, lzma_stream_constructor_);
   IndexParser::Init(exports, external, index_parser_constructor_);
 #else
-void AddonContext::moduleInit(Local<Object> exports) {
+void moduleInit(Local<Object> exports) {
   LZMAStream::Init(exports);
   IndexParser::Init(exports);
 #endif
