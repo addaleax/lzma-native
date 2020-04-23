@@ -1,5 +1,9 @@
 # Changelog for lzma-native
 
+## 6.0.1, Apr 23 2020
+
+* [[`d90d2fc354`](https://github.com/addaleax/lzma-native/commit/d90d2fc354)] - **build**: fix package filename for N-API (Anna Henningsen)
+
 ## 6.0.0, Jan 1 2020
 
 * [[`f33038b345`](https://github.com/addaleax/lzma-native/commit/f33038b345)] - **ci**: update platform list (Anna Henningsen) [#72](https://github.com/addaleax/lzma-native/pull/72)
