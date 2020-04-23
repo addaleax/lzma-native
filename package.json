@@ -53,6 +53,7 @@
     "module_name": "lzma_native",
     "module_path": "./binding-v{version}-n-api-{platform}-{arch}/",
     "host": "https://node-pre-gyp.addaleax.net",
-    "remote_path": "./lzma-native/"
+    "remote_path": "./lzma-native/",
+    "package_name": "lzma_native-v{version}-n-api-{platform}-{arch}.tar.gz"
   }
 }
