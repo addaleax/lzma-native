@@ -14,10 +14,10 @@
     "lzmajs": "./bin/lzmajs"
   },
   "dependencies": {
-    "node-addon-api": "^1.6.0",
-    "node-pre-gyp": "^0.11.0",
-    "readable-stream": "^2.3.5",
-    "rimraf": "^2.7.1"
+    "@mapbox/node-pre-gyp": "^1.0.1",
+    "node-addon-api": "^3.1.0",
+    "readable-stream": "^3.6.0",
+    "rimraf": "^3.0.2"
   },
   "keywords": [
     "lzma",
@@ -43,11 +43,11 @@
     "url": "https://github.com/addaleax/lzma-native/issues"
   },
   "devDependencies": {
-    "bl": "^4.0.0",
-    "coveralls": "^3.0.0",
+    "bl": "^4.1.0",
+    "coveralls": "^3.1.0",
     "istanbul": "^0.4.2",
-    "jshint": "^2.10.3",
-    "mocha": "^6.2.2"
+    "jshint": "^2.12.0",
+    "mocha": "^8.3.1"
   },
   "binary": {
     "module_name": "lzma_native",
