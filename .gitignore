@@ -6,3 +6,4 @@ npm-debug.log
 core
 README.md.xz
 .nyc_output
+/.idea/
