@@ -1,5 +1,9 @@
 # Changelog for lzma-native
 
+## 7.0.1, Mar 11 2021
+
+* [[`d9b0b90b66`](https://github.com/addaleax/lzma-native/commit/d9b0b90b66)] - Upgrade to @mapbox/node-pre-gyp (Luis Solorzano)
+
 ## 6.0.1, Apr 23 2020
 
 * [[`d90d2fc354`](https://github.com/addaleax/lzma-native/commit/d90d2fc354)] - **build**: fix package filename for N-API (Anna Henningsen)
