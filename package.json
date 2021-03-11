@@ -1,6 +1,6 @@
 {
   "name": "lzma-native",
-  "version": "6.0.1",
+  "version": "7.0.0",
   "engines": {
     "node": ">=10.0.0"
   },
@@ -11,7 +11,7 @@
   "description": "Provides bindings to the native liblzma library (.xz file format, among others)",
   "main": "index",
   "bin": {
-    "lzmajs": "./bin/lzmajs"
+    "lzmajs": "bin/lzmajs"
   },
   "dependencies": {
     "@mapbox/node-pre-gyp": "^1.0.1",
