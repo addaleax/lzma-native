@@ -11,7 +11,7 @@ var native = require('node-gyp-build')(__dirname);
 Object.assign(exports, native);
 
 // Please do not update this version except as part of a release commit.
-exports.version = '7.0.1';
+exports.version = '8.0.1';
 
 var Stream = exports.Stream;
 

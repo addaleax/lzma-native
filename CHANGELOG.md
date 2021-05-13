@@ -1,5 +1,10 @@
 # Changelog for lzma-native
 
+## 8.0.1, May 13 2021
+
+* [[`5b724c30c1`](https://github.com/addaleax/lzma-native/commit/5b724c30c1)] - More prebuild updates (Anna Henningsen)
+* [[`43f11c229b`](https://github.com/addaleax/lzma-native/commit/43f11c229b)] - Try switching to prebuildify (Anna Henningsen)
+
 ## 7.0.1, Mar 11 2021
 
 * [[`d9b0b90b66`](https://github.com/addaleax/lzma-native/commit/d9b0b90b66)] - Upgrade to @mapbox/node-pre-gyp (Luis Solorzano)
