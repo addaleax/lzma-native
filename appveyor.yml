@@ -48,4 +48,4 @@ deploy:
     auth_token: $(PREBUILD_GITHUB_TOKEN)
     on:
       appveyor_repo_tag: true
-      nodejs_version: "12"
+      nodejs_version: "14"

@@ -7,3 +7,4 @@ core
 README.md.xz
 .nyc_output
 /.idea/
+prebuilds/
