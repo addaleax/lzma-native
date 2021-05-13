@@ -14,10 +14,9 @@
     "lzmajs": "bin/lzmajs"
   },
   "dependencies": {
-    "@mapbox/node-pre-gyp": "^1.0.1",
     "node-addon-api": "^3.1.0",
     "readable-stream": "^3.6.0",
-    "rimraf": "^3.0.2"
+    "node-gyp-build": "^4.2.1"
   },
   "keywords": [
     "lzma",
@@ -33,9 +32,12 @@
     "url": "https://github.com/addaleax/lzma-native.git"
   },
   "scripts": {
-    "install": "node-pre-gyp install --fallback-to-build && rimraf build",
+    "install": "node-gyp-build",
+    "prebuild": "prebuildify --napi --tag-armv",
+    "prepack": "prebuildify-ci download && ([ $(ls prebuilds | wc -l) = '5' ] || (echo 'Some prebuilds are missing'; exit 1))",
     "test": "mocha --expose-gc -s 1000 -t 5000",
-    "prepare": "cd deps && 7z x -y xz-5.2.3-windows.7z bin_i686/liblzma.dll bin_x86-64/liblzma.dll include doc/liblzma.def",
+    "prepare": "npm run prepare-win32 || true",
+    "prepare-win32": "cd deps && 7z x -y xz-5.2.3-windows.7z bin_i686/liblzma.dll bin_x86-64/liblzma.dll include doc/liblzma.def",
     "jshint": "jshint ."
   },
   "gypfile": true,
@@ -44,16 +46,9 @@
   },
   "devDependencies": {
     "bl": "^4.1.0",
-    "coveralls": "^3.1.0",
-    "istanbul": "^0.4.2",
     "jshint": "^2.12.0",
-    "mocha": "^8.3.1"
-  },
-  "binary": {
-    "module_name": "lzma_native",
-    "module_path": "./binding-v{version}-n-api-{platform}-{arch}/",
-    "host": "https://node-pre-gyp.addaleax.net",
-    "remote_path": "./lzma-native/",
-    "package_name": "lzma_native-v{version}-n-api-{platform}-{arch}.tar.gz"
+    "mocha": "^8.3.1",
+    "prebuildify": "^3.0.4",
+    "prebuildify-ci": "^1.0.5"
   }
 }

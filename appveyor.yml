@@ -2,52 +2,50 @@
 environment:
   fast_finish: true
   matrix:
-    - nodejs_version: "13"
+    - nodejs_version: "14"
     - nodejs_version: "12"
-    - nodejs_version: "10"
 
 platform:
   - x86
   - x64
 
+# Install scripts. (runs after repo cloning)
 install:
   - python -V
   - set PYTHON=python
-  - ps: Update-NodeJsInstallation (Get-NodeJsLatestBuild $env:nodejs_version) $env:PLATFORM
+  - ps: Install-Product node $env:nodejs_version $env:platform
   - node -p process.arch
   - node -p process.version
-  - npm install node-gyp@3.6.1
-  - npm install nan node-pre-gyp readable-stream rimraf
-  - IF %nodejs_version% LSS 1 npm -g install npm
-  - IF %nodejs_version% LSS 1 set PATH=%APPDATA%\npm;%PATH%
-  - npm run prepare
-  - set GYP_TARGET_ARCH=%PLATFORM:x86=ia32%
-  - echo %GYP_TARGET_ARCH%
-  - md build
-  - npm install --build-from-source --target_arch=%GYP_TARGET_ARCH%
-  - node_modules\.bin\node-pre-gyp package --target_arch=%GYP_TARGET_ARCH% %NPG_ARGS%
-  - move build\stage\lzma-native lzma-native
+  - npm run prepare-win32
+  - npm install --build-from-source
 
+# Post-install test scripts.
 test_script:
+  # Output useful info for debugging.
+  - node --version
+  - npm --version
+  # run tests
   - npm test
 
+after_test:
+  - ps: If ($env:nodejs_version -eq "14") { npm run prebuild --v8_enable_pointer_compression=false --v8_enable_31bit_smis_on_64bit_arch=false }
+
+# Don't actually build.
 build: off
 
 version: "{build}"
 
 artifacts:
-  path: lzma-native\*.gz
-  name: npg-package
+  - path: prebuilds
+    name: $(APPVEYOR_REPO_TAG_NAME)-win-$(PLATFORM)
+    type: zip
 
 deploy:
-  provider: FTP
-  protocol: sftp
-  host: entless.org
-  username: node-pre-gyp
-  password:
-    secure: wvUCOyy2vjKjWyxk4lnoW7s1i2oiK1QhQFlBPKiKefl0cReZ0k/7iD7PBRjrh8OpUbZ05Jgc+pEYHC3sl87tVLB5pDS+jU++dPSXgHb1UmE=
-  artifact: /npg-package/
-  folder: uploads
-  # only build on tags
-  on:
-    appveyor_repo_tag: true
+  - provider: GitHub
+    artifact: /.*\.zip/
+    draft: false
+    prerelease: true
+    auth_token: $(PREBUILD_GITHUB_TOKEN)
+    on:
+      appveyor_repo_tag: true
+      nodejs_version: "12"

@@ -6,11 +6,7 @@ var assert = require('assert');
 var fs = require('fs');
 var util = require('util');
 
-// node-pre-gyp magic
-var nodePreGyp = require('@mapbox/node-pre-gyp');
-var path = require('path');
-var binding_path = nodePreGyp.find(path.resolve(path.join(__dirname,'./package.json')));
-var native = require(binding_path);
+var native = require('node-gyp-build')(__dirname);
 
 Object.assign(exports, native);
 
