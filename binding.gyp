@@ -53,13 +53,16 @@
         [ 'OS!="win"' , {
           "actions" : [
             {
+              "action_name" : "configure",
+              'inputs':  ['liblzma-config.sh'],
+              'outputs': ['build/liblzma'],
+              'action':  ['eval', 'sh liblzma-config.sh build deps/xz-5.2.3.tar.bz2'],
+            },
+            {
               "action_name" : "build",
-               # a hack to run deps/xz-5.2.3 ./configure during `node-gyp configure`
-              'inputs': ['<!@(sh liblzma-config.sh "<(module_root_dir)/build" "<(module_root_dir)/deps/xz-5.2.3.tar.bz2")'],
-              'outputs': [''],
-              'action': [
-                'sh', '<(module_root_dir)/liblzma-build.sh', '<(module_root_dir)/build'
-              ]
+              'inputs':  ['build/liblzma', 'liblzma-build.sh'],
+              'outputs': ['build/liblzma/Release'],
+              'action':  ['eval', 'sh liblzma-build.sh build'],
             }
           ]
         }, {
