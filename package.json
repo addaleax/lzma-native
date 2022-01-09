@@ -34,7 +34,7 @@
   "scripts": {
     "install": "node-gyp-build",
     "prebuild": "prebuildify --napi --tag-armv",
-    "prepack": "prebuildify-ci download && ([ $(ls prebuilds | wc -l) = '5' ] || (echo 'Some prebuilds are missing'; exit 1))",
+    "prepack": "prebuildify-ci download && ([ $(ls prebuilds | wc -l) = '6' ] || (echo 'Some prebuilds are missing'; exit 1))",
     "test": "mocha --expose-gc -s 1000 -t 5000",
     "prepare": "npm run prepare-win32 || true",
     "prepare-win32": "cd deps && 7z x -y xz-5.2.3-windows.7z bin_i686/liblzma.dll bin_x86-64/liblzma.dll include doc/liblzma.def",
