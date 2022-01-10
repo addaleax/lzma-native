@@ -15,8 +15,8 @@
   },
   "dependencies": {
     "node-addon-api": "^3.1.0",
-    "readable-stream": "^3.6.0",
-    "node-gyp-build": "^4.2.1"
+    "node-gyp-build": "^4.2.1",
+    "readable-stream": "^3.6.0"
   },
   "keywords": [
     "lzma",
@@ -34,7 +34,7 @@
   "scripts": {
     "install": "node-gyp-build",
     "prebuild": "prebuildify --napi --tag-armv",
-    "prepack": "prebuildify-ci download && ([ $(ls prebuilds | wc -l) = '6' ] || (echo 'Some prebuilds are missing'; exit 1))",
+    "prepack": "[ $(ls prebuilds | wc -l) = '6' ] || (echo 'Some prebuilds are missing'; exit 1)",
     "test": "mocha --expose-gc -s 1000 -t 5000",
     "prepare": "npm run prepare-win32 || true",
     "prepare-win32": "cd deps && 7z x -y xz-5.2.3-windows.7z bin_i686/liblzma.dll bin_x86-64/liblzma.dll include doc/liblzma.def",
@@ -48,7 +48,6 @@
     "bl": "^4.1.0",
     "jshint": "^2.12.0",
     "mocha": "^8.3.1",
-    "prebuildify": "^3.0.4",
-    "prebuildify-ci": "^1.0.5"
+    "prebuildify": "^3.0.4"
   }
 }
