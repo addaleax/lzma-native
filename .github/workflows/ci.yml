@@ -122,5 +122,5 @@ jobs:
           mv artifacts/*/* prebuilds/
           rm -r artifacts
           ls prebuilds
-      - name: Publish to NPM
+      - name: Publish to NPM (dry run)
         run: npm publish --dry-run
