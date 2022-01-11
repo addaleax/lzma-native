@@ -1,6 +1,6 @@
 # Changelog for lzma-native
 
-## 8.0.4, Jan 11 2022
+## 8.0.5, Jan 11 2022
 
 * [[`2ee1daa361`](https://github.com/addaleax/lzma-native/commit/2ee1daa361)] - fix(build): remove bash-isms (Anna Henningsen)
 * [[`da5832b0c4`](https://github.com/addaleax/lzma-native/commit/da5832b0c4)] - **ci**: replace Travis CI/AppVeyor with GitHub Actions, prebuild for macOS/arm64 (#126) (Mark Lee)

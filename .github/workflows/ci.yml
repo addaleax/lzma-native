@@ -92,6 +92,7 @@ jobs:
   publish:
     needs: prebuild
     runs-on: ubuntu-latest
+    if: github.ref_type == 'tag'
 
     steps:
       - name: Fix git checkout line endings
@@ -101,6 +102,7 @@ jobs:
         uses: actions/setup-node@v2.3.0
         with:
           node-version: 12.x
+          registry-url: 'https://registry.npmjs.org'
       - name: Get yarn cache
         id: yarn-cache
         run: echo "::set-output name=dir::$(yarn cache dir)"
@@ -122,5 +124,7 @@ jobs:
           mv artifacts/*/* prebuilds/
           rm -r artifacts
           ls prebuilds
-      - name: Publish to NPM (dry run)
-        run: npm publish --dry-run
+      - name: Publish to npm
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
