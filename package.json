@@ -33,7 +33,7 @@
   },
   "scripts": {
     "install": "node-gyp-build",
-    "prebuild": "prebuildify --napi --tag-armv",
+    "prebuild": "prebuildify --napi --electron-compat",
     "prepack": "[ $(ls prebuilds | wc -l) = '6' ] || (echo 'Some prebuilds are missing'; exit 1)",
     "test": "mocha --expose-gc -s 1000 -t 5000",
     "prepare": "npm run prepare-win32 || true",
@@ -48,6 +48,6 @@
     "bl": "^4.1.0",
     "jshint": "^2.12.0",
     "mocha": "^8.3.1",
-    "prebuildify": "^3.0.4"
+    "prebuildify": "^5.0.0"
   }
 }
