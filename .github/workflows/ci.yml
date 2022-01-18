@@ -80,8 +80,7 @@ jobs:
       - name: Install
         run: yarn
       - name: Prebuild binaries
-        run: yarn prebuild --v8_enable_pointer_compression=false --v8_enable_31bit_smis_on_64bit_arch=false $([[ $OSTYPE != darwin* ]] && echo --llvm_version=0.0 || true)
-        shell: bash
+        run: yarn prebuild --v8_enable_pointer_compression=false --v8_enable_31bit_smis_on_64bit_arch=false
         env:
           PREBUILD_ARCH: ${{ matrix.arch }}
       - name: Upload binaries as an artifact
