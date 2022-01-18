@@ -1,5 +1,9 @@
 # Changelog for lzma-native
 
+## 8.0.6, Jan 18 2022
+
+* [[`0ddd17aed8`](https://github.com/addaleax/lzma-native/commit/0ddd17aed8)] - build: fix dyld load error on Apple Silicon (#128) (tylinux)
+
 ## 8.0.5, Jan 11 2022
 
 * [[`2ee1daa361`](https://github.com/addaleax/lzma-native/commit/2ee1daa361)] - fix(build): remove bash-isms (Anna Henningsen)
