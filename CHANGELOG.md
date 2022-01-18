@@ -2,7 +2,9 @@
 
 ## 8.0.6, Jan 18 2022
 
-* [[`0ddd17aed8`](https://github.com/addaleax/lzma-native/commit/0ddd17aed8)] - build: fix dyld load error on Apple Silicon (#128) (tylinux)
+* [[`4639d45d73`](https://github.com/addaleax/lzma-native/commit/4639d45d73)] - **ci**: set llvm_version to 0.0 on non-macOS hosts for prebuilds (Anna Henningsen)
+* [[`d5164b3ded`](https://github.com/addaleax/lzma-native/commit/d5164b3ded)] - **test**: bump mocha timeout (Anna Henningsen)
+* [[`0ddd17aed8`](https://github.com/addaleax/lzma-native/commit/0ddd17aed8)] - **build**: fix dyld load error on Apple Silicon (#128) (tylinux)
 
 ## 8.0.5, Jan 11 2022
 
