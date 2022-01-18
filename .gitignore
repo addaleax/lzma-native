@@ -1,3 +1,4 @@
+*.log
 build/
 binding*/
 node_modules/
@@ -8,3 +9,4 @@ README.md.xz
 .nyc_output
 /.idea/
 prebuilds/
+/.vscode

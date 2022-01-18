@@ -9,7 +9,7 @@ lzma-native
 [![Dependency Status](https://david-dm.org/addaleax/lzma-native.svg?style=flat)](https://david-dm.org/addaleax/lzma-native)
 [![devDependency Status](https://david-dm.org/addaleax/lzma-native/dev-status.svg?style=flat)](https://david-dm.org/addaleax/lzma-native#info=devDependencies)
 
-Node.js interface to the native liblzma compression library (.xz file format, among others)
+Node.js interface for the native [XZ Utils liblzma native compression library](https://tukaani.org/xz/) (.xz file format, among others)
 
 This package provides interfaces for compression and decompression
 of `.xz` (and legacy `.lzma`) files, both stream-based and string-based.

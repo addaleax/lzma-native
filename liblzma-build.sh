@@ -1,4 +1,10 @@
 #!/bin/sh
+
+echo
+echo "--- liblzma-build.sh $*"
+echo "--- CWD = $PWD"
+echo
+
 set -e
 
 case $(uname | tr '[:upper:]' '[:lower:]') in
@@ -6,6 +12,7 @@ case $(uname | tr '[:upper:]' '[:lower:]') in
   *)
 esac
 
-cd "$1/liblzma"
+set -x
+cd "$1" && cd liblzma
 make
 make install
