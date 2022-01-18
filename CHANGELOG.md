@@ -2,6 +2,9 @@
 
 ## 8.0.6, Jan 18 2022
 
+* [[`5bdb4b047c`](https://github.com/addaleax/lzma-native/commit/5bdb4b047c)] - **ci**: use npm instead of yarn (Anna Henningsen)
+* [[`204dfca905`](https://github.com/addaleax/lzma-native/commit/204dfca905)] - *Revert* "*Revert* "**ci**: set llvm_version to 0.0 on non-macOS hosts for prebuilds"" (Anna Henningsen)
+* [[`8c324b2672`](https://github.com/addaleax/lzma-native/commit/8c324b2672)] - *Revert* "**ci**: set llvm_version to 0.0 on non-macOS hosts for prebuilds" (Anna Henningsen)
 * [[`4639d45d73`](https://github.com/addaleax/lzma-native/commit/4639d45d73)] - **ci**: set llvm_version to 0.0 on non-macOS hosts for prebuilds (Anna Henningsen)
 * [[`d5164b3ded`](https://github.com/addaleax/lzma-native/commit/d5164b3ded)] - **test**: bump mocha timeout (Anna Henningsen)
 * [[`0ddd17aed8`](https://github.com/addaleax/lzma-native/commit/0ddd17aed8)] - **build**: fix dyld load error on Apple Silicon (#128) (tylinux)
