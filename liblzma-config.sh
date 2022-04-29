@@ -1,6 +1,5 @@
 #!/bin/sh
 set -e
-set -x # for debugging
 
 printenv >node_liblzma_config.log 2>&1
 
