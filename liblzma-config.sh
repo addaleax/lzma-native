@@ -14,9 +14,11 @@ tar xvjf "$SRC_TARBALL" >node_liblzma_config.log 2>&1
 export CFLAGS="-fPIC $CFLAGS"
 
 # Fix build on Apple Silicon
-if [[ "$(uname)" = "Darwin" && ( "$(uname -m)" = "arm64" || "$PREBUILD_ARCH" = "arm64" ) ]]; then
-    XZ_SRC_DIR=$(ls | grep xz-*)
-    sed -i '' 's/\tnone)/\tarm64-*)\n\t\tbasic_machine=$(echo $basic_machine | sed "s\/arm64\/aarch64\/")\n\t\t;;\n\t\tnone)/g' $XZ_SRC_DIR/build-aux/config.sub
+if [ "$(uname)" = "Darwin" ];then
+    if [ "$(uname -m)" = "arm64" -o "$PREBUILD_ARCH" = "arm64" ]; then
+        XZ_SRC_DIR=$(ls | grep xz-*)
+        sed -i '' 's/\tnone)/\tarm64-*)\n\t\tbasic_machine=$(echo $basic_machine | sed "s\/arm64\/aarch64\/")\n\t\t;;\n\t\tnone)/g' $XZ_SRC_DIR/build-aux/config.sub
+    fi
 fi
 
 sh xz-*/configure --enable-static --disable-shared --disable-scripts --disable-lzmainfo \
