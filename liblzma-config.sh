@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
 printenv >node_liblzma_config.log 2>&1
