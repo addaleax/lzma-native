@@ -1,8 +1,7 @@
 #!/bin/sh
 set -e
-set -x
 
-env
+printenv >node_liblzma_config.log 2>&1
 
 SRC_TARBALL="$2"
 TARGET_DIR="$1/liblzma"
@@ -23,3 +22,5 @@ fi
 sh xz-*/configure --enable-static --disable-shared --disable-scripts --disable-lzmainfo \
     --disable-lzma-links --disable-lzmadec --disable-xzdec --disable-xz --disable-rpath \
     --prefix="$TARGET_DIR/build" CFLAGS="$CFLAGS" >>node_liblzma_config.log 2>&1
+
+exit 122
