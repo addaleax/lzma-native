@@ -38,8 +38,10 @@
             "conditions": [
               [ 'target_arch=="x64"', {
                 "library_dirs" : [ "<(module_root_dir)\\deps\\bin_x86-64" ]
-              }, {
+              }, 'target_arch=="ia32"', {
                 "library_dirs" : [ "<(module_root_dir)\\deps\\bin_i686" ]
+              }, {
+                "library_dirs" : [ "<(module_root_dir)\\deps\\bin_ARM64" ]
               } ]
             ]
           }
@@ -69,10 +71,15 @@
                 "arch_lib_path" : 'bin_x86-64',
                 "arch_lib_code" : 'x64'
               }
-            }, {
+            }, 'target_arch=="ia32"', {
               'variables': {
                 "arch_lib_path" : 'bin_i686',
                 "arch_lib_code" : 'ix86'
+              }
+            },{
+              'variables': {
+                "arch_lib_path" : 'bin_ARM64',
+                "arch_lib_code" : 'ARM64'
               }
             } ]
           ],

@@ -37,7 +37,7 @@
     "prepack": "[ $(ls prebuilds | wc -l) = '6' ] || (echo 'Some prebuilds are missing'; exit 1)",
     "test": "mocha --expose-gc -s 1000 -t 15000",
     "prepare": "npm run prepare-win32 || true",
-    "prepare-win32": "cd deps && 7z x -y xz-5.2.3-windows.7z bin_i686/liblzma.dll bin_x86-64/liblzma.dll include doc/liblzma.def",
+    "prepare-win32": "cd deps && 7z x -y xz-5.2.3-windows.7z bin_i686/liblzma.dll bin_x86-64/liblzma.dll bin_ARM64/liblzma.dll include doc/liblzma.def",
     "jshint": "jshint ."
   },
   "gypfile": true,
