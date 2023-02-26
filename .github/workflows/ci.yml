@@ -14,14 +14,14 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest, macOS-latest, ubuntu-latest]
-        node-version: [12.x, 14.x, 16.x]
+        node-version: [14.x, 16.x, 18.x]
 
     steps:
       - name: Fix git checkout line endings
         run: git config --global core.autocrlf input
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v3
       - name: Setup Node.js
-        uses: actions/setup-node@v2.3.0
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
       - name: Windows Setup
@@ -51,11 +51,11 @@ jobs:
     steps:
       - name: Fix git checkout line endings
         run: git config --global core.autocrlf input
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v3
       - name: Setup Node.js
-        uses: actions/setup-node@v2.3.0
+        uses: actions/setup-node@v3
         with:
-          node-version: 12.x
+          node-version: 14.x
       - name: Windows Setup
         if: matrix.os == 'windows'
         run: npm run prepare-win32
@@ -67,7 +67,7 @@ jobs:
         env:
           PREBUILD_ARCH: ${{ matrix.arch }}
       - name: Upload binaries as an artifact
-        uses: actions/upload-artifact@v2.3.1
+        uses: actions/upload-artifact@v3
         with:
           name: prebuild-${{ matrix.os }}-${{ matrix.arch }}
           path: prebuilds
@@ -80,16 +80,16 @@ jobs:
     steps:
       - name: Fix git checkout line endings
         run: git config --global core.autocrlf input
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v3
       - name: Setup Node.js
-        uses: actions/setup-node@v2.3.0
+        uses: actions/setup-node@v3
         with:
-          node-version: 12.x
+          node-version: 14.x
           registry-url: 'https://registry.npmjs.org'
       - name: Install
         run: npm install
       - name: Download prebuild artifacts
-        uses: actions/download-artifact@v2.1.0
+        uses: actions/download-artifact@v3
         with:
           path: artifacts
       - name: Merge artifacts to prebuilds directory
