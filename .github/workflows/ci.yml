@@ -89,7 +89,7 @@ jobs:
       - name: Install
         run: npm install
       - name: Download prebuild artifacts
-        uses: actions/download-artifact@v2.1.0
+        uses: actions/download-artifact@v4.1.7
         with:
           path: artifacts
       - name: Merge artifacts to prebuilds directory
