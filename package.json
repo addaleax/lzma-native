@@ -14,9 +14,9 @@
     "lzmajs": "bin/lzmajs"
   },
   "dependencies": {
-    "node-addon-api": "^3.1.0",
-    "node-gyp-build": "^4.2.1",
-    "readable-stream": "^3.6.0"
+    "node-addon-api": "^8.5.0",
+    "node-gyp-build": "^4.8.4",
+    "readable-stream": "^4.7.0"
   },
   "keywords": [
     "lzma",
@@ -45,9 +45,9 @@
     "url": "https://github.com/addaleax/lzma-native/issues"
   },
   "devDependencies": {
-    "bl": "^4.1.0",
-    "jshint": "^2.12.0",
-    "mocha": "^8.3.1",
-    "prebuildify": "^5.0.0"
+    "bl": "^6.1.4",
+    "jshint": "^2.13.6",
+    "mocha": "^11.7.5",
+    "prebuildify": "^6.0.1"
   }
 }
