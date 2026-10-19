@@ -13,20 +13,17 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest, macOS-latest, ubuntu-latest]
-        node-version: [12.x, 14.x, 16.x]
+        os: [windows-latest, windows-11-arm, macos-latest, ubuntu-latest]
+        node-version: [22.x, 24.x, 26.x]
 
     steps:
       - name: Fix git checkout line endings
         run: git config --global core.autocrlf input
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v7.0.1
       - name: Setup Node.js
-        uses: actions/setup-node@v2.3.0
+        uses: actions/setup-node@v7.1.0
         with:
           node-version: ${{ matrix.node-version }}
-      - name: Windows Setup
-        if: matrix.os == 'windows-latest'
-        run: npm run prepare-win32
       - name: Install
         run: npm install
       - name: Lint
@@ -36,40 +33,60 @@ jobs:
 
   prebuild:
     needs: test
-    runs-on: ${{ matrix.os }}-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows, macOS, ubuntu]
-        arch: [x64, arm64]
-        exclude:
-          - os: windows
-            arch: arm64
+        # Each prebuild is built natively on a runner of its target architecture.
+        # ia32 uses 32-bit Node.js on an x64 Windows runner.
         include:
-          - os: windows
+          - os: windows-latest
+            platform: win32
+            arch: x64
+          - os: windows-latest
+            platform: win32
             arch: ia32
+            node-arch: x86
+          - os: windows-11-arm
+            platform: win32
+            arch: arm64
+          - os: macos-26-intel
+            platform: darwin
+            arch: x64
+          - os: macos-latest
+            platform: darwin
+            arch: arm64
+          - os: ubuntu-latest
+            platform: linux
+            arch: x64
+          - os: ubuntu-24.04-arm
+            platform: linux
+            arch: arm64
 
     steps:
       - name: Fix git checkout line endings
         run: git config --global core.autocrlf input
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v7.0.1
       - name: Setup Node.js
-        uses: actions/setup-node@v2.3.0
+        uses: actions/setup-node@v7.1.0
         with:
-          node-version: 12.x
-      - name: Windows Setup
-        if: matrix.os == 'windows'
-        run: npm run prepare-win32
+          # Node.js 22 is the oldest supported version and the newest one with 32-bit Windows builds.
+          node-version: 22.x
+          architecture: ${{ matrix.node-arch }}
       - name: Install
         run: npm install
       - name: Prebuild binaries
-        run: npm run prebuild --v8_enable_pointer_compression=false --v8_enable_31bit_smis_on_64bit_arch=false $([[ $OSTYPE != darwin* ]] && echo --llvm_version=0.0 || true)
+        run: npm run prebuild --v8_enable_pointer_compression=false --v8_enable_31bit_smis_on_64bit_arch=false $([[ $OSTYPE != darwin* ]] && echo --llvm_version=0.0 || true) -- --target "$(node -p process.versions.node)"
         shell: bash
-        env:
-          PREBUILD_ARCH: ${{ matrix.arch }}
+      - name: Check prebuilt binary
+        run: |
+          ls prebuilds/${{ matrix.platform }}-${{ matrix.arch }}/*.node
+          rm -rf build
+          npm run test
+        shell: bash
       - name: Upload binaries as an artifact
-        uses: actions/upload-artifact@v2.3.1
+        uses: actions/upload-artifact@v7.0.2
         with:
-          name: prebuild-${{ matrix.os }}-${{ matrix.arch }}
+          name: prebuild-${{ matrix.platform }}-${{ matrix.arch }}
           path: prebuilds
 
   publish:
@@ -80,24 +97,22 @@ jobs:
     steps:
       - name: Fix git checkout line endings
         run: git config --global core.autocrlf input
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v7.0.1
       - name: Setup Node.js
-        uses: actions/setup-node@v2.3.0
+        uses: actions/setup-node@v7.1.0
         with:
-          node-version: 12.x
+          node-version: 22.x
           registry-url: 'https://registry.npmjs.org'
       - name: Install
         run: npm install
       - name: Download prebuild artifacts
-        uses: actions/download-artifact@v2.1.0
+        uses: actions/download-artifact@v8.0.2
         with:
-          path: artifacts
-      - name: Merge artifacts to prebuilds directory
-        run: |
-          mkdir prebuilds
-          mv artifacts/*/* prebuilds/
-          rm -r artifacts
-          ls prebuilds
+          pattern: prebuild-*
+          path: prebuilds
+          merge-multiple: true
+      - name: List prebuilds
+        run: ls -R prebuilds
       - name: Publish to npm
         run: npm publish
         env:

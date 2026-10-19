@@ -33,6 +33,11 @@ so for 99 % of users no compiler toolchain is necessary.
 Please [create an issue here](https://github.com/addaleax/lzma-native/issues/new)
 if you have any trouble installing this module.
 
+*Note*: Pre-built binaries are provided for Windows (x64, ia32, arm64), macOS (x64, arm64)
+and Linux (x64, arm64) and require Node.js 22 or later. Building from source on
+Windows requires Visual Studio with the “Desktop development with C++” workload and
+CMake 3.20 or later (included in Visual Studio as “C++ CMake tools for Windows”).
+
 *Note*: `lzma-native@2.x` requires a Node version >= 4. If you want to support
 Node `0.10` or `0.12`, you can feel free to use `lzma-native@1.x`.
 
@@ -495,7 +500,7 @@ Example usage:
 <!-- runtest:{Return a version string} -->
 
 ```js
-lzma.versionString() // => '5.2.3'
+lzma.versionString() // => '5.8.4'
 ```
 
 <a name="api-version-number"></a>
@@ -510,7 +515,7 @@ Example usage:
 <!-- runtest:{Return a numeric version identifier} -->
 
 ```js
-lzma.versionNumber() // => 50020012
+lzma.versionNumber() // => 50080042
 ```
 
 <a name="api-parse-indexes"></a>

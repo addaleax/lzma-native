@@ -1,6 +1,7 @@
 {
   "variables": {
-    "dlldir%": "<(module_root_dir)/build/Release"
+    "xz_tarball%": "<(module_root_dir)/deps/xz-5.8.4.tar.bz2",
+    "liblzma_win_dir": "<(SHARED_INTERMEDIATE_DIR)/liblzma"
   },
   "targets": [
     {
@@ -32,17 +33,9 @@
           "libraries" : [ "<(module_root_dir)/build/liblzma/build/lib/liblzma.a" ],
           "cflags": ['-O3 -std=c++11']
         }, {
-          "include_dirs" : [ "<(module_root_dir)\\deps\\include" ],
-          "link_settings": {
-            "libraries" : [ "-llzma" ],
-            "conditions": [
-              [ 'target_arch=="x64"', {
-                "library_dirs" : [ "<(module_root_dir)\\deps\\bin_x86-64" ]
-              }, {
-                "library_dirs" : [ "<(module_root_dir)\\deps\\bin_i686" ]
-              } ]
-            ]
-          }
+          "include_dirs" : [ "<(liblzma_win_dir)/include" ],
+          "defines" : [ "LZMA_API_STATIC" ],
+          "libraries" : [ "<(liblzma_win_dir)/lib/lzma.lib" ]
         } ],
       ],
     },
@@ -54,8 +47,8 @@
           "actions" : [
             {
               "action_name" : "build",
-               # a hack to run deps/xz-5.2.3 ./configure during `node-gyp configure`
-              'inputs': ['<!@(sh liblzma-config.sh "<(module_root_dir)/build" "<(module_root_dir)/deps/xz-5.2.3.tar.bz2")'],
+               # a hack to run deps/xz-*/configure during `node-gyp configure`
+              'inputs': ['<!@(sh liblzma-config.sh "<(module_root_dir)/build" "<(xz_tarball)")'],
               'outputs': [''],
               'action': [
                 'sh', '<(module_root_dir)/liblzma-build.sh', '<(module_root_dir)/build'
@@ -63,33 +56,15 @@
             }
           ]
         }, {
-          "conditions": [
-            [ 'target_arch=="x64"', {
-              'variables': {
-                "arch_lib_path" : 'bin_x86-64',
-                "arch_lib_code" : 'x64'
-              }
-            }, {
-              'variables': {
-                "arch_lib_path" : 'bin_i686',
-                "arch_lib_code" : 'ix86'
-              }
-            } ]
-          ],
           "actions" : [
             {
-              "msvs_quote_cmd": 0,
               "action_name" : "build",
-              'inputs': ['deps/doc/liblzma.def'],
-              'outputs': [''],
-              'action': ['lib.exe -def:"<(module_root_dir)/deps/doc/liblzma.def" -out:"<(module_root_dir)/deps/<(arch_lib_path)/lzma.lib" -machine:<(arch_lib_code)']
-            },
-            {
-              "msvs_quote_cmd": 0,
-              "action_name" : "deploy",
-              'inputs': ['deps/<(arch_lib_path)/liblzma.dll'],
-              'outputs': ['<(dlldir)/liblzma.dll'],
-              'action': ['mkdir <(dlldir) > nul 2>&1 & copy "<(module_root_dir)/deps/<(arch_lib_path)/liblzma.dll" <(dlldir)/liblzma.dll']
+              'inputs': ['<(xz_tarball)', '<(module_root_dir)/liblzma-build-win.js'],
+              'outputs': ['<(liblzma_win_dir)/lib/lzma.lib'],
+              'action': [
+                'node', '<(module_root_dir)/liblzma-build-win.js',
+                '<(liblzma_win_dir)', '<(xz_tarball)', '<(CONFIGURATION_NAME)'
+              ]
             }
           ]
         } ],

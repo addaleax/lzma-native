@@ -21,8 +21,8 @@ FilterArray::FilterArray(Value val) {
       throw TypeError::New(env, "Filter array expected");
     Object entry = entry_v.As<Object>();
 
-    String id = Value(entry[id_]).ToString();
-    Value opt_v = entry[options_];
+    String id = entry.Get(id_).ToString();
+    Value opt_v = entry.Get(options_);
 
     lzma_filter f;
     f.id = FilterByName(id);
